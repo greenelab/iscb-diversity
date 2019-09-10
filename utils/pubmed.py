@@ -1,5 +1,6 @@
 import collections
 import datetime
+import sys
 import time
 import xml.etree.ElementTree
 
@@ -22,7 +23,7 @@ def esearch_query(payload, retmax = 10000, sleep=0.34):
         count = int(tree.findtext('Count'))
         ids += [id_.text for id_ in tree.findall('IdList/Id')]
         payload['retstart'] += retmax
-        print('esearch {:.3%} complete'.format(payload['retstart'] / count), end='\r')
+        print('esearch {:.3%} complete'.format(payload['retstart'] / count), end='\r', file=sys.stderr)
         time.sleep(sleep)
     return ids
 
@@ -55,19 +56,24 @@ def pubmed_esummary(ids, write_file, retmax=100, retmin=20, sleep=0.34, error_sl
         id_subset_len = len(id_subset)
         
         # Perform eutilities API request
-        id_string = ','.join(map(str, id_subset))
-        payload = {'db': 'pubmed', 'id': id_string, 'rettype': 'xml'}
-        time_this = time.perf_counter()
-        wait = time_this - time_last
-        time_last = time_this
+        payload = {
+            'db': 'pubmed',
+            'id': ','.join(map(str, id_subset)),
+            'rettype': 'xml',
+        }
+        time_now = time.perf_counter()
+        wait = time_now - time_last
+        time_last = time_now
         try:
             response = requests.get(url, params=payload)
             tree = xml.etree.ElementTree.fromstring(response.text)
             successive_errors = 0
         except Exception as e:
             successive_errors += 1
-            print('{} successive error: {} IDs [{} ... {}] threw {}'.format(
-                    successive_errors, id_subset_len, id_subset[0], id_subset[-1], e))
+            print(
+                f'{successive_errors} successive error: {id_subset_len} IDs '
+                f'[{id_subset[0]} ... {id_subset[-1]}] threw {e}', file=sys.stderr
+            )
             if id_subset_len >= retmin * 2:
                 mid = len(id_subset) // 2
                 idq.appendleft(id_subset[:mid])
@@ -88,7 +94,7 @@ def pubmed_esummary(ids, write_file, retmax=100, retmin=20, sleep=0.34, error_sl
         remaining = (n_total - n_complete) * time_per_id
         remaining = datetime.timedelta(seconds=round(remaining))
         print('{:.4%} complete; {:.3f} seconds since last API call; {} remaining'.format(
-                n_complete / n_total, wait, remaining), end='\r')
+                n_complete / n_total, wait, remaining), end='\r', file=sys.stderr)
 
     # Write final line of XML
     write_file.write('</eSummaryResult>\n')
