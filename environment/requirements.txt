@@ -1,0 +1,8 @@
+eutils==0.5
+ipywidgets==7.5
+nbconvert==5.5
+notebook==6.0
+numpy==1.17
+pandas==0.25
+requests==2.22
+tqdm==4.35
