@@ -4,6 +4,6 @@ nbconvert==5.5
 notebook==6.0
 numpy==1.17
 pandas==0.25
-git+https://github.com/dhimmel/pubmedpy.git
+git+https://github.com/dhimmel/pubmedpy.git@75a69ee944e9bf38a6e75f68a72f5d5133002471
 requests==2.22
 tqdm==4.35

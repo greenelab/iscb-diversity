@@ -30,7 +30,6 @@ Then navigate to the following URL in your browser:
 You should see a Jupyter Notebook landing page where you can open, edit, and run any of the notebooks.
 
 When you are done, you shutdown the Jupyter notebook server and remove the Docker container by running `docker stop ismb-keynotes` in a new terminal.
-Or if in the terminal that launched the container, you can use your system's abort command (often [Control-C](https://en.wikipedia.org/wiki/Control-C)).
 
 ## License
 
