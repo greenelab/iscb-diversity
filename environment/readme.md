@@ -6,5 +6,5 @@ Run the following commands with this directory as your current working directory
 
 ```shell
 # Build the Docker image specified by Dockerfile
-docker build --tag genderize-ismb .
+docker build --tag ismb-keynotes .
 ```
