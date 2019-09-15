@@ -1,0 +1,96 @@
+---
+title: "Predict race/ethnicity based on census data"
+output: html_document
+---
+
+## Setups
+
+```{r}
+if (!requireNamespace('wru')) install.packages('wru')
+
+library(wru)
+library(tidyverse)
+source('utils/r-utils.R')
+```
+
+## Load data
+
+```{r}
+articles <- read_tsv('data/pubmed/articles.tsv.xz') %>%
+  mutate(surname = last_author_last_name,
+         year = substr(publication_date, 1, 4))
+str(articles)
+table(articles$journal)
+my_jours <- unique(articles$journal)
+n_jours <- length(my_jours)
+```
+
+
+## Use the `wru` package to predict race based on surnames only:
+
+```{r}
+race_df <- predict_race(voter.file = articles, surname.only = T,
+                        impute.missing = F)
+```
+
+7587 surnames out of 28436 were not matched.
+
+## Descriptive statistics
+
+```{r}
+race_plot <- race_df %>%
+  dplyr::select(year, journal, contains('pred')) %>%
+  pivot_longer(- c(journal, year), 
+               names_to = 'Race', 
+               values_to = 'Probabilities') %>%
+  mutate(Race = fct_recode(Race,
+                           'Asian' = 'pred.asi',
+                           'Black' = 'pred.bla',
+                           'Hispanic' = 'pred.his',
+                           'Others' = 'pred.oth',
+                           'White' = 'pred.whi'))
+race_plot %>%
+  ggplot(aes(y = Probabilities, 
+           x = fct_reorder(Race, Probabilities), 
+           fill = journal)) +
+  geom_boxplot(alpha = 0.8) +
+  theme_bw() +
+  scale_fill_viridis_d() +
+  labs(x = NULL)
+
+# Check: sum of all average probabilities for each year should add up to 1
+race_plot %>%
+  group_by(year, Race) %>%
+  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  summarise(all_prob = sum(mean_prob))
+```
+
+Perhaps stacked bar plots make more sense?
+```{r}
+dynamic_contribution <- function(df, title){
+  df %>%
+    ggplot(aes(year, mean_prob, fill = fct_reorder(Race, - mean_prob))) +
+    geom_bar(stat = 'identity', alpha = 0.9) +
+    theme_bw() +
+    scale_fill_viridis_d(direction = -1) +
+    scale_x_discrete(breaks = seq(2001, 2019, 2)) +
+    labs(x = NULL, y = 'Mean probability', title = title) + 
+    theme(legend.title = element_blank())
+}
+
+plot_dynamic_race <- vector('list', length = n_jours)
+i <- 0
+for (jour in my_jours){
+  i <- i + 1
+  plot_dynamic_race[[i]] <- race_plot %>%
+    filter(journal == jour) %>%
+    group_by(year, Race) %>%
+    summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+    dynamic_contribution(jour)
+}
+
+do.call(cowplot::plot_grid, c(plot_dynamic_race, nrow = 3))
+
+```
+
+
