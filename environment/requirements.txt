@@ -1,11 +1,13 @@
 eutils==0.5.2
 ipywidgets==7.5.1
+jsonlines==1.2.0
 lxml==4.4.1
 nbconvert==5.6.0
 notebook==6.0.1
 numpy==1.17.2
 pandas==0.25.1
 git+https://github.com/dhimmel/pubmedpy.git@75a69ee944e9bf38a6e75f68a72f5d5133002471
+ratelimit==2.2.1
 requests==2.22.0
 sickle==0.6.4
 tqdm==4.35.0
