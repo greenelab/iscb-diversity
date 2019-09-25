@@ -168,3 +168,31 @@ predict_race <- function (voter.file, census.surname = TRUE, surname.only = FALS
   pred <- paste("pred", eth, sep = ".")
   return(voter.file[c(vars.orig, pred)])
 }
+
+
+recode_race <- function(df){
+  # recode the Race column in df (output from wru::predict_race())
+  df %>%
+    mutate(
+      Race = fct_recode(
+        Race,
+        'Asian' = 'pred.asi',
+        'Black' = 'pred.bla',
+        'Hispanic' = 'pred.his',
+        'Others' = 'pred.oth',
+        'White' = 'pred.whi'
+      )
+    )
+}
+
+dynamic_contribution <- function(df, title = ''){
+  # plot stacked bargraphs for each race, mean_prob by year
+  df %>%
+    ggplot(aes(year, mean_prob, fill = fct_reorder(Race, - mean_prob))) +
+    geom_bar(stat = 'identity', alpha = 0.9) +
+    theme_bw() +
+    scale_fill_viridis_d(direction = -1) +
+    scale_x_continuous(breaks = seq(2003, 2019, 2)) +
+    labs(x = NULL, y = 'Mean probability', title = title) + 
+    theme(legend.title = element_blank())
+}

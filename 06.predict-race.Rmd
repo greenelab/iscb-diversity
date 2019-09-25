@@ -16,50 +16,61 @@ source('utils/r-utils.R')
 ## Load data
 
 ```{r}
-articles <- read_tsv('data/pubmed/articles.tsv.xz') %>%
-  mutate(surname = last_author_last_name,
-         year = substr(publication_date, 1, 4))
-str(articles)
+# head(pubmed_last_authors)
+authors <- read_tsv('data/pubmed/authors.tsv.xz') 
+articles <- read_tsv('data/pubmed/articles.tsv.xz')
+n_years <- 18
+
+pubmed_last_authors <- authors %>%
+  filter(reverse_position == 1) %>%
+  left_join(articles, by = 'pmid') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% as.integer()) %>%
+  rename('surname' = last_name)
+
+str(authors)
 table(articles$journal)
 my_jours <- unique(articles$journal)
 n_jours <- length(my_jours)
 ```
 
 
-## Use the `wru` package to predict race based on surnames only:
+## Use the `wru` package to predict race based on last_names only:
 
 ```{r}
-race_df <- predict_race(voter.file = articles, surname.only = T,
-                        impute.missing = F)
+pubmed_race_df <-
+  predict_race(
+    voter.file = pubmed_last_authors,
+    surname.only = T,
+    impute.missing = F
+  )
 ```
 
-7587 surnames out of 28436 were not matched.
+7587 last_names out of 28436 were not matched.
 
 ## Descriptive statistics
 
 ```{r}
-race_plot <- race_df %>%
+pubmed_race_plot <- pubmed_race_df %>%
   dplyr::select(year, journal, contains('pred')) %>%
-  pivot_longer(- c(journal, year), 
-               names_to = 'Race', 
-               values_to = 'Probabilities') %>%
-  mutate(Race = fct_recode(Race,
-                           'Asian' = 'pred.asi',
-                           'Black' = 'pred.bla',
-                           'Hispanic' = 'pred.his',
-                           'Others' = 'pred.oth',
-                           'White' = 'pred.whi'))
-race_plot %>%
-  ggplot(aes(y = Probabilities, 
-           x = fct_reorder(Race, Probabilities), 
-           fill = journal)) +
+  pivot_longer(
+    - c(journal, year), 
+    names_to = 'Race', 
+    values_to = 'Probabilities') %>%
+  recode_race()
+
+pubmed_race_plot %>%
+  ggplot(aes(
+    y = Probabilities,
+    x = fct_reorder(Race, Probabilities),
+    fill = journal
+  )) +
   geom_boxplot(alpha = 0.8) +
   theme_bw() +
   scale_fill_viridis_d() +
   labs(x = NULL)
 
 # Check: sum of all average probabilities for each year should add up to 1
-race_plot %>%
+pubmed_race_plot %>%
   group_by(year, Race) %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
   summarise(all_prob = sum(mean_prob))
@@ -67,22 +78,11 @@ race_plot %>%
 
 Perhaps stacked bar plots make more sense?
 ```{r}
-dynamic_contribution <- function(df, title){
-  df %>%
-    ggplot(aes(year, mean_prob, fill = fct_reorder(Race, - mean_prob))) +
-    geom_bar(stat = 'identity', alpha = 0.9) +
-    theme_bw() +
-    scale_fill_viridis_d(direction = -1) +
-    scale_x_discrete(breaks = seq(2001, 2019, 2)) +
-    labs(x = NULL, y = 'Mean probability', title = title) + 
-    theme(legend.title = element_blank())
-}
-
 plot_dynamic_race <- vector('list', length = n_jours)
 i <- 0
 for (jour in my_jours){
   i <- i + 1
-  plot_dynamic_race[[i]] <- race_plot %>%
+  plot_dynamic_race[[i]] <- pubmed_race_plot %>%
     filter(journal == jour) %>%
     group_by(year, Race) %>%
     summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
@@ -92,5 +92,99 @@ for (jour in my_jours){
 do.call(cowplot::plot_grid, c(plot_dynamic_race, nrow = 3))
 
 ```
+
+```{r}
+ismb_speakers <- read_tsv('data/ismb/keynotes.tsv') %>%
+  rename('surname' = last_name)
+
+ismb_race_df <-
+  predict_race(
+    voter.file = ismb_speakers,
+    surname.only = T,
+    impute.missing = F
+  )
+```
+
+29 surnames out of 125 were not matched.
+Can we ask them?
+
+```{r}
+ismb_race_plot <- ismb_race_df %>%
+  dplyr::select(year, contains('pred')) %>%
+  pivot_longer(
+    - c(year),
+    names_to = 'Race',
+    values_to = 'Probabilities') %>%
+  recode_race()
+
+ismb_race_plot %>%
+  ggplot(aes(y = Probabilities,
+             x = fct_reorder(Race, Probabilities))) +
+  geom_boxplot(alpha = 0.8) +
+  theme_bw() +
+  scale_fill_viridis_d() +
+  labs(x = NULL)
+
+ismb_race_plot %>%
+  group_by(year, Race) %>%
+  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  dynamic_contribution('ISMB keynote speakers')
+```
+
+
+
+```{r}
+white_mean_sd <- 
+  ismb_race_plot %>%
+  rbind(pubmed_race_plot %>% select(-'journal')) %>% 
+  filter(Race == 'White') %>%
+  group_by(year, Race) %>%
+  summarise(mean_prob = mean(Probabilities, na.rm = T),
+            sd_prob = sd(Probabilities, na.rm = T)) %>% 
+  mutate(type = c('ISMB', 'Pubmed'))
+  
+
+white_mean_sd %>% 
+  ggplot(aes(x = year, y = mean_prob, color = type)) +
+  geom_point(position = position_dodge(width = 0.5)) +
+  geom_errorbar(aes(ymin = mean_prob - sd_prob, 
+                    ymax = mean_prob + sd_prob),
+                alpha = 0.7, 
+                position = position_dodge(width = 0.5)) +
+  theme_bw() +
+  scale_color_viridis_d(option = 'E') +
+  labs(x = NULL)
+
+
+```
+
+
+Null: The proportion of white keynote ISMB speakers is not larger the proportions of white last authors published in Pubmed Central.
+Alternative: The proportion of white keynote ISMB speakers is larger the proportions of white last authors published in Pubmed Central.
+How do we take time component into account?
+Right now, I'm thinking we can use `year` as a random variable.
+Perhaps we should allow for random slope as well?
+
+```{r}
+w_combined <- 
+  pubmed_race_plot %>% 
+          select(- journal) %>% 
+          mutate(type = 'Pubmed') %>% 
+  rbind(ismb_race_plot %>% mutate(type = 'ISMB')) %>% 
+  filter(Race == 'White')
+
+w_combined %>% 
+  ggplot(aes(x = type, fill = type, y = Probabilities)) +
+  geom_violin(alpha = 0.8) +
+  facet_wrap(~ year, nrow = 3) +
+  theme_bw() +
+  labs(x = NULL) +
+  theme(legend.position = 'None') +
+  scale_fill_viridis_d()
+```
+
+These distributions look bimodal.
+Kolmogorov-Smirnov test?
+ANOVA of subgroups?
 
 
