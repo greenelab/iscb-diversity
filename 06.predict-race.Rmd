@@ -10,6 +10,7 @@ if (!requireNamespace('wru')) install.packages('wru')
 
 library(wru)
 library(tidyverse)
+library(lubridate)
 source('utils/r-utils.R')
 ```
 
@@ -24,7 +25,7 @@ n_years <- 18
 pubmed_last_authors <- authors %>%
   filter(reverse_position == 1) %>%
   left_join(articles, by = 'pmid') %>%
-  mutate(year = substr(publication_date, 1, 4) %>% as.integer()) %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2)) %>%
   rename('surname' = last_name)
 pubmed_last_authors$publication_date
 str(authors)
@@ -95,7 +96,8 @@ do.call(cowplot::plot_grid, c(plot_dynamic_race, nrow = 3))
 
 ```{r}
 ismb_speakers <- read_tsv('data/ismb/keynotes.tsv') %>%
-  rename('surname' = last_name)
+  rename('surname' = last_name) %>%
+  mutate(year = ymd(year, truncated = 2))
 
 ismb_race_df <-
   predict_race(
@@ -134,28 +136,19 @@ ismb_race_plot %>%
 
 
 ```{r}
+alpha <- qnorm(0.975)
 white_mean_sd <- 
   pubmed_race_plot %>% 
           select(- journal) %>% 
           mutate(type = 'Pubmed') %>% 
   rbind(ismb_race_plot %>% mutate(type = 'ISMB')) %>% 
-  filter(Race == 'White') %>% 
+  filter(Race == 'White') %>%
   group_by(year, Race, type) %>%
+  add_count() %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T),
-            sd_prob = sd(Probabilities, na.rm = T))
-  
-
-white_mean_sd %>% 
-  ggplot(aes(x = year, y = mean_prob, color = type)) +
-  geom_point(position = position_dodge(width = 0.5)) +
-  geom_errorbar(aes(ymin = mean_prob - sd_prob, 
-                    ymax = mean_prob + sd_prob),
-                alpha = 0.7, 
-                position = position_dodge(width = 0.5)) +
-  theme_bw() +
-  scale_color_viridis_d(option = 'E') +
-  labs(x = NULL)
-
+            sd_prob = sd(Probabilities, na.rm = T),
+            n = mean(n),
+            me_prob = alpha*sd_prob/sqrt(n))
 
 ```
 
@@ -179,15 +172,50 @@ w_combined <-
 w_combined %>% 
   ggplot(aes(x = type, fill = type, y = Probabilities)) +
   geom_violin(alpha = 0.8) +
-  facet_wrap(~ year, nrow = 3) +
+  facet_wrap(~ year(year), nrow = 3) +
   theme_bw() +
   labs(x = NULL) +
-  theme(legend.position = 'None') +
+  scale_x_discrete(label = NULL) +
+  theme(legend.title = element_blank()) +
   scale_fill_viridis_d()
 ```
 
-These distributions look bimodal.
-Kolmogorov-Smirnov test?
-ANOVA of subgroups?
+Bootstrap?
 
+```{r}
+pubmed_full <- pubmed_race_df %>%
+  mutate(publication_date = ymd(publication_date, truncated = 2))
+
+ismb_ci <- pubmed_full %>%
+  dplyr::select(year, journal, publication_date, contains('pred')) %>%
+  pivot_longer(-c(journal, year, publication_date),
+               names_to = 'Race',
+               values_to = 'Probabilities') %>%
+  recode_race() %>%
+  filter(Race == 'White')
+
+white_mean_ismb <- white_mean_sd %>%
+  filter(type == 'ISMB')
+white_ismb <- ismb_race_plot %>%
+  filter(Race == 'White')
+
+ggplot() +
+  geom_smooth(data = ismb_ci,
+              aes(x = publication_date, y = Probabilities),
+              color = '#eae428ff',
+              fill = 'grey85') +
+  geom_point(data = white_ismb,
+             aes(x = year, y = Probabilities),
+             alpha = 0.2) +
+  geom_point(data = white_mean_ismb, aes(x = year, y = mean_prob)) +
+  geom_errorbar(data = white_mean_ismb,
+                aes(x = year,
+                    ymin = mean_prob - me_prob,
+                    ymax = mean_prob + me_prob),
+                alpha = 0.7) +
+  theme_bw() +
+  scale_color_viridis_d(option = 'E') +
+  labs(x = NULL)
+
+```
 
