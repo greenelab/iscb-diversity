@@ -26,7 +26,7 @@ pubmed_last_authors <- authors %>%
   left_join(articles, by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% as.integer()) %>%
   rename('surname' = last_name)
-
+pubmed_last_authors$publication_date
 str(authors)
 table(articles$journal)
 my_jours <- unique(articles$journal)
@@ -135,13 +135,14 @@ ismb_race_plot %>%
 
 ```{r}
 white_mean_sd <- 
-  ismb_race_plot %>%
-  rbind(pubmed_race_plot %>% select(-'journal')) %>% 
-  filter(Race == 'White') %>%
-  group_by(year, Race) %>%
+  pubmed_race_plot %>% 
+          select(- journal) %>% 
+          mutate(type = 'Pubmed') %>% 
+  rbind(ismb_race_plot %>% mutate(type = 'ISMB')) %>% 
+  filter(Race == 'White') %>% 
+  group_by(year, Race, type) %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T),
-            sd_prob = sd(Probabilities, na.rm = T)) %>% 
-  mutate(type = c('ISMB', 'Pubmed'))
+            sd_prob = sd(Probabilities, na.rm = T))
   
 
 white_mean_sd %>% 
@@ -157,6 +158,8 @@ white_mean_sd %>%
 
 
 ```
+
+Confidence interval of the mean? (Aggregation)
 
 
 Null: The proportion of white keynote ISMB speakers is not larger the proportions of white last authors published in Pubmed Central.
