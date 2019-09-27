@@ -7,7 +7,7 @@ output: html_document
 
 ```{r}
 if (!requireNamespace('wru')) install.packages('wru')
-rm(list = ls())
+# rm(list = ls())
 
 library(wru)
 library(tidyverse)
@@ -32,6 +32,7 @@ ismb_race_df <- read_tsv('data/ismb/keynotes.tsv') %>%
   mutate(year = ymd(year, truncated = 2)) %>% 
   predict_race(surname.only = T, impute.missing = F)
 
+alpha <- qnorm(0.975)
 n_years <- 18
 my_jours <- unique(pubmed_race_df$journal)
 n_jours <- length(my_jours)
@@ -41,29 +42,39 @@ Pubmed: 7587 last_names out of 28436 were not matched.
 ISMB: 29 surnames out of 125 were not matched.
 
 ## Descriptive statistics
+Prepare data frames for later analyses:
+
+- rbind results of race predictions in ISMB and Pubmed
+- pivot long
+- compute mean, sd, marginal error
+- add "White" vs. "Others"
 
 ```{r}
-pubmed_race_plot <- pubmed_race_df %>%
-  dplyr::select(year, journal, contains('pred')) %>%
-  pivot_longer(
-    - c(journal, year), 
-    names_to = 'Race', 
-    values_to = 'Probabilities') %>%
-  recode_race()
+ismb_pubmed <- ismb_race_df %>%
+  select(year, contains('pred')) %>%
+  mutate(publication_date = year,
+         type = 'ISMB',
+         journal = 'ISMB') %>%
+  rbind(
+    pubmed_race_df %>%
+      select(year, journal, publication_date, contains('pred')) %>%
+      mutate(type = 'Pubmed')
+  ) %>%
+  pivot_longer(contains('pred'),
+               names_to = 'Race',
+               values_to = 'Probabilities') %>%
+  recode_race() %>%
+  group_by(year, Race, type, publication_date) %>%
+  add_count() %>%
+  mutate(
+    mean_prob = mean(Probabilities, na.rm = T),
+    sd_prob = sd(Probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() %>%
+  mutate(combined_race = ifelse(Race == 'White', 'White', 'Others'))
 
-ismb_race_plot <- ismb_race_df %>%
-  dplyr::select(year, contains('pred')) %>%
-  pivot_longer(
-    - c(year),
-    names_to = 'Race',
-    values_to = 'Probabilities') %>%
-  recode_race()
-
-# Check: sum of all average probabilities for each year should add up to 1
-pubmed_race_plot %>%
-  group_by(year, Race) %>%
-  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
-  summarise(all_prob = sum(mean_prob))
 ```
 
 Stacked bar plots:
@@ -72,7 +83,8 @@ plot_dynamic_race <- vector('list', length = n_jours)
 i <- 0
 for (jour in my_jours){
   i <- i + 1
-  plot_dynamic_race[[i]] <- pubmed_race_plot %>%
+  plot_dynamic_race[[i]] <- ismb_pubmed %>%
+  filter(type == 'Pubmed') %>%
     filter(journal == jour) %>%
     group_by(year, Race) %>%
     summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
@@ -81,7 +93,8 @@ for (jour in my_jours){
 
 do.call(cowplot::plot_grid, c(plot_dynamic_race, nrow = 3))
 
-ismb_race_plot %>%
+ismb_pubmed %>%
+  filter(type == 'ISMB') %>% 
   group_by(year, Race) %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
   dynamic_contribution('ISMB keynote speakers')
@@ -89,12 +102,6 @@ ismb_race_plot %>%
 
 
 ```{r}
-alpha <- qnorm(0.975)
-ismb_pubmed <- pubmed_race_plot %>% 
-  select(- journal) %>% 
-  mutate(type = 'Pubmed') %>% 
-  rbind(ismb_race_plot %>% mutate(type = 'ISMB'))
-
 # boxplot ismb, pubmed faceted by year
 ismb_pubmed %>% 
   filter(Race == 'White') %>% 
@@ -102,7 +109,7 @@ ismb_pubmed %>%
   geom_violin(alpha = 0.8) +
   facet_wrap(~ year(year), nrow = 3) +
   theme_bw() +
-  labs(x = NULL) +
+  labs(x = NULL, y = 'Probabilities of being white') +
   scale_x_discrete(label = NULL) +
   theme(legend.title = element_blank()) +
   scale_fill_viridis_d()
@@ -119,48 +126,44 @@ Perhaps we should allow for random slope as well?
 Bootstrap?
 
 ```{r}
-pub_ci <- pubmed_race_df %>%
-  dplyr::select(year, journal, publication_date, contains('pred')) %>%
-  pivot_longer(-c(journal, year, publication_date),
-               names_to = 'Race',
-               values_to = 'Probabilities') %>%
-  recode_race() %>%
-  filter(Race == my_race)
+get_summary <- function(df){
+  df %>% filter(type == 'ISMB') %>% select(- Probabilities) %>% distinct()
+}
 
-my_race <- 'White'
-
-irace_mean_sd <- ismb_pubmed %>% 
-  filter(Race == my_race) %>%
-  group_by(year, Race, type) %>%
-  add_count() %>%
-  summarise(mean_prob = mean(Probabilities, na.rm = T),
-            sd_prob = sd(Probabilities, na.rm = T),
-            n = mean(n),
-            me_prob = alpha*sd_prob/sqrt(n))
-
-ggplot() +
-  geom_smooth(data = pub_ci,
-              aes(x = publication_date, y = Probabilities),
-              color = '#eae428ff',
-              fill = 'grey85') +
-  geom_point(data = filter(ismb_race_plot, Race == my_race),
-             aes(x = year, y = Probabilities),
-             alpha = 0.2, color = '#1f968bff') +
-  geom_smooth(data = filter(ismb_race_plot, Race == my_race),
-             aes(x = year, y = Probabilities),
-             alpha = 0.2, color = '#1f968bff') +
-  geom_point(data = filter(irace_mean_sd, type == 'ISMB'), 
-             aes(x = year, y = mean_prob),
-             shape = 2,
-             alpha = 0.5) +
-  geom_linerange(data = filter(irace_mean_sd, type == 'ISMB'), 
-                aes(x = year,
-                    ymin = mean_prob - me_prob,
-                    ymax =mean_prob + me_prob),
-                alpha = 0.5) +
+ggplot(ismb_pubmed %>% filter(Race == 'White' | Race == 'Asian'),
+       aes(x = year)) +
+  facet_grid(cols = vars(Race)) +
+  geom_smooth(aes(x = publication_date, y = Probabilities, color = type)) +
+  geom_point(
+    data = . %>% filter(type == 'ISMB'),
+    aes(y = Probabilities, color = type),
+    alpha = 0.2,
+    show.legend = F
+  ) +
+  geom_point(
+    data = . %>% get_summary(),
+    aes(y = mean_prob, color = type),
+    shape = 2,
+    alpha = 0.5,
+    show.legend = F
+  ) +
+  geom_linerange(
+    data = . %>% get_summary(),
+    aes(
+      ymin = mean_prob - me_prob,
+      ymax = mean_prob + me_prob,
+      color = type
+    ),
+    alpha = 0.5,
+    show.legend = F
+  ) +
   theme_bw() +
+  theme(legend.title = element_blank(),
+        legend.position = c(0.1, 0.85)) +
   scale_color_viridis_d(option = 'E') +
+  coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL)
 
 ```
+
 
