@@ -188,7 +188,7 @@ recode_race <- function(df){
 dynamic_contribution <- function(df, title = ''){
   # plot stacked bargraphs for each race, mean_prob by year
   df %>%
-    ggplot(aes(year, mean_prob, fill = fct_reorder(Race, - mean_prob))) +
+    ggplot(aes(year(year), mean_prob, fill = fct_reorder(Race, - mean_prob))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
     theme_bw() +
     scale_fill_viridis_d(direction = -1) +
