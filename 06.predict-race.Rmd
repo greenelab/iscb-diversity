@@ -31,7 +31,7 @@ ismb_race_df <- read_tsv('data/ismb/keynotes.tsv') %>%
   rename('surname' = last_name) %>%
   mutate(year = ymd(year, truncated = 2)) %>% 
   predict_race(surname.only = T, impute.missing = F)
-
+ismb_race_df[is.na(ismb_race_df$pred.whi),]
 alpha <- qnorm(0.975)
 n_years <- 18
 my_jours <- unique(pubmed_race_df$journal)
@@ -54,17 +54,19 @@ ismb_pubmed <- ismb_race_df %>%
   select(year, contains('pred')) %>%
   mutate(publication_date = year,
          type = 'ISMB',
-         journal = 'ISMB') %>%
+         journal = 'ISMB',
+         pred_sum_others = pred.his + pred.oth + pred.bla) %>%
   rbind(
     pubmed_race_df %>%
       select(year, journal, publication_date, contains('pred')) %>%
-      mutate(type = 'Pubmed')
+      mutate(type = 'Pubmed',
+             pred_sum_others = pred.his + pred.oth + pred.bla)
   ) %>%
   pivot_longer(contains('pred'),
                names_to = 'Race',
                values_to = 'Probabilities') %>%
   recode_race() %>%
-  group_by(year, Race, type, publication_date) %>%
+  group_by(type, year, publication_date, Race) %>%
   add_count() %>%
   mutate(
     mean_prob = mean(Probabilities, na.rm = T),
@@ -72,8 +74,7 @@ ismb_pubmed <- ismb_race_df %>%
     n = mean(n),
     me_prob = alpha * sd_prob / sqrt(n)
   ) %>%
-  ungroup() %>%
-  mutate(combined_race = ifelse(Race == 'White', 'White', 'Others'))
+  ungroup() 
 
 ```
 
@@ -84,17 +85,17 @@ i <- 0
 for (jour in my_jours){
   i <- i + 1
   plot_dynamic_race[[i]] <- ismb_pubmed %>%
-  filter(type == 'Pubmed') %>%
-    filter(journal == jour) %>%
+    filter(type == 'Pubmed' & journal == jour & (Race != 'All others')) %>%
     group_by(year, Race) %>%
     summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+    ungroup() %>% 
     dynamic_contribution(jour)
 }
 
 do.call(cowplot::plot_grid, c(plot_dynamic_race, nrow = 3))
 
 ismb_pubmed %>%
-  filter(type == 'ISMB') %>% 
+  filter(type == 'ISMB' & (Race != 'All others')) %>% 
   group_by(year, Race) %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
   dynamic_contribution('ISMB keynote speakers')
@@ -130,10 +131,10 @@ get_summary <- function(df){
   df %>% filter(type == 'ISMB') %>% select(- Probabilities) %>% distinct()
 }
 
-ggplot(ismb_pubmed %>% filter(Race == 'White' | Race == 'Asian'),
+ggplot(ismb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
        aes(x = year)) +
-  facet_grid(cols = vars(Race)) +
-  geom_smooth(aes(x = publication_date, y = Probabilities, color = type)) +
+  facet_grid(cols = vars(fct_rev(Race))) +
+  geom_smooth(aes(x = publication_date, y = Probabilities, color = type, fill = type)) +
   geom_point(
     data = . %>% filter(type == 'ISMB'),
     aes(y = Probabilities, color = type),
@@ -158,12 +159,22 @@ ggplot(ismb_pubmed %>% filter(Race == 'White' | Race == 'Asian'),
     show.legend = F
   ) +
   theme_bw() +
-  theme(legend.title = element_blank(),
-        legend.position = c(0.1, 0.85)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
+  theme(legend.title = element_blank()) +
   scale_color_viridis_d(option = 'E') +
+  scale_fill_viridis_d(option = 'E') +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL)
 
 ```
 
+
+```{r}
+# Check: probabilities, if valid, should add up to 1
+ismb_pubmed %>%
+  filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
+  group_by(type, year, publication_date, Race) %>%
+  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  summarise(all_prob = sum(mean_prob))
+```
 

@@ -180,7 +180,8 @@ recode_race <- function(df){
         'Black' = 'pred.bla',
         'Hispanic' = 'pred.his',
         'Others' = 'pred.oth',
-        'White' = 'pred.whi'
+        'White' = 'pred.whi',
+        'All others' = 'pred_sum_others'
       )
     )
 }
