@@ -1,4 +1,4 @@
-# title placeholder
+# Diversity of ISCB Honorees
 
 ## Development
 
