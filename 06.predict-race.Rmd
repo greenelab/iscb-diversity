@@ -41,9 +41,10 @@ my_jours <- unique(pubmed_race_df$journal)
 my_confs <- unique(iscb_race_df$Conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
+race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Others', 'All others')
 ```
 
-Pubmed: 7578 last_names out of 28427 were not matched.
+Pubmed: 7891 last_names out of 29615 were not matched.
 iscb: 82 surnames out of 348 were not matched.
 
 ## Descriptive statistics
@@ -102,7 +103,7 @@ do.call(cowplot::plot_grid, c(plot_pubmed_race, nrow = 3))
 ```
 
 By conference keynotes/fellows:
-```{r}
+```{r fig.height=6}
 i <- 0
 plot_iscb_race <- vector('list', length = n_confs)
 
@@ -119,8 +120,9 @@ do.call(cowplot::plot_grid, c(plot_iscb_race, nrow = n_confs))
 
 ```
 
+
 All fellows and keynotes compared to three ISCB partner journals:
-```{r}
+```{r fig.width=10, fig.height=4}
 iscb_pubmed %>%
   filter(Race != 'All others') %>%
   group_by(year, type, Race) %>%
@@ -131,7 +133,7 @@ iscb_pubmed %>%
 ```
 
 
-```{r}
+```{r fig.width=10}
 # boxplot iscb, pubmed faceted by year
 iscb_pubmed %>% 
   filter(Race == 'White') %>% 
@@ -155,7 +157,7 @@ Perhaps we should allow for random slope as well?
 
 Bootstrap?
 
-```{r}
+```{r fig.width=10, fig.height=4}
 get_summary <- function(df){
   df %>% filter(type != 'Pubmed') %>% select(- Probabilities) %>% distinct()
 }
