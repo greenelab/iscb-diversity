@@ -5,7 +5,7 @@ output: html_document
 
 ## Setups
 
-```{r}
+```{r message = F}
 if (!requireNamespace('wru')) install.packages('wru')
 # rm(list = ls())
 
@@ -27,34 +27,39 @@ pubmed_race_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
   predict_race(surname.only = T, impute.missing = F) %>%
   mutate(publication_date = ymd(publication_date, truncated = 2))
 
-ismb_race_df <- read_tsv('data/ismb/keynotes.tsv') %>%
+iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   rename('surname' = last_name) %>%
   mutate(year = ymd(year, truncated = 2)) %>% 
   predict_race(surname.only = T, impute.missing = F)
-ismb_race_df[is.na(ismb_race_df$pred.whi),]
+
+# unmatched names
+iscb_race_df[is.na(iscb_race_df$pred.whi), 1:2]
+
 alpha <- qnorm(0.975)
 n_years <- 18
 my_jours <- unique(pubmed_race_df$journal)
+my_confs <- unique(iscb_race_df$Conference)
 n_jours <- length(my_jours)
+n_confs <- length(my_confs)
 ```
 
-Pubmed: 7587 last_names out of 28436 were not matched.
-ISMB: 29 surnames out of 125 were not matched.
+Pubmed: 7578 last_names out of 28427 were not matched.
+iscb: 82 surnames out of 348 were not matched.
 
 ## Descriptive statistics
 Prepare data frames for later analyses:
 
-- rbind results of race predictions in ISMB and Pubmed
+- rbind results of race predictions in iscb and Pubmed
 - pivot long
 - compute mean, sd, marginal error
 - add "White" vs. "Others"
 
 ```{r}
-ismb_pubmed <- ismb_race_df %>%
-  select(year, contains('pred')) %>%
+iscb_pubmed <- iscb_race_df %>%
+  rename('journal' = Conference) %>% 
+  select(year, journal, contains('pred')) %>%
   mutate(publication_date = year,
-         type = 'ISMB',
-         journal = 'ISMB',
+         type = 'Keynotes/Fellows',
          pred_sum_others = pred.his + pred.oth + pred.bla) %>%
   rbind(
     pubmed_race_df %>%
@@ -79,12 +84,13 @@ ismb_pubmed <- ismb_race_df %>%
 ```
 
 Stacked bar plots:
+By journals:
 ```{r}
-plot_dynamic_race <- vector('list', length = n_jours)
+plot_pubmed_race <- vector('list', length = n_jours)
 i <- 0
 for (jour in my_jours){
   i <- i + 1
-  plot_dynamic_race[[i]] <- ismb_pubmed %>%
+  plot_pubmed_race[[i]] <- iscb_pubmed %>%
     filter(type == 'Pubmed' & journal == jour & (Race != 'All others')) %>%
     group_by(year, Race) %>%
     summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
@@ -92,19 +98,42 @@ for (jour in my_jours){
     dynamic_contribution(jour)
 }
 
-do.call(cowplot::plot_grid, c(plot_dynamic_race, nrow = 3))
+do.call(cowplot::plot_grid, c(plot_pubmed_race, nrow = 3))
+```
 
-ismb_pubmed %>%
-  filter(type == 'ISMB' & (Race != 'All others')) %>% 
-  group_by(year, Race) %>%
+By conference keynotes/fellows:
+```{r}
+i <- 0
+plot_iscb_race <- vector('list', length = n_confs)
+
+for (conf in my_confs){
+  i <- i + 1
+  plot_iscb_race[[i]] <- iscb_pubmed %>%
+    filter(type != 'Pubmed' & journal == conf & (Race != 'All others')) %>%
+    group_by(year, Race) %>%
+    summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+    ungroup() %>% 
+    dynamic_contribution(conf)
+}
+do.call(cowplot::plot_grid, c(plot_iscb_race, nrow = n_confs))
+
+```
+
+All fellows and keynotes compared to three ISCB partner journals:
+```{r}
+iscb_pubmed %>%
+  filter(Race != 'All others') %>%
+  group_by(year, type, Race) %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
-  dynamic_contribution('ISMB keynote speakers')
+  ungroup() %>%
+  dynamic_contribution() +
+  facet_wrap( ~ type)
 ```
 
 
 ```{r}
-# boxplot ismb, pubmed faceted by year
-ismb_pubmed %>% 
+# boxplot iscb, pubmed faceted by year
+iscb_pubmed %>% 
   filter(Race == 'White') %>% 
   ggplot(aes(x = type, fill = type, y = Probabilities)) +
   geom_violin(alpha = 0.8) +
@@ -118,8 +147,8 @@ ismb_pubmed %>%
 
 Confidence interval of the mean? (Aggregation)
 
-Null: The proportion of white keynote ISMB speakers is not larger the proportions of white last authors published in Pubmed Central.
-Alternative: The proportion of white keynote ISMB speakers is larger the proportions of white last authors published in Pubmed Central.
+Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed Central.
+Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed Central.
 How do we take time component into account?
 Right now, I'm thinking we can use `year` as a random variable.
 Perhaps we should allow for random slope as well?
@@ -128,15 +157,15 @@ Bootstrap?
 
 ```{r}
 get_summary <- function(df){
-  df %>% filter(type == 'ISMB') %>% select(- Probabilities) %>% distinct()
+  df %>% filter(type != 'Pubmed') %>% select(- Probabilities) %>% distinct()
 }
 
-ggplot(ismb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
+ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
        aes(x = year)) +
   facet_grid(cols = vars(fct_rev(Race))) +
   geom_smooth(aes(x = publication_date, y = Probabilities, color = type, fill = type)) +
   geom_point(
-    data = . %>% filter(type == 'ISMB'),
+    data = . %>% filter(type != 'Pubmed'),
     aes(y = Probabilities, color = type),
     alpha = 0.2,
     show.legend = F
@@ -171,7 +200,7 @@ ggplot(ismb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
 
 ```{r}
 # Check: probabilities, if valid, should add up to 1
-ismb_pubmed %>%
+iscb_pubmed %>%
   filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
   group_by(type, year, publication_date, Race) %>%
   summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
