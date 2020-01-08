@@ -16,12 +16,12 @@ For interactive development, run the following command:
 # This command must be run with the repository root as your working directory.
 # Requires docker version >= 17.06.
 docker run \
-  --name ismb-keynotes \
+  --name iscb-diversity \
   --detach --rm \
   --env JUPYTER_TOKEN=ksbegpqzrurktbkikyo \
   --publish 8899:8888 \
   --mount type=bind,source="$(pwd)",target=/user/jupyter \
-  ismb-keynotes
+  iscb-diversity
 ```
 
 Then navigate to the following URL in your browser:
@@ -29,7 +29,7 @@ Then navigate to the following URL in your browser:
 
 You should see a Jupyter Notebook landing page where you can open, edit, and run any of the notebooks.
 
-When you are done, you shutdown the Jupyter notebook server and remove the Docker container by running `docker stop ismb-keynotes` in a new terminal.
+When you are done, you shutdown the Jupyter notebook server and remove the Docker container by running ```docker stop iscb-diversity``` in a new terminal.
 
 ## License
 
