@@ -90,7 +90,7 @@ table(iscb_df$final_gender_pred) %>%
 Prepare data frames for later analyses:
 
 - rbind results of race predictions in iscb and Pubmed
-- pivot long
+<!-- - pivot long -->
 - compute mean, sd, marginal error
 
 ```{r}
@@ -103,38 +103,41 @@ iscb_pubmed <- iscb_df %>%
       select(year, journal, probability_male, publication_date, final_gender_pred) %>%
       mutate(type = 'Pubmed')
   ) %>%
-  # pivot_longer(contains('pred'),
-  #              names_to = 'Race',
-  #              values_to = 'Probabilities') %>%
+  mutate(probability_female = 1 - probability_male) %>% 
+  pivot_longer(contains('probability'),
+               names_to = 'gender',
+               values_to = 'probabilities') %>%
   # recode_race() %>%
-  group_by(type, year, publication_date) %>%
+  group_by(type, year, publication_date, gender) %>%
   add_count() %>%
   mutate(
-    mean_prob = mean(probability_male, na.rm = T),
-    sd_prob = sd(probability_male, na.rm = T),
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
     n = mean(n),
     me_prob = alpha * sd_prob / sqrt(n)
   ) %>%
   ungroup() 
 
+iscb_pubmed %>% filter(year == '2020-01-01',
+                       type == 'Keynotes/Fellows')
 ```
 
 Stacked bar plots:
 By journals:
 ```{r}
-plot_pubmed_race <- vector('list', length = n_jours)
+plot_pubmed_gender <- vector('list', length = n_jours)
 i <- 0
 for (jour in my_jours){
   i <- i + 1
-  plot_pubmed_race[[i]] <- iscb_pubmed %>%
-    filter(type == 'Pubmed' & journal == jour & (Race != 'All others')) %>%
-    group_by(year, Race) %>%
-    summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
-    ungroup() %>% 
-    dynamic_contribution(jour)
+  plot_pubmed_gender[[i]] <- iscb_pubmed %>%
+    filter(type == 'Pubmed' & journal == jour) %>%
+    group_by(year, gender) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup() %>%
+    gender_plot(jour)
 }
 
-do.call(cowplot::plot_grid, c(plot_pubmed_race, nrow = 3))
+do.call(cowplot::plot_grid, c(plot_pubmed_gender, nrow = 3))
 ```
 
 By conference keynotes/fellows:
@@ -146,9 +149,9 @@ for (conf in my_confs){
   i <- i + 1
   plot_iscb_gender[[i]] <- iscb_pubmed %>%
     filter(type != 'Pubmed' & journal == conf) %>%
-    group_by(year, final_gender_pred) %>%
-    summarise(mean_prob = mean(probability_male, na.rm = T)) %>%
-    ungroup() %>% 
+    group_by(year, gender) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup() %>%
     gender_plot(conf)
 }
 do.call(cowplot::plot_grid, c(plot_iscb_gender, nrow = n_confs))
@@ -159,24 +162,24 @@ do.call(cowplot::plot_grid, c(plot_iscb_gender, nrow = n_confs))
 All fellows and keynotes compared to three ISCB partner journals:
 ```{r fig.width=10, fig.height=4}
 iscb_pubmed %>%
-  filter(Race != 'All others') %>%
-  group_by(year, type, Race) %>%
-  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  group_by(year, type, gender) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
-  dynamic_contribution() +
+  gender_plot() +
   facet_wrap( ~ type)
 ```
+
 
 
 ```{r fig.width=10}
 # boxplot iscb, pubmed faceted by year
 iscb_pubmed %>% 
-  filter(Race == 'White') %>% 
-  ggplot(aes(x = type, fill = type, y = Probabilities)) +
-  geom_violin(alpha = 0.8) +
+  filter(gender == 'probability_male') %>% 
+  ggplot(aes(x = type, fill = type, y = probabilities)) +
+  geom_boxplot(alpha = 0.8) +
   facet_wrap(~ year(year), nrow = 3) +
   theme_bw() +
-  labs(x = NULL, y = 'Probabilities of being white') +
+  labs(x = NULL, y = 'Probabilities of being male') +
   scale_x_discrete(label = NULL) +
   theme(legend.title = element_blank()) +
   scale_fill_viridis_d()
@@ -184,26 +187,19 @@ iscb_pubmed %>%
 
 Confidence interval of the mean? (Aggregation)
 
-Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed Central.
-Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed Central.
-How do we take time component into account?
-Right now, I'm thinking we can use `year` as a random variable.
-Perhaps we should allow for random slope as well?
-
-Bootstrap?
 
 ```{r fig.width=10, fig.height=4}
 get_summary <- function(df){
-  df %>% filter(type != 'Pubmed') %>% select(- Probabilities) %>% distinct()
+  df %>% filter(type != 'Pubmed') %>% select(- probabilities) %>% distinct()
 }
 
-ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
+ggplot(iscb_pubmed %>% filter(gender == 'probability_female'),
        aes(x = year)) +
-  facet_grid(cols = vars(fct_rev(Race))) +
-  geom_smooth(aes(x = publication_date, y = Probabilities, color = type, fill = type)) +
+  # facet_grid(cols = vars(fct_rev(gender))) +
+  geom_smooth(aes(x = publication_date, y = probabilities, color = type, fill = type)) +
   geom_point(
     data = . %>% filter(type != 'Pubmed'),
-    aes(y = Probabilities, color = type),
+    aes(y = probabilities, color = type),
     alpha = 0.2,
     show.legend = F
   ) +
@@ -230,17 +226,17 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
   scale_color_viridis_d(option = 'E') +
   scale_fill_viridis_d(option = 'E') +
   coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL)
+  labs(x = NULL, y = 'Female Probability')
 
 ```
 
 
 ```{r}
 # Check: probabilities, if valid, should add up to 1
-iscb_pubmed %>%
-  filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
-  group_by(type, year, publication_date, Race) %>%
-  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
-  summarise(all_prob = sum(mean_prob))
+# iscb_pubmed %>%
+#   filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
+#   group_by(type, year, publication_date, Race) %>%
+#   summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+#   summarise(all_prob = sum(mean_prob))
 ```
 
