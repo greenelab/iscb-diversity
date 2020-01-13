@@ -186,16 +186,35 @@ recode_race <- function(df){
     )
 }
 
-gender_plot <- function(df, title = ''){
-  # plot stacked bargraphs for each race, mean_prob by year
+recode_gender <- function(df){
+  # recode the Race column in df (output from wru::predict_race())
   df %>%
+    mutate(
+      gender = fct_recode(
+        gender, 
+        'Female' = 'probability_female',
+        'Male' = 'probability_male')
+  )
+}
+
+gender_breakdown <- function(df, start_year, end_year, journal, facet_by = 'row'){
+  # plot stacked bargraphs for each gender, mean_prob by year
+  my_plot <- df %>%
+    recode_gender() %>% 
     ggplot(aes(year(year), mean_prob, fill = gender)) +
     geom_bar(stat = 'identity', alpha = 0.9) +
     theme_bw() +
-    scale_fill_viridis_d(direction = -1) +
-    scale_x_continuous(breaks = seq(1997, 2019, 4)) +
-    labs(x = NULL, y = 'Mean probability', title = title) + 
+    scale_fill_viridis_d(option = 'E', end = 0.8) +
+    scale_x_continuous(breaks = seq(start_year, end_year, 2)) +
+    coord_cartesian(xlim = c(start_year, end_year)) +
+    labs(x = NULL, y = 'Mean probability') + 
     theme(legend.title = element_blank())
+  
+  if (facet_by == 'row'){
+    my_plot + facet_grid(rows = vars(!!sym(journal)))
+  } else if (facet_by == 'col') {
+    my_plot + facet_grid(cols = vars(!!sym(journal)))
+  }
 }
 
 race_breakdown <- function(df, start_year, end_year, journal, facet_by = 'row'){
