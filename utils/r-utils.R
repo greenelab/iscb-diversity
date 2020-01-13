@@ -186,18 +186,6 @@ recode_race <- function(df){
     )
 }
 
-dynamic_contribution <- function(df, title = ''){
-  # plot stacked bargraphs for each race, mean_prob by year
-  df %>%
-    ggplot(aes(year(year), mean_prob, fill = fct_relevel(Race, race_levels))) +
-    geom_bar(stat = 'identity', alpha = 0.9) +
-    theme_bw() +
-    scale_fill_viridis_d(direction = -1) +
-    scale_x_continuous(breaks = seq(1997, 2019, 2)) +
-    labs(x = NULL, y = 'Mean probability', title = title) + 
-    theme(legend.title = element_blank())
-}
-
 gender_plot <- function(df, title = ''){
   # plot stacked bargraphs for each race, mean_prob by year
   df %>%
@@ -208,4 +196,23 @@ gender_plot <- function(df, title = ''){
     scale_x_continuous(breaks = seq(1997, 2019, 4)) +
     labs(x = NULL, y = 'Mean probability', title = title) + 
     theme(legend.title = element_blank())
+}
+
+race_breakdown <- function(df, start_year, end_year, journal, facet_by = 'row'){
+  # plot stacked bargraphs for each race, mean_prob by year
+  my_plot <- df %>%
+    ggplot(aes(year(year), mean_prob, fill = fct_relevel(Race, race_levels))) +
+    geom_bar(stat = 'identity', alpha = 0.9) +
+    theme_bw() +
+    scale_fill_viridis_d(direction = -1) +
+    scale_x_continuous(breaks = seq(start_year, end_year, 2)) +
+    coord_cartesian(xlim = c(start_year, end_year)) +
+    labs(x = NULL, y = 'Mean probability') + 
+    theme(legend.title = element_blank())
+  
+  if (facet_by == 'row'){
+    my_plot + facet_grid(rows = vars(!!sym(journal)))
+  } else if (facet_by == 'col') {
+    my_plot + facet_grid(cols = vars(!!sym(journal)))
+  }
 }
