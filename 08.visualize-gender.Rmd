@@ -1,0 +1,246 @@
+---
+title: "Visualize gender predictions based on census data"
+output: html_document
+---
+
+## Setups
+
+```{r message = F}
+if (!requireNamespace('wru')) install.packages('wru')
+
+library(wru)
+library(tidyverse)
+library(lubridate)
+source('utils/r-utils.R')
+```
+
+## Load data
+and use the `wru` package to predict race based on last_names only
+
+```{r}
+alpha <- qnorm(0.975)
+
+simple_fore_names <- read_tsv('data/names/simple-fore-names.tsv.xz')
+gender_df <- read_tsv('data/gender/genderize.tsv')
+
+pubmed_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
+  filter(reverse_position == 1) %>%
+  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = publication_date %>% ymd(truncated = 2)) %>% 
+  left_join(simple_fore_names %>% select(- n_authors), by = 'fore_name') %>% 
+  left_join(gender_df, by = 'fore_name_simple') %>% 
+  mutate(final_gender_pred = ifelse(probability_male > 0.5, 'Male', 'Female'))
+
+iscb_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  left_join(simple_fore_names %>% select(- n_authors), by = 'fore_name') %>% 
+  left_join(gender_df, by = 'fore_name_simple') %>% 
+  mutate(final_gender_pred = ifelse(probability_male > 0.5, 'Male', 'Female'))
+
+my_jours <- unique(pubmed_df$journal)
+my_confs <- unique(iscb_df$Conference)
+n_jours <- length(my_jours)
+n_confs <- length(my_confs)
+```
+
+Number of speakers/fellows in compbio conferences across years:
+
+```{r}
+iscb_df %>%
+  select(year, Conference) %>% 
+  count(year, Conference) %>% 
+  ggplot(aes(x = year(year), y = n, color = Conference)) +
+  geom_point() +
+  geom_line(alpha = 0.5) +
+  coord_cartesian(ylim = c(0, 13)) +
+  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
+  scale_y_continuous(breaks = seq(0, 14, 2)) +
+  scale_color_viridis_d() +
+  labs(x = 'Year', y = 'Number of speakers/fellows')
+```
+
+### Genders:
+
+```{r}
+# not-genderized names
+iscb_df %>% filter(is.na(probability_male))
+# gender_df %>% filter(fore_name_simple == 'zhi')
+# gender_df %>% filter(fore_name_simple == 'geng')
+pubmed_df %>% filter(is.na(probability_male)) %>% sample_n(10)
+
+# sum(is.na(pubmed_df$probability_male))
+```
+
+2697 pubmed forename not genderized.
+
+
+```{r}
+hist(iscb_df$probability_male)
+hist(pubmed_df$probability_male)
+table(iscb_df$final_gender_pred) %>% 
+  rbind(table(pubmed_df$final_gender_pred)) %>% 
+  chisq.test() 
+```
+
+
+
+## Descriptive statistics
+Prepare data frames for later analyses:
+
+- rbind results of race predictions in iscb and Pubmed
+- pivot long
+- compute mean, sd, marginal error
+
+```{r}
+iscb_pubmed <- iscb_df %>%
+  rename('journal' = Conference) %>% 
+  select(year, journal, probability_male, publication_date, final_gender_pred) %>%
+  mutate(type = 'Keynotes/Fellows') %>%
+  bind_rows(
+    pubmed_df %>%
+      select(year, journal, probability_male, publication_date, final_gender_pred) %>%
+      mutate(type = 'Pubmed')
+  ) %>%
+  # pivot_longer(contains('pred'),
+  #              names_to = 'Race',
+  #              values_to = 'Probabilities') %>%
+  # recode_race() %>%
+  group_by(type, year, publication_date) %>%
+  add_count() %>%
+  mutate(
+    mean_prob = mean(probability_male, na.rm = T),
+    sd_prob = sd(probability_male, na.rm = T),
+    n = mean(n),
+    me_prob = alpha * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() 
+
+```
+
+Stacked bar plots:
+By journals:
+```{r}
+plot_pubmed_race <- vector('list', length = n_jours)
+i <- 0
+for (jour in my_jours){
+  i <- i + 1
+  plot_pubmed_race[[i]] <- iscb_pubmed %>%
+    filter(type == 'Pubmed' & journal == jour & (Race != 'All others')) %>%
+    group_by(year, Race) %>%
+    summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+    ungroup() %>% 
+    dynamic_contribution(jour)
+}
+
+do.call(cowplot::plot_grid, c(plot_pubmed_race, nrow = 3))
+```
+
+By conference keynotes/fellows:
+```{r fig.height=6}
+i <- 0
+plot_iscb_gender <- vector('list', length = n_confs)
+
+for (conf in my_confs){
+  i <- i + 1
+  plot_iscb_gender[[i]] <- iscb_pubmed %>%
+    filter(type != 'Pubmed' & journal == conf) %>%
+    group_by(year, final_gender_pred) %>%
+    summarise(mean_prob = mean(probability_male, na.rm = T)) %>%
+    ungroup() %>% 
+    gender_plot(conf)
+}
+do.call(cowplot::plot_grid, c(plot_iscb_gender, nrow = n_confs))
+
+```
+
+
+All fellows and keynotes compared to three ISCB partner journals:
+```{r fig.width=10, fig.height=4}
+iscb_pubmed %>%
+  filter(Race != 'All others') %>%
+  group_by(year, type, Race) %>%
+  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  dynamic_contribution() +
+  facet_wrap( ~ type)
+```
+
+
+```{r fig.width=10}
+# boxplot iscb, pubmed faceted by year
+iscb_pubmed %>% 
+  filter(Race == 'White') %>% 
+  ggplot(aes(x = type, fill = type, y = Probabilities)) +
+  geom_violin(alpha = 0.8) +
+  facet_wrap(~ year(year), nrow = 3) +
+  theme_bw() +
+  labs(x = NULL, y = 'Probabilities of being white') +
+  scale_x_discrete(label = NULL) +
+  theme(legend.title = element_blank()) +
+  scale_fill_viridis_d()
+```
+
+Confidence interval of the mean? (Aggregation)
+
+Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed Central.
+Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed Central.
+How do we take time component into account?
+Right now, I'm thinking we can use `year` as a random variable.
+Perhaps we should allow for random slope as well?
+
+Bootstrap?
+
+```{r fig.width=10, fig.height=4}
+get_summary <- function(df){
+  df %>% filter(type != 'Pubmed') %>% select(- Probabilities) %>% distinct()
+}
+
+ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
+       aes(x = year)) +
+  facet_grid(cols = vars(fct_rev(Race))) +
+  geom_smooth(aes(x = publication_date, y = Probabilities, color = type, fill = type)) +
+  geom_point(
+    data = . %>% filter(type != 'Pubmed'),
+    aes(y = Probabilities, color = type),
+    alpha = 0.2,
+    show.legend = F
+  ) +
+  geom_point(
+    data = . %>% get_summary(),
+    aes(y = mean_prob, color = type),
+    shape = 2,
+    alpha = 0.5,
+    show.legend = F
+  ) +
+  geom_linerange(
+    data = . %>% get_summary(),
+    aes(
+      ymin = mean_prob - me_prob,
+      ymax = mean_prob + me_prob,
+      color = type
+    ),
+    alpha = 0.5,
+    show.legend = F
+  ) +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
+  theme(legend.title = element_blank()) +
+  scale_color_viridis_d(option = 'E') +
+  scale_fill_viridis_d(option = 'E') +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(x = NULL)
+
+```
+
+
+```{r}
+# Check: probabilities, if valid, should add up to 1
+iscb_pubmed %>%
+  filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
+  group_by(type, year, publication_date, Race) %>%
+  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  summarise(all_prob = sum(mean_prob))
+```
+
