@@ -33,11 +33,11 @@ When you are done, you shutdown the Jupyter notebook server and remove the Docke
 
 ## GitHub Pages
 
-The [`docs`](docs) is used as the GitHub Pages source for <https://github.com/greenelab/iscb-diversity>.
-To regenerate `docs/readme.md`, run the following command
+The [`docs`](docs) directory is used as the GitHub Pages source for <https://github.com/greenelab/iscb-diversity>.
+To regenerate outputs in the `docs` directory, run the following command
 
 ```shell
-python utils/prepare_docs.py
+python utils/prepare_docs.py --nbconvert --readme
 ```
 
 Edit [`utils/prepare_docs.py`](utils/prepare_docs.py) to change the template for `docs/readme.md`.
