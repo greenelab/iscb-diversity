@@ -31,6 +31,17 @@ You should see a Jupyter Notebook landing page where you can open, edit, and run
 
 When you are done, you shutdown the Jupyter notebook server and remove the Docker container by running ```docker stop iscb-diversity``` in a new terminal.
 
+## GitHub Pages
+
+The [`docs`](docs) is used as the GitHub Pages source for <https://github.com/greenelab/iscb-diversity>.
+To regenerate `docs/readme.md`, run the following command
+
+```shell
+python utils/prepare_docs.py
+```
+
+Edit [`utils/prepare_docs.py`](utils/prepare_docs.py) to change the template for `docs/readme.md`.
+
 ## License
 
 The entire repository is released under the CC BY 4.0 License available in [`license.md`](license.md).
