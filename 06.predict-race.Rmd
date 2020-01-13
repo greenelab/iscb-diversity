@@ -22,10 +22,10 @@ and use the `wru` package to predict race based on last_names only
 pubmed_race_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
   filter(reverse_position == 1) %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
-  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2)) %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = ymd(publication_date, truncated = 2)) %>%
   rename('surname' = last_name) %>% 
-  predict_race(surname.only = T, impute.missing = F) %>%
-  mutate(publication_date = ymd(publication_date, truncated = 2))
+  predict_race(surname.only = T, impute.missing = F)
 
 iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   rename('surname' = last_name) %>%
@@ -36,7 +36,7 @@ iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
 iscb_race_df[is.na(iscb_race_df$pred.whi), 1:2]
 
 alpha <- qnorm(0.975)
-n_years <- 18
+n_years <- 2020 - 1997
 my_jours <- unique(pubmed_race_df$journal)
 my_confs <- unique(iscb_race_df$Conference)
 n_jours <- length(my_jours)
@@ -62,9 +62,9 @@ iscb_pubmed <- iscb_race_df %>%
   mutate(publication_date = year,
          type = 'Keynotes/Fellows',
          pred_sum_others = pred.his + pred.oth + pred.bla) %>%
-  rbind(
+  bind_rows(
     pubmed_race_df %>%
-      select(year, journal, publication_date, contains('pred')) %>%
+      select(year, journal, contains('pred'), publication_date) %>%
       mutate(type = 'Pubmed',
              pred_sum_others = pred.his + pred.oth + pred.bla)
   ) %>%
