@@ -201,12 +201,11 @@ dynamic_contribution <- function(df, title = ''){
 gender_plot <- function(df, title = ''){
   # plot stacked bargraphs for each race, mean_prob by year
   df %>%
-    ggplot(aes(year(year), mean_prob, 
-               fill = final_gender_pred)) +
+    ggplot(aes(year(year), mean_prob, fill = gender)) +
     geom_bar(stat = 'identity', alpha = 0.9) +
     theme_bw() +
     scale_fill_viridis_d(direction = -1) +
-    scale_x_continuous(breaks = seq(1997, 2019, 2)) +
+    scale_x_continuous(breaks = seq(1997, 2019, 4)) +
     labs(x = NULL, y = 'Mean probability', title = title) + 
     theme(legend.title = element_blank())
 }
