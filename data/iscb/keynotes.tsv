@@ -230,7 +230,7 @@ year	full_name	fore_name	last_name	Conference	source
 2014	Douglas Fridsma	Douglas	Fridsma	PSB	
 2015	David Haussler	David	Haussler	PSB	
 2015	Lucila Ohno-Machado	Lucila	Ohno-Machado	PSB	
-2016	Winter Mayson	Winter	Mayson	PSB	
+2016	Winter Mason	Winter	Mason	PSB	
 2016	Nancy Cox	Nancy	Cox	PSB	
 2017	David Magnus	David	Magnus	PSB	
 2017	Neil Risch	Neil	Risch	PSB	
@@ -258,14 +258,14 @@ year	full_name	fore_name	last_name	Conference	source
 1998	Michael Levitt	Michael	Levitt	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1998	David Schwartz	David	Schwartz	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1998	John Yates	John	Yates	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Rich Roberts	Rich	Roberts	RECOMB	
-1999	Rob Lipshutz	Rob	Lipshutz	RECOMB	
-1999	Terry Speed	Terry	Speed	RECOMB	
-1999	David Botstein	David	Botstein	RECOMB	
-1999	Sam Karlin	Sam	Karlin	RECOMB	
-1999	Temple Smith	Temple	Smith	RECOMB	
-1999	Eric Lander	Eric	Lander	RECOMB	
-1999	Martin Karplus	Martin	Karplus	RECOMB	
+1999	Peer Bork	Peer	Bork	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	Cyrus Chothia	Cyrus	Chothia	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	Gene Myers	Gene	Myers	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	John Moult	John	Moult	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	Pitor Slonimsky	Pitor	Slonimsky	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	Ed Southern	Ed	Southern	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	Peter Willett	Peter	Willett	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	John Wooley	John	Wooley	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 2000	Eric Davidson	Eric	Davidson	RECOMB	
 2000	Walter Gilbert	Walter	Gilbert	RECOMB	
 2000	Takashi Gojobori	Takashi	Gojobori	RECOMB	
@@ -283,6 +283,7 @@ year	full_name	fore_name	last_name	Conference	source
 2001	Klaus Lindpaintner	Klaus	Lindpaintner	RECOMB	
 2001	Yvonne Martin	Yvonne	Martin	RECOMB	
 2001	Mark Ptashne	Mark	Ptashne	RECOMB	
+2001	Matthias Wilm	Matthias	Wilm	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/schedule.html
 2002	Ruben Abagyan	Ruben	Abagyan	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
 2002	Ali H. Brivanlou	Ali	Brivanlou	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
 2002	Evan Eichler	Evan	Eichler	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
@@ -333,7 +334,7 @@ year	full_name	fore_name	last_name	Conference	source
 2007	Harry Noller	Harry	Noller	RECOMB	
 2007	Aviv Regev	Aviv	Regev	RECOMB	
 2008	Edison Liu	Edison	Liu	RECOMB	
-2008	Sang Yup Kee	Sang	Lee	RECOMB	
+2008	Sang Yup Lee	Sang	Lee	RECOMB	
 2008	Andrei Lupas	Andrei	Lupas	RECOMB	
 2008	Howard Cedar	Howard	Cedar	RECOMB	
 2008	Vivian Cheung	Vivian	Cheung	RECOMB	

@@ -19028,3 +19028,4 @@
 {"name": "swadha", "gender": "female", "probability": 1, "count": 4, "query_date": "2020-01-13"}
 {"name": "izel", "gender": "female", "probability": 0.89, "count": 437, "query_date": "2020-01-13"}
 {"name": "denes", "gender": "male", "probability": 0.84, "count": 329, "query_date": "2020-01-13"}
+{"name": "pitor", "gender": "male", "probability": 1, "count": 12, "query_date": "2020-01-14"}
