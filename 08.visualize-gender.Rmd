@@ -9,6 +9,7 @@ output: html_document
 library(tidyverse)
 library(lubridate)
 source('utils/r-utils.R')
+theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 ## Load data
@@ -16,7 +17,10 @@ source('utils/r-utils.R')
 ```{r}
 alpha <- qnorm(0.975)
 
-simple_fore_names <- read_tsv('data/names/simple-fore-names.tsv.xz')
+simple_fore_names <- read_tsv('data/names/fore-names.tsv.xz') %>% 
+  select(- n_authors) %>% 
+  distinct()
+
 gender_df <- read_tsv('data/gender/genderize.tsv')
 
 pubmed_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
@@ -24,14 +28,14 @@ pubmed_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = publication_date %>% ymd(truncated = 2)) %>% 
-  left_join(simple_fore_names %>% select(- n_authors), by = 'fore_name') %>% 
+  left_join(simple_fore_names, by = 'fore_name') %>% 
   left_join(gender_df, by = 'fore_name_simple') %>% 
   mutate(final_gender_pred = ifelse(probability_male > 0.5, 'Male', 'Female'))
 
 iscb_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
-  left_join(simple_fore_names %>% select(- n_authors), by = 'fore_name') %>% 
+  left_join(simple_fore_names, by = 'fore_name') %>% 
   left_join(gender_df, by = 'fore_name_simple') %>% 
   mutate(final_gender_pred = ifelse(probability_male > 0.5, 'Male', 'Female'))
 
@@ -52,7 +56,6 @@ iscb_df %>%
   count(year, Conference) %>% 
   ggplot(aes(x = year(year), y = n, color = Conference)) +
   geom_point() +
-  theme_bw() +
   geom_line(alpha = 0.5) +
   coord_cartesian(ylim = c(0, 13)) +
   scale_x_continuous(breaks = seq(1998, 2020, 2)) +
@@ -174,14 +177,13 @@ iscb_pubmed %>%
 
 ## Overview of gender prediction distribution
 
-```{r}
+```{r fig.height = 3}
 iscb_pubmed %>% 
   filter(gender == 'probability_male') %>% 
   ggplot(aes(x = probabilities, y = ..density.., fill = type)) +
   geom_histogram(position = 'dodge') +
   scale_fill_viridis_d(option = 'D', end = 0.8) +
   guides(label = F) +
-  theme(legend.title = element_blank()) +
   labs(x = 'probability_male')
 ```
 
@@ -195,33 +197,24 @@ get_summary <- function(df){
 ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
        aes(x = year)) +
   # facet_grid(cols = vars(fct_rev(gender))) +
-  geom_point(
-    data = . %>% filter(type != 'Pubmed'),
-    aes(y = probabilities, color = type),
-    alpha = 0.2,
-    show.legend = F
-  ) +
-  geom_point(
-    data = . %>% get_summary(),
-    aes(y = mean_prob, color = type),
-    shape = 2,
-    alpha = 0.5,
-    show.legend = F
-  ) +
-  geom_linerange(
-    data = . %>% get_summary(),
-    aes(
-      ymin = mean_prob - me_prob,
-      ymax = mean_prob + me_prob,
-      color = type
-    ),
-    alpha = 0.5,
-    show.legend = F
+  geom_point(data = . %>% filter(type != 'Pubmed'),
+             aes(y = probabilities, color = type),
+             alpha = 0.2,
+             show.legend = F) +
+  geom_point(data = . %>% get_summary(),
+             aes(y = mean_prob, color = type),
+             shape = 2,
+             alpha = 0.5,
+             show.legend = F) +
+  geom_linerange(data = . %>% get_summary(),
+                 aes(ymin = mean_prob - me_prob,
+                     ymax = mean_prob + me_prob,
+                     color = type),
+                 alpha = 0.5,
+                 show.legend = F
   ) +
   geom_smooth(aes(x = publication_date, y = probabilities, color = type, fill = type), alpha = 0.2) +
-  theme_bw() +
   scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  theme(legend.title = element_blank()) +
   scale_color_viridis_d(option = 'D', end = 0.8) +
   scale_fill_viridis_d(option = 'D', end = 0.8) +
   coord_cartesian(ylim = c(0, 1)) +

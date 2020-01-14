@@ -203,12 +203,10 @@ gender_breakdown <- function(df, start_year, end_year, journal, facet_by = 'row'
     recode_gender() %>% 
     ggplot(aes(year(year), mean_prob, fill = gender)) +
     geom_bar(stat = 'identity', alpha = 0.9) +
-    theme_bw() +
     scale_fill_viridis_d(option = 'E', end = 0.8) +
     scale_x_continuous(breaks = seq(start_year, end_year, 2)) +
     coord_cartesian(xlim = c(start_year, end_year)) +
-    labs(x = NULL, y = 'Mean probability') + 
-    theme(legend.title = element_blank())
+    labs(x = NULL, y = 'Mean probability')
   
   if (facet_by == 'row'){
     my_plot + facet_grid(rows = vars(!!sym(journal)))
@@ -222,12 +220,10 @@ race_breakdown <- function(df, start_year, end_year, journal, facet_by = 'row'){
   my_plot <- df %>%
     ggplot(aes(year(year), mean_prob, fill = fct_relevel(Race, race_levels))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
-    theme_bw() +
     scale_fill_viridis_d(direction = -1) +
     scale_x_continuous(breaks = seq(start_year, end_year, 2)) +
     coord_cartesian(xlim = c(start_year, end_year)) +
-    labs(x = NULL, y = 'Mean probability') + 
-    theme(legend.title = element_blank())
+    labs(x = NULL, y = 'Mean probability')
   
   if (facet_by == 'row'){
     my_plot + facet_grid(rows = vars(!!sym(journal)))

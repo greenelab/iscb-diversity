@@ -12,6 +12,8 @@ library(wru)
 library(tidyverse)
 library(lubridate)
 source('utils/r-utils.R')
+
+theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 ## Load data
@@ -31,8 +33,11 @@ iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(year = ymd(year, truncated = 2)) %>% 
   predict_race(surname.only = T, impute.missing = F)
 
-# unmatched names
-iscb_race_df[is.na(iscb_race_df$pred.whi), 1:2]
+# 10 random unmatched names
+iscb_race_df %>% 
+  filter(is.na(pred.whi)) %>% 
+  select(1,2) %>% 
+  sample_n(10)
 
 alpha <- qnorm(0.975)
 start_year <- 1997
@@ -61,14 +66,13 @@ iscb_pubmed <- iscb_race_df %>%
   rename('journal' = Conference) %>% 
   select(year, journal, contains('pred')) %>%
   mutate(publication_date = year,
-         type = 'Keynotes/Fellows',
-         pred_sum_others = pred.his + pred.oth + pred.bla) %>%
+         type = 'Keynote speakers/Fellows') %>%
   bind_rows(
     pubmed_race_df %>%
       select(year, journal, contains('pred'), publication_date) %>%
-      mutate(type = 'Pubmed',
-             pred_sum_others = pred.his + pred.oth + pred.bla)
+      mutate(type = 'Pubmed')
   ) %>%
+  mutate(pred_sum_others = pred.his + pred.oth + pred.bla) %>% 
   pivot_longer(contains('pred'),
                names_to = 'Race',
                values_to = 'Probabilities') %>%
@@ -84,7 +88,6 @@ iscb_pubmed <- iscb_race_df %>%
   ungroup() 
 
 ```
-
 
 ## Stacked bar plots:
 ### By journals:
@@ -102,11 +105,10 @@ for (jour in my_jours){
     ungroup()
 }
 
+# The chronologically first journal, Bioinformatics, started in 1998.
+# We consider papers up to 2019 right now. (code run on 2020-01-14)
 bind_rows(pubmed_race) %>%
   race_breakdown(start_year + 1, end_year - 1, 'journal')
-
-# The chronologically first journal, Bioinformatics, started in 1998.
-# We consider papers up to 2019 right now. (code run on 2020-01-13)
 ```
 
 What's in Bioinformatics 1999?
@@ -120,12 +122,12 @@ pubmed_race_df %>%
 pubmed_race_df %>% 
   filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
   filter(pred.asi > 0.1) %>% 
-  select(fore_name, surname, contains('pred')) 
+  select(fore_name, surname, pred.asi) 
 
 pubmed_race_df %>% 
   filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
   filter(pred.his > 0.1) %>% 
-  select(fore_name, surname, contains('pred')) 
+  select(fore_name, surname, pred.his) 
 ```
 
 Bioinformatics 1998: `wru` was able to predict 77 out of 121 last authors published that year, and it predicts 10 and 6 authors to have > 0.1 probability of being Asian and Hispanic, respectively, hence what we see.
@@ -150,6 +152,13 @@ bind_rows(iscb_race) %>%
   
 ```
 
+All Asian speakers at PSB 2000?
+```{r}
+iscb_race_df %>% filter(year == '2000-01-01', Conference == 'PSB')
+```
+
+PSB only had one keynote speaker in 2000, Wah Chiu.
+
 ### All fellows and keynotes compared to three ISCB partner journals:
 ```{r fig.width=10, fig.height=4}
 iscb_pubmed %>%
@@ -168,10 +177,8 @@ iscb_pubmed %>%
   ggplot(aes(x = type, fill = type, y = Probabilities)) +
   geom_violin(alpha = 0.8) +
   facet_wrap(~ year(year), nrow = 3) +
-  theme_bw() +
   labs(x = NULL, y = 'Probabilities of being white') +
   scale_x_discrete(label = NULL) +
-  theme(legend.title = element_blank()) +
   scale_fill_viridis_d()
 ```
 
@@ -219,11 +226,9 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
     alpha = 0.5,
     show.legend = F
   ) +
-  theme_bw() +
   scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  theme(legend.title = element_blank()) +
-  scale_color_viridis_d(option = 'E') +
-  scale_fill_viridis_d(option = 'E') +
+  scale_color_viridis_d(option = 'D', end = 0.8) +
+  scale_fill_viridis_d(option = 'D', end = 0.8) +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL)
 
