@@ -1,5 +1,7 @@
 # Diversity of ISCB Honorees
 
+This is a data analysis repository for the study at <https://greenelab.github.io/iscb-diversity-manuscript/>.
+
 ## Development
 
 This repository has a corresponding Docker image with the required dependencies.

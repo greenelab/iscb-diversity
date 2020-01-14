@@ -15,6 +15,7 @@ readme_template = """\
 <!-- make sure to edit this content in utils/prepare_docs.py and not docs/readme.md -->
 
 More information at <https://github.com/greenelab/iscb-diversity>.
+See also the study corresponding to this analysis at <https://greenelab.github.io/iscb-diversity-manuscript/>.
 
 ## Notebooks
 
