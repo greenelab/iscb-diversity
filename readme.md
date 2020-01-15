@@ -39,7 +39,7 @@ The [`docs`](docs) directory is used as the GitHub Pages source for <https://git
 To regenerate outputs in the `docs` directory, run the following command
 
 ```shell
-python utils/prepare_docs.py --nbconvert --readme
+python utils/prepare_docs.py --nbviewer --readme
 ```
 
 Edit [`utils/prepare_docs.py`](utils/prepare_docs.py) to change the template for `docs/readme.md`.

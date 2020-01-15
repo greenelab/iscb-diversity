@@ -9,13 +9,12 @@ See also the study corresponding to this analysis at <https://greenelab.github.i
 
 See the following rendered notebooks:
 
-- [01.download-pubmed](01.download-pubmed.html)
-- [02.parse-pubmed](02.parse-pubmed.html)
-- [03.download-pmc](03.download-pmc.html)
-- [04.process-pmc](04.process-pmc.html)
-- [05.download-iscb](05.download-iscb.html)
-- [06.combine-names](06.combine-names.html)
-- [07.genderize](07.genderize.html)
+- [01.download-pubmed](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/01.download-pubmed.ipynb)
+- [02.parse-pubmed](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/02.parse-pubmed.ipynb)
+- [03.download-pmc](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/03.download-pmc.ipynb)
+- [04.process-pmc](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/04.process-pmc.ipynb)
+- [05.download-iscb](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/05.download-iscb.ipynb)
+- [06.combine-names](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/06.combine-names.ipynb)
+- [07.genderize](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/07.genderize.ipynb)
 - [08.visualize-gender](08.visualize-gender.html)
 - [09.predict-race](09.predict-race.html)
-
