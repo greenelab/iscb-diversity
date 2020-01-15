@@ -5,7 +5,7 @@ output: html_document
 
 ## Setups
 
-```{r message = F}
+```{r message = F, warning=F}
 if (!requireNamespace('wru')) install.packages('wru')
 
 library(wru)
@@ -53,13 +53,14 @@ race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Others', 'All others')
 Pubmed: 7891 last_names out of 29615 were not matched.
 iscb: 82 surnames out of 348 were not matched.
 
-## Descriptive statistics
-Prepare data frames for later analyses:
+## Prepare data frames for later analyses:
 
 - bind_rows results of race predictions in iscb and Pubmed
 - pivot long
 - compute mean, sd, marginal error
 - add "White" vs. "Others"
+- separate by journals
+- separate by conference keynote speakers/fellows:
 
 ```{r}
 iscb_pubmed <- iscb_race_df %>%
@@ -75,13 +76,13 @@ iscb_pubmed <- iscb_race_df %>%
   mutate(pred_sum_others = pred.his + pred.oth + pred.bla) %>% 
   pivot_longer(contains('pred'),
                names_to = 'Race',
-               values_to = 'Probabilities') %>%
+               values_to = 'probabilities') %>%
   recode_race() %>%
   group_by(type, year, publication_date, Race) %>%
   add_count() %>%
   mutate(
-    mean_prob = mean(Probabilities, na.rm = T),
-    sd_prob = sd(Probabilities, na.rm = T),
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
     n = mean(n),
     me_prob = alpha * sd_prob / sqrt(n)
   ) %>%
@@ -89,7 +90,6 @@ iscb_pubmed <- iscb_race_df %>%
 
 ```
 
-## Stacked bar plots:
 ### By journals:
 
 ```{r}
@@ -101,40 +101,14 @@ for (jour in my_jours){
   pubmed_race[[i]] <- iscb_pubmed %>%
     filter(type == 'Pubmed' & journal == jour & (Race != 'All others')) %>%
     group_by(year, Race, journal) %>%
-    summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
 }
-
-# The chronologically first journal, Bioinformatics, started in 1998.
-# We consider papers up to 2019 right now. (code run on 2020-01-14)
-bind_rows(pubmed_race) %>%
-  race_breakdown(start_year + 1, end_year - 1, 'journal')
 ```
 
-What's in Bioinformatics 1999?
+### By conference keynote speakers/fellows:
 
 ```{r}
-pubmed_race_df %>% 
-  filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
-  select(contains('pred')) %>% 
-  colMeans() 
-
-pubmed_race_df %>% 
-  filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
-  filter(pred.asi > 0.1) %>% 
-  select(fore_name, surname, pred.asi) 
-
-pubmed_race_df %>% 
-  filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
-  filter(pred.his > 0.1) %>% 
-  select(fore_name, surname, pred.his) 
-```
-
-Bioinformatics 1998: `wru` was able to predict 77 out of 121 last authors published that year, and it predicts 10 and 6 authors to have > 0.1 probability of being Asian and Hispanic, respectively, hence what we see.
-
-### By conference keynotes/fellows:
-
-```{r fig.height=6}
 iscb_race <- vector('list', length = n_confs)
 i <- 0
 
@@ -143,69 +117,36 @@ for (conf in my_confs){
   iscb_race[[i]] <- iscb_pubmed %>%
     filter(type != 'Pubmed' & journal == conf & (Race != 'All others')) %>%
     group_by(year, Race, journal) %>%
-    summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
 }
-
-bind_rows(iscb_race) %>%
-  race_breakdown(start_year, end_year, 'journal')
-  
-```
-
-All Asian speakers at PSB 2000?
-```{r}
-iscb_race_df %>% filter(year == '2000-01-01', Conference == 'PSB')
-```
-
-PSB only had one keynote speaker in 2000, Wah Chiu.
-
-### All fellows and keynotes compared to three ISCB partner journals:
-```{r fig.width=10, fig.height=4}
-iscb_pubmed %>%
-  filter(Race != 'All others') %>%
-  group_by(year, type, Race) %>%
-  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
-  ungroup() %>%
-  race_breakdown(start_year, end_year, journal = 'type', facet_by = 'col')
 ```
 
 
-```{r fig.width=10}
+
+```{r fig.width=10, echo=F, eval=F}
 # boxplot iscb, pubmed faceted by year
-iscb_pubmed %>% 
-  filter(Race == 'White') %>% 
-  ggplot(aes(x = type, fill = type, y = Probabilities)) +
+iscb_pubmed %>%
+  filter(Race == 'White') %>%
+  ggplot(aes(x = type, fill = type, y = probabilities)) +
   geom_violin(alpha = 0.8) +
   facet_wrap(~ year(year), nrow = 3) +
-  labs(x = NULL, y = 'Probabilities of being white') +
+  labs(x = NULL, y = 'probabilities of being white') +
   scale_x_discrete(label = NULL) +
   scale_fill_viridis_d()
 ```
 
 
-
-Confidence interval of the mean? (Aggregation)
-
-Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed.
-Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed.
-How do we take time component into account?
-Right now, I'm thinking we can use `year` as a random variable.
-Perhaps we should allow for random slope as well?
-
-Bootstrap?
+## Comparisons
 
 ```{r fig.width=10, fig.height=4}
-get_summary <- function(df){
-  df %>% filter(type != 'Pubmed') %>% select(- Probabilities) %>% distinct()
-}
-
 ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
        aes(x = year)) +
   facet_grid(cols = vars(fct_rev(Race))) +
-  geom_smooth(aes(x = publication_date, y = Probabilities, color = type, fill = type)) +
+  geom_smooth(aes(x = publication_date, y = probabilities, color = type, fill = type)) +
   geom_point(
     data = . %>% filter(type != 'Pubmed'),
-    aes(y = Probabilities, color = type),
+    aes(y = probabilities, color = type),
     alpha = 0.2,
     show.legend = F
   ) +
@@ -234,14 +175,96 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
 
 ```
 
-Here, each point is a name.
+Here, each circle is a name mention.
+The vertical intervals are confidence intervals of the mean probability of selecting a race/ethnicity category in the US census (triangle).
 
 ```{r}
 # Check: probabilities, if valid, should add up to 1
 iscb_pubmed %>%
   filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
   group_by(type, year, publication_date, Race) %>%
-  summarise(mean_prob = mean(Probabilities, na.rm = T)) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   summarise(all_prob = sum(mean_prob))
+```
+
+
+
+## Figures for paper
+
+### All fellows and keynotes compared to last authors in ISCB partner journals:
+
+```{r fig.height=6, fig.width=8, warning=FALSE, message=FALSE}
+fig_2a <- iscb_pubmed %>%
+  filter(Race != 'All others',
+         type == 'Pubmed') %>%
+  group_by(year, type, Race) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  race_breakdown(category = 'main', type) 
+
+fig_2c <- iscb_pubmed %>%
+  filter(Race != 'All others',
+         type != 'Pubmed') %>%
+  group_by(year, type, Race) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  race_breakdown(category = 'main', type)
+
+fig_2b <- bind_rows(pubmed_race) %>%
+  race_breakdown(category = 'sub', journal) +
+  theme(legend.position = c(0.8, 0.25),
+        legend.key.height = unit(4, 'mm'),
+        legend.background = element_rect(fill = "transparent", colour = "transparent"))
+
+fig_2d <- bind_rows(iscb_race) %>%
+  race_breakdown(category = 'sub', journal)
+
+fig_2 <- cowplot::plot_grid(fig_2a, fig_2b, fig_2c, fig_2d, labels = 'AUTO')
+
+fig_2
+
+ggsave('figs/fig2.png', fig_2, width = 7, height = 5)
+```
+
+All Asian speakers at PSB 2000?
+```{r}
+iscb_race_df %>% filter(year == '2000-01-01', Conference == 'PSB')
+```
+
+PSB only had one keynote speaker in 2000, Wah Chiu.
+
+
+What's in Bioinformatics 1999?
+
+```{r}
+pubmed_race_df %>% 
+  filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
+  select(contains('pred')) %>% 
+  colMeans() 
+
+pubmed_race_df %>% 
+  filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
+  filter(pred.asi > 0.1) %>% 
+  select(fore_name, surname, pred.asi) 
+
+pubmed_race_df %>% 
+  filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
+  filter(pred.his > 0.1) %>% 
+  select(fore_name, surname, pred.his) 
+```
+
+Bioinformatics 1998: `wru` was able to predict 77 out of 121 last authors published that year, and it predicts 10 and 6 authors to have > 0.1 probability of being Asian and Hispanic, respectively, hence what we see.
+
+<!-- ### Statistics? -->
+<!-- Confidence interval of the mean? (Aggregation) -->
+
+<!-- Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed. -->
+<!-- Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed. -->
+<!-- How do we take time component into account? -->
+<!-- Right now, I'm thinking we can use `year` as a random variable. -->
+<!-- Perhaps we should allow for random slope as well? -->
+
+```{r}
+sessionInfo()
 ```
 
