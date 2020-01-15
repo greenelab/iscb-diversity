@@ -44,34 +44,34 @@ start_year <- 1997
 end_year <- 2020
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_race_df$journal)
-my_confs <- unique(iscb_race_df$Conference)
+my_confs <- unique(iscb_race_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
 race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Others', 'All others')
 ```
 
-Pubmed: 7891 last_names out of 29615 were not matched.
+Pubmed authors: 7891 last_names out of 29615 were not matched.
 iscb: 82 surnames out of 348 were not matched.
 
 ## Prepare data frames for later analyses:
 
-- bind_rows results of race predictions in iscb and Pubmed
+- bind_rows results of race predictions in iscb and Pubmed authors
 - pivot long
 - compute mean, sd, marginal error
 - add "White" vs. "Others"
 - separate by journals
-- separate by conference keynote speakers/fellows:
+- separate by conference keynote speakers/fellows
 
 ```{r}
 iscb_pubmed <- iscb_race_df %>%
-  rename('journal' = Conference) %>% 
+  rename('journal' = conference) %>% 
   select(year, journal, contains('pred')) %>%
   mutate(publication_date = year,
          type = 'Keynote speakers/Fellows') %>%
   bind_rows(
     pubmed_race_df %>%
       select(year, journal, contains('pred'), publication_date) %>%
-      mutate(type = 'Pubmed')
+      mutate(type = 'Pubmed authors')
   ) %>%
   mutate(pred_sum_others = pred.his + pred.oth + pred.bla) %>% 
   pivot_longer(contains('pred'),
@@ -90,7 +90,7 @@ iscb_pubmed <- iscb_race_df %>%
 
 ```
 
-### By journals:
+### By journals
 
 ```{r}
 pubmed_race <- vector('list', length = n_jours)
@@ -99,14 +99,14 @@ i <- 0
 for (jour in my_jours){
   i <- i + 1
   pubmed_race[[i]] <- iscb_pubmed %>%
-    filter(type == 'Pubmed' & journal == jour & (Race != 'All others')) %>%
+    filter(type == 'Pubmed authors' & journal == jour & (Race != 'All others')) %>%
     group_by(year, Race, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
 }
 ```
 
-### By conference keynote speakers/fellows:
+### By conference keynote speakers/fellows
 
 ```{r}
 iscb_race <- vector('list', length = n_confs)
@@ -115,7 +115,7 @@ i <- 0
 for (conf in my_confs){
   i <- i + 1
   iscb_race[[i]] <- iscb_pubmed %>%
-    filter(type != 'Pubmed' & journal == conf & (Race != 'All others')) %>%
+    filter(type != 'Pubmed authors' & journal == conf & (Race != 'All others')) %>%
     group_by(year, Race, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
@@ -145,7 +145,7 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
   facet_grid(cols = vars(fct_rev(Race))) +
   geom_smooth(aes(x = publication_date, y = probabilities, color = type, fill = type)) +
   geom_point(
-    data = . %>% filter(type != 'Pubmed'),
+    data = . %>% filter(type != 'Pubmed authors'),
     aes(y = probabilities, color = type),
     alpha = 0.2,
     show.legend = F
@@ -168,12 +168,48 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
     show.legend = F
   ) +
   scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  scale_color_viridis_d(option = 'D', end = 0.8) +
-  scale_fill_viridis_d(option = 'D', end = 0.8) +
+  scale_x_date(breaks = '4 years', labels = scales::date_format("%Y")) +
+  scale_color_viridis_d(option = 'D', end = 0.9) +
+  scale_fill_viridis_d(option = 'D', end = 0.9) +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL)
 
 ```
+
+A simpler figure, supplementary Fig S2?
+```{r fig.width=10, fig.height=4}
+ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
+       aes(x = year, color = type, fill = type)) +
+  facet_grid(cols = vars(fct_rev(Race))) +
+  geom_smooth(data = . %>% filter(type == 'Pubmed authors'),
+              aes(x = publication_date, y = probabilities)) +
+  geom_point(
+    data = . %>% get_summary(),
+    aes(y = mean_prob),
+    shape = 2,
+    alpha = 0.5,
+    show.legend = F
+  ) +
+  geom_linerange(
+    data = . %>% get_summary(),
+    aes(
+      ymin = mean_prob - me_prob,
+      ymax = mean_prob + me_prob
+    ),
+    alpha = 0.5,
+    show.legend = F
+  ) +
+  guides(fill = F) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
+  scale_x_date(breaks = '4 years', labels = scales::date_format("%Y")) +
+  scale_color_viridis_d(option = 'D', end = 0.9) +
+  scale_fill_viridis_d(option = 'D', end = 0.9) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(x = NULL) +
+  theme(legend.position = c(0.85, 0.85))
+
+```
+
 
 Here, each circle is a name mention.
 The vertical intervals are confidence intervals of the mean probability of selecting a race/ethnicity category in the US census (triangle).
@@ -196,7 +232,7 @@ iscb_pubmed %>%
 ```{r fig.height=6, fig.width=8, warning=FALSE, message=FALSE}
 fig_2a <- iscb_pubmed %>%
   filter(Race != 'All others',
-         type == 'Pubmed') %>%
+         type == 'Pubmed authors') %>%
   group_by(year, type, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
@@ -204,7 +240,7 @@ fig_2a <- iscb_pubmed %>%
 
 fig_2c <- iscb_pubmed %>%
   filter(Race != 'All others',
-         type != 'Pubmed') %>%
+         type != 'Pubmed authors') %>%
   group_by(year, type, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
@@ -228,7 +264,7 @@ ggsave('figs/racial_makeup.png', fig_2, width = 7, height = 5)
 
 All Asian speakers at PSB 2000?
 ```{r}
-iscb_race_df %>% filter(year == '2000-01-01', Conference == 'PSB')
+iscb_race_df %>% filter(year == '2000-01-01', conference == 'PSB')
 ```
 
 PSB only had one keynote speaker in 2000, Wah Chiu.
@@ -258,8 +294,8 @@ Bioinformatics 1998: `wru` was able to predict 77 out of 121 last authors publis
 <!-- ### Statistics? -->
 <!-- Confidence interval of the mean? (Aggregation) -->
 
-<!-- Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed. -->
-<!-- Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed. -->
+<!-- Null: The proportion of white keynote iscb speakers is not larger the proportions of white last authors published in Pubmed authors. -->
+<!-- Alternative: The proportion of white keynote iscb speakers is larger the proportions of white last authors published in Pubmed authors. -->
 <!-- How do we take time component into account? -->
 <!-- Right now, I'm thinking we can use `year` as a random variable. -->
 <!-- Perhaps we should allow for random slope as well? -->

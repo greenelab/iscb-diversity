@@ -197,22 +197,45 @@ recode_gender <- function(df){
   )
 }
 
-gender_breakdown <- function(df, start_year, end_year, journal, facet_by = 'row'){
+gender_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each gender, mean_prob by year
   my_plot <- df %>%
-    recode_gender() %>% 
-    ggplot(aes(year(year), mean_prob, fill = gender)) +
+    recode_gender() %>%
+    ggplot(aes(year, mean_prob, fill = fct_relevel(gender, c('Male', 'Female')))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
-    scale_fill_viridis_d(option = 'E', end = 0.8) +
-    scale_x_continuous(breaks = seq(start_year, end_year, 4)) +
-    coord_cartesian(xlim = c(start_year, end_year)) +
-    labs(x = NULL, y = 'Mean probability')
+    scale_fill_viridis_d(option = 'E', end = 0.8, direction = -1) +
+    # scale_x_continuous(breaks = seq(start_year, end_year, 4)) +
+    # coord_cartesian(xlim = c(start_year, end_year)) +
+    theme(legend.position = 'None') +
+    labs(x = NULL) +
+    facet_wrap(vars(...), ncol = 1)      +
+    scale_x_date(
+      labels = scales::date_format("%Y"),
+      expand = c(0, 0),
+      limits = c(
+        ymd(start_year - 1, truncated = 2L),
+        ymd(end_year + 1, truncated = 2L)
+      )
+    )
   
-  if (facet_by == 'row'){
-    my_plot + facet_grid(rows = vars(!!sym(journal)))
-  } else if (facet_by == 'col') {
-    my_plot + facet_grid(cols = vars(!!sym(journal)))
+  if (category == 'main') {
+    my_plot <- my_plot +
+      scale_y_continuous(
+        labels = scales::percent_format(),
+        expand = c(0, 0),
+        breaks = seq(0, 1, 0.2)
+      ) +
+      labs(y = 'Estimated proportion')
+  } else if (category == 'sub') {
+    my_plot <- my_plot +
+      scale_y_continuous(
+        labels = scales::percent_format(),
+        expand = c(0, 0),
+        breaks = seq(0, 1, 0.5)
+      ) +
+      labs(y = NULL)
   }
+  my_plot
 }
 
 race_breakdown <- function(df, category = 'main', ...){
@@ -256,5 +279,5 @@ race_breakdown <- function(df, category = 'main', ...){
 }
 
 get_summary <- function(df){
-  df %>% filter(type != 'Pubmed') %>% select(- probabilities) %>% distinct()
+  df %>% filter(type != 'Pubmed authors') %>% select(- probabilities) %>% distinct()
 }

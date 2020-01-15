@@ -5,7 +5,7 @@ output: html_document
 
 ## Setups
 
-```{r message = F}
+```{r message = F, warning=F}
 library(tidyverse)
 library(lubridate)
 source('utils/r-utils.R')
@@ -20,7 +20,7 @@ alpha <- qnorm(0.975)
 simple_fore_names <- read_tsv('data/names/fore-names.tsv.xz') %>% 
   select(- n_authors) %>% 
   distinct()
-
+# dups = simple_fore_names %>% group_by(fore_name) %>% filter(n() >1)
 gender_df <- read_tsv('data/gender/genderize.tsv')
 
 pubmed_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
@@ -43,7 +43,7 @@ start_year <- 1997
 end_year <- 2020
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_df$journal)
-my_confs <- unique(iscb_df$Conference)
+my_confs <- unique(iscb_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
 ```
@@ -52,9 +52,9 @@ Number of speakers/fellows in compbio conferences across years:
 
 ```{r}
 iscb_df %>%
-  select(year, Conference) %>% 
-  count(year, Conference) %>% 
-  ggplot(aes(x = year(year), y = n, color = Conference)) +
+  select(year, conference) %>% 
+  count(year, conference) %>% 
+  ggplot(aes(x = year(year), y = n, color = conference)) +
   geom_point() +
   geom_line(alpha = 0.5) +
   coord_cartesian(ylim = c(0, 13)) +
@@ -72,28 +72,26 @@ pubmed_df %>% filter(is.na(probability_male)) %>% sample_n(10)
 sum(is.na(pubmed_df$probability_male))
 ```
 
-2 iscb forenames not genderized.
+2 iscb forenames not genderized (Árpád and Chung-I).
 2835 pubmed forenames not genderized.
 These mostly include initials only, hyphenated names and perhaps names with accent marks.
 
 ```{r}
-pubmed_df %>% filter(!is.na(probability_male)) %>% count(journal, year)
 pubmed_df %>% filter(is.na(probability_male)) %>% 
   count(year, journal) %>% 
   ggplot(aes(year(year), n, fill = journal)) +
   geom_bar(stat = 'identity') +
   scale_fill_viridis_d() +
   ylab('Number of forenames NOT genderized')
+
+pubmed_df %>%
+  filter(is.na(probability_male),
+         journal == 'BMC Bioinformatics',
+         year < '2002-01-01')
 ```
 
-The metadata for Bioinformatics papers before 2002 only have initials of first and/or middle names. 
+The metadata for Bioinformatics and BMC Bioinformatics papers before 2002 only have initials of first and/or middle names. 
 Therefore, we do not have prediction for genders before this year.
-
-```{r}
-table(iscb_df$final_gender_pred) %>% 
-  rbind(table(pubmed_df$final_gender_pred)) %>% 
-  chisq.test()
-```
 
 ## Descriptive statistics
 Prepare data frames for later analyses:
@@ -104,13 +102,13 @@ Prepare data frames for later analyses:
 
 ```{r}
 iscb_pubmed <- iscb_df %>%
-  rename('journal' = Conference) %>% 
+  rename('journal' = conference) %>% 
   select(year, journal, probability_male, publication_date, final_gender_pred) %>%
   mutate(type = 'Keynote speakers/Fellows') %>%
   bind_rows(
     pubmed_df %>%
       select(year, journal, probability_male, publication_date, final_gender_pred) %>%
-      mutate(type = 'Pubmed')
+      mutate(type = 'Pubmed authors')
   ) %>%
   mutate(probability_female = 1 - probability_male) %>% 
   pivot_longer(contains('probability'),
@@ -127,7 +125,7 @@ iscb_pubmed <- iscb_df %>%
   ungroup() 
 ```
 
-## Stacked bar plots:
+## Prepare data frames for analysis
 ### By journals
 
 ```{r}
@@ -137,18 +135,17 @@ i <- 0
 for (jour in my_jours){
   i <- i + 1
   pubmed_gender[[i]] <- iscb_pubmed %>%
-    filter(type == 'Pubmed' & journal == jour) %>%
+    filter(type == 'Pubmed authors' & journal == jour) %>%
     group_by(year, gender, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup() 
 }
 
-bind_rows(pubmed_gender) %>%
-  gender_breakdown(start_year = 2002, end_year - 1, 'journal')
+
 
 ```
 
-### By conference keynotes/fellows:
+### By conference keynotes/fellows
 ```{r fig.height=6}
 i <- 0
 iscb_gender <- vector('list', length = n_confs)
@@ -156,23 +153,45 @@ iscb_gender <- vector('list', length = n_confs)
 for (conf in my_confs){
   i <- i + 1
   iscb_gender[[i]] <- iscb_pubmed %>%
-    filter(type != 'Pubmed' & journal == conf) %>%
+    filter(type != 'Pubmed authors' & journal == conf) %>%
     group_by(year, gender, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
 }
-
-bind_rows(iscb_gender) %>%
-  gender_breakdown(start_year, end_year, 'journal')
 ```
 
-### All fellows and keynotes compared to three ISCB partner journals:
-```{r fig.width=10, fig.height=4}
-iscb_pubmed %>%
+## Comparisons
+
+```{r}
+fig_1a <- iscb_pubmed %>%
+  filter(type == 'Pubmed authors') %>%
   group_by(year, type, gender) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
-  gender_breakdown(start_year, end_year, 'type', facet_by = 'col')
+  gender_breakdown('main', type)
+
+fig_1b <- iscb_pubmed %>%
+  filter(type != 'Pubmed authors') %>%
+  group_by(year, type, gender) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  gender_breakdown('main', type)
+
+fig_1c <- bind_rows(iscb_gender) %>%
+  gender_breakdown(category = 'sub', journal) +
+  theme(legend.position = c(0.2, 0.95),
+        legend.key.height = unit(4, 'mm'),
+        legend.background = element_rect(fill = "transparent", colour = "transparent"))
+
+left_col <- cowplot::plot_grid(fig_1a, fig_1b, labels = c('A', 'B'), nrow = 2)
+fig_1 <- cowplot::plot_grid(left_col, fig_1c, labels = c('', 'C'), ncol = 2)
+fig_1
+ggsave('figs/gender_breakdown.png', fig_1, width = 7, height = 5)
+
+# By journals:
+bind_rows(pubmed_gender) %>%
+  gender_breakdown(category = 'sub', journal)
+
 ```
 
 ## Overview of gender prediction distribution
@@ -189,36 +208,32 @@ iscb_pubmed %>%
 
 ## Mean and standard deviation of predicted probabilities
 
-```{r fig.width=10, fig.height=4}
-get_summary <- function(df){
-  df %>% filter(type != 'Pubmed') %>% select(- probabilities) %>% distinct()
-}
+A simpler figure, supplementary Fig S1?
 
+```{r fig.width=10, fig.height=4}
 ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
-       aes(x = year)) +
-  # facet_grid(cols = vars(fct_rev(gender))) +
-  geom_point(data = . %>% filter(type != 'Pubmed'),
-             aes(y = probabilities, color = type),
-             alpha = 0.2,
-             show.legend = F) +
+       aes(x = year, color = type)) +
+  geom_smooth(data = . %>% filter(type == 'Pubmed authors'),
+              aes(x = publication_date, y = probabilities), alpha = 0.2) +
   geom_point(data = . %>% get_summary(),
-             aes(y = mean_prob, color = type),
+             aes(y = mean_prob),
              shape = 2,
              alpha = 0.5,
              show.legend = F) +
   geom_linerange(data = . %>% get_summary(),
                  aes(ymin = mean_prob - me_prob,
-                     ymax = mean_prob + me_prob,
-                     color = type),
+                     ymax = mean_prob + me_prob),
                  alpha = 0.5,
                  show.legend = F
   ) +
-  geom_smooth(aes(x = publication_date, y = probabilities, color = type, fill = type), alpha = 0.2) +
   scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  scale_color_viridis_d(option = 'D', end = 0.8) +
-  scale_fill_viridis_d(option = 'D', end = 0.8) +
+  scale_color_viridis_d(option = 'D', end = 0.9) +
+  scale_fill_viridis_d(option = 'D', end = 0.9) +
   coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL, y = 'probability_male')
+  labs(x = NULL, y = 'probability_male') +
+  theme(legend.position = c(0.6, 0.2)) 
 ```
 
-
+```{r}
+sessionInfo()
+```
