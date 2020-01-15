@@ -1,4 +1,4 @@
-year	full_name	fore_name	last_name	Conference	source
+year	full_name	fore_name	last_name	conference	source
 2009	Michael Waterman	Michael	Waterman	ISCB Fellow	
 2009	Temple Smith	Temple	Smith	ISCB Fellow	
 2009	Janet Thornton	Janet	Thornton	ISCB Fellow	
@@ -361,7 +361,7 @@ year	full_name	fore_name	last_name	Conference	source
 2011	Marco Marra	Marco	Marra	RECOMB	
 2011	Joe Nadeau	Joe	Nadeau	RECOMB	
 2011	Karen Nelson	Karen	Nelson	RECOMB	
-2011	Jun Wang	Jun	Wang	RECOMB	
+2011	Jun Wang	Jun	Wang	RECOMB	https://doi.org/10.1007/978-3-642-20036-6
 2011	Elaine Mardis	Elaine	Mardis	RECOMB	
 2012	Richard Durbin	Richard	Durbin	RECOMB	
 2012	Eileen Furlong	Eileen	Furlong	RECOMB	
@@ -386,7 +386,6 @@ year	full_name	fore_name	last_name	Conference	source
 2015	Michael Levitt	Michael	Levitt	RECOMB	
 2015	Bas van Steensel	Bas	van Steensel	RECOMB	
 2015	Waclaw Szybalski	Waclaw	Szybalski	RECOMB	
-2015	Marian Walhout	Marian	Walhout	RECOMB	
 2016	Peter Kim	Peter	Kim	RECOMB	
 2016	Rob Knight	Rob	Knight	RECOMB	
 2016	Leonid Kruglyak	Leonid	Kruglyak	RECOMB	
@@ -408,6 +407,6 @@ year	full_name	fore_name	last_name	Conference	source
 2019	Carlos Bustamante	Carlos	Bustamante	RECOMB	
 2019	Rachel Kolodny	Rachel	Kolodny	RECOMB	
 2019	Mihai Pop	Mihai	Pop	RECOMB	
-2019	Franziska Michor	Franziska	 Michor	RECOMB	
+2019	Franziska Michor	Franziska	Michor	RECOMB	
 2019	Eytan Ruppin	Eytan	Ruppin	RECOMB	
 2019	Alfonso Valencia	Alfonso	Valencia	RECOMB	
