@@ -13183,7 +13183,7 @@ div#notebook {
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>29795</pre>
+<pre>29755</pre>
 </div>
 
 </div>
@@ -13200,10 +13200,6 @@ div#notebook {
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">article_df</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">articles</span><span class="p">)</span>
 <span class="n">article_df</span><span class="o">.</span><span class="n">pmid</span> <span class="o">=</span> <span class="n">article_df</span><span class="o">.</span><span class="n">pmid</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 <span class="n">article_df</span> <span class="o">=</span> <span class="n">article_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;pmid&#39;</span><span class="p">)</span>
-<span class="c1">#article_df[&#39;last_author&#39;] = article_df.authors.map(lambda x: &#39;{fore_name} {last_name}&#39;.format(**x[-1]) if x else None)</span>
-<span class="c1"># article_df[&#39;last_author_fore_name&#39;] = article_df.authors.map(lambda x: x[-1][&#39;fore_name&#39;] if x else None)</span>
-<span class="c1"># article_df[&#39;last_author_last_name&#39;] = article_df.authors.map(lambda x: x[-1][&#39;last_name&#39;] if x else None)</span>
-<span class="c1"># article_df[&#39;n_authors&#39;] = article_df.authors.map(len)</span>
 <span class="n">article_df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;pmid&#39;</span><span class="p">)</span>
 </pre></div>
 
@@ -13252,224 +13248,224 @@ div#notebook {
   </thead>
   <tbody>
     <tr>
-      <th>9427</th>
-      <td>9545447</td>
+      <th>10363</th>
+      <td>12386006</td>
       <td>None</td>
-      <td>10.1093/bioinformatics/14.2.151</td>
+      <td>10.1093/bioinformatics/18.suppl_2.s219</td>
       <td>Bioinformatics</td>
       <td>9808944</td>
-      <td>A major component approach to presenting conse...</td>
-      <td>1998</td>
-      <td>[{'fore_name': 'D K', 'last_name': 'Smith', 'a...</td>
+      <td>BioMiner--modeling, analyzing, and visualizing...</td>
+      <td>2002</td>
+      <td>[{'fore_name': 'M', 'last_name': 'Sirava', 'af...</td>
     </tr>
     <tr>
-      <th>11780</th>
-      <td>15593406</td>
-      <td>PMC2390821</td>
-      <td>10.1093/bioinformatics/btg218</td>
-      <td>Bioinformatics</td>
-      <td>9808944</td>
-      <td>FindGDPs: identification of primers for labeli...</td>
-      <td>2003-09-01</td>
-      <td>[{'fore_name': 'Robert J', 'last_name': 'Blick...</td>
-    </tr>
-    <tr>
-      <th>12616</th>
-      <td>16500942</td>
+      <th>11179</th>
+      <td>14990457</td>
       <td>None</td>
-      <td>10.1093/bioinformatics/btl053</td>
+      <td>10.1093/bioinformatics/btg461</td>
       <td>Bioinformatics</td>
       <td>9808944</td>
-      <td>Algorithm to find gene expression profiles of ...</td>
-      <td>2006-02-24</td>
-      <td>[{'fore_name': 'C', 'last_name': 'Prieto', 'af...</td>
+      <td>Support vector machine classification on the web.</td>
+      <td>2004-01-22</td>
+      <td>[{'fore_name': 'Paul', 'last_name': 'Pavlidis'...</td>
     </tr>
     <tr>
-      <th>838</th>
-      <td>16549017</td>
-      <td>PMC1525208</td>
-      <td>10.1186/1471-2105-7-160</td>
-      <td>BMC Bioinformatics</td>
-      <td>100965194</td>
-      <td>More robust detection of motifs in coexpressed...</td>
-      <td>2006-03-20</td>
-      <td>[{'fore_name': 'Pieter', 'last_name': 'Monsieu...</td>
-    </tr>
-    <tr>
-      <th>12677</th>
-      <td>16601005</td>
+      <th>11522</th>
+      <td>15284101</td>
       <td>None</td>
-      <td>10.1093/bioinformatics/btl120</td>
+      <td>10.1093/bioinformatics/bth439</td>
       <td>Bioinformatics</td>
       <td>9808944</td>
-      <td>Analysing the ability to retain sidechain hydr...</td>
-      <td>2006-04-06</td>
-      <td>[{'fore_name': 'Alison L', 'last_name': 'Cuff'...</td>
+      <td>Primer design and marker clustering for multip...</td>
+      <td>2004-07-29</td>
+      <td>[{'fore_name': 'Anton', 'last_name': 'Yuryev',...</td>
     </tr>
     <tr>
-      <th>998</th>
-      <td>16790041</td>
-      <td>PMC1559650</td>
-      <td>10.1186/1471-2105-7-310</td>
-      <td>BMC Bioinformatics</td>
-      <td>100965194</td>
-      <td>Docking protein domains in contact space.</td>
-      <td>2006-06-21</td>
-      <td>[{'fore_name': 'Stefano', 'last_name': 'Lise',...</td>
-    </tr>
-    <tr>
-      <th>14486</th>
-      <td>19153134</td>
-      <td>PMC2647831</td>
-      <td>10.1093/bioinformatics/btp024</td>
-      <td>Bioinformatics</td>
-      <td>9808944</td>
-      <td>FrameDP: sensitive peptide detection on noisy ...</td>
-      <td>2009-01-19</td>
-      <td>[{'fore_name': 'Jérôme', 'last_name': 'Gouzy',...</td>
-    </tr>
-    <tr>
-      <th>15143</th>
-      <td>20031974</td>
-      <td>PMC3716225</td>
-      <td>10.1093/bioinformatics/btp706</td>
-      <td>Bioinformatics</td>
-      <td>9808944</td>
-      <td>BRAT: bisulfite-treated reads analysis tool.</td>
-      <td>2009-12-22</td>
-      <td>[{'fore_name': 'Elena Y', 'last_name': 'Harris...</td>
-    </tr>
-    <tr>
-      <th>15672</th>
-      <td>20861031</td>
+      <th>13972</th>
+      <td>18434343</td>
       <td>None</td>
-      <td>10.1093/bioinformatics/btq537</td>
+      <td>10.1093/bioinformatics/btn200</td>
       <td>Bioinformatics</td>
       <td>9808944</td>
-      <td>MOBI: a web server to define and visualize str...</td>
-      <td>2010-09-21</td>
-      <td>[{'fore_name': 'Alberto J M', 'last_name': 'Ma...</td>
+      <td>A global pathway crosstalk network.</td>
+      <td>2008-04-23</td>
+      <td>[{'fore_name': 'Yong', 'last_name': 'Li', 'aff...</td>
     </tr>
     <tr>
-      <th>4618</th>
-      <td>22151178</td>
-      <td>PMC3269943</td>
-      <td>10.1186/1471-2105-12-s8-s8</td>
+      <th>3002</th>
+      <td>19732451</td>
+      <td>PMC2746223</td>
+      <td>10.1186/1471-2105-10-280</td>
       <td>BMC Bioinformatics</td>
       <td>100965194</td>
-      <td>Benchmarking of the 2010 BioCreative Challenge...</td>
-      <td>2011-10-03</td>
-      <td>[{'fore_name': 'Andrew', 'last_name': 'Chatr-A...</td>
+      <td>EDGE(3): a web-based solution for management a...</td>
+      <td>2009-09-04</td>
+      <td>[{'fore_name': 'Aaron L', 'last_name': 'Vollra...</td>
     </tr>
     <tr>
-      <th>16569</th>
-      <td>22219206</td>
-      <td>PMC3288749</td>
-      <td>10.1093/bioinformatics/btr713</td>
+      <th>3566</th>
+      <td>20429880</td>
+      <td>PMC2882390</td>
+      <td>10.1186/1471-2105-11-215</td>
+      <td>BMC Bioinformatics</td>
+      <td>100965194</td>
+      <td>PoGO: Prediction of Gene Ontology terms for fu...</td>
+      <td>2010-04-29</td>
+      <td>[{'fore_name': 'Jaehee', 'last_name': 'Jung', ...</td>
+    </tr>
+    <tr>
+      <th>15775</th>
+      <td>21088027</td>
+      <td>PMC3018811</td>
+      <td>10.1093/bioinformatics/btq644</td>
       <td>Bioinformatics</td>
       <td>9808944</td>
-      <td>Quantifying the white blood cell transcriptome...</td>
-      <td>2012-01-04</td>
-      <td>[{'fore_name': 'Isaac S', 'last_name': 'Kohane...</td>
+      <td>GPU-BLAST: using graphics processors to accele...</td>
+      <td>2010-11-18</td>
+      <td>[{'fore_name': 'Panagiotis D', 'last_name': 'V...</td>
     </tr>
     <tr>
-      <th>4875</th>
-      <td>22537005</td>
-      <td>PMC3358654</td>
-      <td>10.1186/1471-2105-13-s5-s1</td>
+      <th>4085</th>
+      <td>21235786</td>
+      <td>PMC3025837</td>
+      <td>10.1186/1471-2105-12-21</td>
       <td>BMC Bioinformatics</td>
       <td>100965194</td>
-      <td>Stable stem enabled Shannon entropies distingu...</td>
-      <td>2012-04-12</td>
-      <td>[{'fore_name': 'Yingfeng', 'last_name': 'Wang'...</td>
+      <td>NClassG+: A classifier for non-classically sec...</td>
+      <td>2011-01-14</td>
+      <td>[{'fore_name': 'Daniel', 'last_name': 'Restrep...</td>
     </tr>
     <tr>
-      <th>5029</th>
-      <td>22759455</td>
-      <td>PMC3384256</td>
-      <td>10.1186/1471-2105-13-s11-s1</td>
+      <th>4138</th>
+      <td>21342552</td>
+      <td>PMC3044277</td>
+      <td>10.1186/1471-2105-12-s1-s22</td>
       <td>BMC Bioinformatics</td>
       <td>100965194</td>
-      <td>The Genia Event and Protein Coreference tasks ...</td>
-      <td>2012-06-26</td>
-      <td>[{'fore_name': 'Jin-Dong', 'last_name': 'Kim',...</td>
+      <td>Motif-All: discovering all phosphorylation mot...</td>
+      <td>2011-02-15</td>
+      <td>[{'fore_name': 'Zengyou', 'last_name': 'He', '...</td>
     </tr>
     <tr>
-      <th>25514</th>
-      <td>22956894</td>
-      <td>PMC3431304</td>
-      <td>10.1371/journal.pcbi.1002633</td>
+      <th>25269</th>
+      <td>22496629</td>
+      <td>PMC3320577</td>
+      <td>10.1371/journal.pcbi.1002443</td>
       <td>PLoS Comput Biol</td>
       <td>101238922</td>
-      <td>On genetic specificity in symbiont-mediated ho...</td>
-      <td>2012-08-30</td>
-      <td>[{'fore_name': 'Marek', 'last_name': 'Kwiatkow...</td>
+      <td>Replication fork polarity gradients revealed b...</td>
+      <td>2012-04-05</td>
+      <td>[{'fore_name': 'Antoine', 'last_name': 'Baker'...</td>
     </tr>
     <tr>
-      <th>6043</th>
-      <td>24776231</td>
-      <td>PMC4013430</td>
-      <td>10.1186/1471-2105-15-120</td>
+      <th>5087</th>
+      <td>22901087</td>
+      <td>PMC3372456</td>
+      <td>10.1186/1471-2105-13-s9-s2</td>
       <td>BMC Bioinformatics</td>
       <td>100965194</td>
-      <td>SMOQ: a tool for predicting the absolute resid...</td>
-      <td>2014-04-28</td>
-      <td>[{'fore_name': 'Renzhi', 'last_name': 'Cao', '...</td>
+      <td>Modeling and mining term association for impro...</td>
+      <td>2012-06-11</td>
+      <td>[{'fore_name': 'Qinmin', 'last_name': 'Hu', 'a...</td>
     </tr>
     <tr>
-      <th>19337</th>
-      <td>26338767</td>
-      <td>PMC4692968</td>
-      <td>10.1093/bioinformatics/btv499</td>
-      <td>Bioinformatics</td>
-      <td>9808944</td>
-      <td>DIGGIT: a Bioconductor package to infer geneti...</td>
-      <td>2015-09-02</td>
-      <td>[{'fore_name': 'Mariano J', 'last_name': 'Alva...</td>
-    </tr>
-    <tr>
-      <th>7003</th>
-      <td>26695390</td>
-      <td>PMC4686793</td>
-      <td>10.1186/1471-2105-16-s19-s2</td>
-      <td>BMC Bioinformatics</td>
-      <td>100965194</td>
-      <td>Algebraic Dynamic Programming over general dat...</td>
-      <td>2015-12-16</td>
-      <td>[{'fore_name': 'Christian Höner', 'last_name':...</td>
-    </tr>
-    <tr>
-      <th>21449</th>
-      <td>29608657</td>
-      <td>PMC6084572</td>
-      <td>10.1093/bioinformatics/bty175</td>
-      <td>Bioinformatics</td>
-      <td>9808944</td>
-      <td>Understanding sequencing data as compositions:...</td>
-      <td>2018-08-15</td>
-      <td>[{'fore_name': 'Thomas P', 'last_name': 'Quinn...</td>
-    </tr>
-    <tr>
-      <th>28934</th>
-      <td>30110322</td>
-      <td>PMC6110518</td>
-      <td>10.1371/journal.pcbi.1006211</td>
+      <th>25927</th>
+      <td>23840181</td>
+      <td>PMC3688693</td>
+      <td>10.1371/journal.pcbi.1003107</td>
       <td>PLoS Comput Biol</td>
       <td>101238922</td>
-      <td>Accounting for non-stationarity in epidemiolog...</td>
-      <td>2018-08-15</td>
-      <td>[{'fore_name': 'Bernard', 'last_name': 'Cazell...</td>
+      <td>Bacteria-human somatic cell lateral gene trans...</td>
+      <td>2013-06-20</td>
+      <td>[{'fore_name': 'David R', 'last_name': 'Riley'...</td>
     </tr>
     <tr>
-      <th>8849</th>
-      <td>30991942</td>
-      <td>PMC6469060</td>
-      <td>10.1186/s12859-019-2744-2</td>
+      <th>26009</th>
+      <td>24009490</td>
+      <td>PMC3757116</td>
+      <td>10.1371/journal.pcbi.1003190</td>
+      <td>PLoS Comput Biol</td>
+      <td>101238922</td>
+      <td>A general model for toxin-antitoxin module dyn...</td>
+      <td>2013-08-29</td>
+      <td>[{'fore_name': 'Lendert', 'last_name': 'Gelens...</td>
+    </tr>
+    <tr>
+      <th>26228</th>
+      <td>24453956</td>
+      <td>PMC3894161</td>
+      <td>10.1371/journal.pcbi.1003429</td>
+      <td>PLoS Comput Biol</td>
+      <td>101238922</td>
+      <td>Phylogenetic Gaussian process model for the in...</td>
+      <td>2014-01-16</td>
+      <td>[{'fore_name': 'Yi-Fei', 'last_name': 'Huang',...</td>
+    </tr>
+    <tr>
+      <th>18373</th>
+      <td>24932001</td>
+      <td>PMC4058922</td>
+      <td>10.1093/bioinformatics/btu295</td>
+      <td>Bioinformatics</td>
+      <td>9808944</td>
+      <td>Accurate viral population assembly from ultra-...</td>
+      <td>2014-06-15</td>
+      <td>[{'fore_name': 'Serghei', 'last_name': 'Mangul...</td>
+    </tr>
+    <tr>
+      <th>18629</th>
+      <td>25282641</td>
+      <td>None</td>
+      <td>10.1093/bioinformatics/btu656</td>
+      <td>Bioinformatics</td>
+      <td>9808944</td>
+      <td>CompMap: a reference-based compression program...</td>
+      <td>2014-10-04</td>
+      <td>[{'fore_name': 'Zexuan', 'last_name': 'Zhu', '...</td>
+    </tr>
+    <tr>
+      <th>19251</th>
+      <td>26198106</td>
+      <td>None</td>
+      <td>10.1093/bioinformatics/btv420</td>
+      <td>Bioinformatics</td>
+      <td>9808944</td>
+      <td>CEMAsuite: open source degenerate PCR primer d...</td>
+      <td>2015-07-20</td>
+      <td>[{'fore_name': 'Courtney E', 'last_name': 'Lan...</td>
+    </tr>
+    <tr>
+      <th>20911</th>
+      <td>28968689</td>
+      <td>PMC5870547</td>
+      <td>10.1093/bioinformatics/btx547</td>
+      <td>Bioinformatics</td>
+      <td>9808944</td>
+      <td>Snaptron: querying splicing patterns across te...</td>
+      <td>2018-01-01</td>
+      <td>[{'fore_name': 'Christopher', 'last_name': 'Wi...</td>
+    </tr>
+    <tr>
+      <th>8229</th>
+      <td>29589560</td>
+      <td>PMC5872534</td>
+      <td>10.1186/s12859-018-2061-1</td>
       <td>BMC Bioinformatics</td>
       <td>100965194</td>
-      <td>metamicrobiomeR: an R package for analysis of ...</td>
-      <td>2019-04-16</td>
-      <td>[{'fore_name': 'Nhan Thi', 'last_name': 'Ho', ...</td>
+      <td>Simulating variance heterogeneity in quantitat...</td>
+      <td>2018-03-21</td>
+      <td>[{'fore_name': 'Ahmad', 'last_name': 'Al Kawam...</td>
+    </tr>
+    <tr>
+      <th>21463</th>
+      <td>29617954</td>
+      <td>None</td>
+      <td>10.1093/bioinformatics/bty196</td>
+      <td>Bioinformatics</td>
+      <td>9808944</td>
+      <td>AGORA: organellar genome annotation from the a...</td>
+      <td>2018-08-01</td>
+      <td>[{'fore_name': 'Jaehee', 'last_name': 'Jung', ...</td>
     </tr>
   </tbody>
 </table>
@@ -13637,7 +13633,7 @@ div#notebook {
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>Bioinformatics        13877
+<pre>Bioinformatics        13837
 BMC Bioinformatics     9409
 PLoS Comput Biol       6509
 Name: journal, dtype: int64</pre>
@@ -13706,13 +13702,13 @@ Name: journal, dtype: int64</pre>
     <tr>
       <th>False</th>
       <td>20</td>
-      <td>8794</td>
+      <td>8753</td>
       <td>18</td>
     </tr>
     <tr>
       <th>True</th>
       <td>9389</td>
-      <td>5083</td>
+      <td>5084</td>
       <td>6491</td>
     </tr>
   </tbody>
@@ -14013,7 +14009,7 @@ Name: journal, dtype: int64</pre>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>10.0    28463
+<pre>10.0    28423
 7.0      1002
 4.0       312
 Name: publication_date, dtype: int64</pre>
