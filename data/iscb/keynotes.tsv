@@ -23,7 +23,7 @@ year	full_name	fore_name	last_name	conference	source
 2012	Peter Karp	Peter	Karp	ISCB Fellow	
 2012	Bonnie Berger	Bonnie	Berger	ISCB Fellow	
 2013	Steven Salzberg	Steven	Salzberg	ISCB Fellow	
-2013	Eugene Myers	Eugene	Myers	ISCB Fellow	
+2013	Eugene W Myers	Eugene	Myers	ISCB Fellow	
 2013	Ruth Nussinov	Ruth	Nussinov	ISCB Fellow	
 2013	Webb Miller	Webb	Miller	ISCB Fellow	
 2013	Satoru Miyano	Satoru	Miyano	ISCB Fellow	
@@ -111,7 +111,7 @@ year	full_name	fore_name	last_name	conference	source
 2006	Kurt Wuthrich	Kurt	Wuthrich	ISMB	
 2006	Mathieu Blanchette	Mathieu	Blanchette	ISMB	
 2006	Elana Conti	Elana	Conti	ISMB	
-2006	Charles Delisi	Charles	Delisi	ISMB	
+2006	Charles DeLisi	Charles	DeLisi	ISMB	
 2006	Richard Roberts	Richard	Roberts	ISMB	
 2006	Michael Waterman	Michael	Waterman	ISMB	
 2007	Eran Segal	Eran	Segal	ISMB	
@@ -140,11 +140,11 @@ year	full_name	fore_name	last_name	conference	source
 2009	Eugenia Maria del Pino Veintimilla	Eugenia	Veintimilla	ISMB	
 2009	Thomaso Poggio	Thomaso	Poggio	ISMB	
 2009	Mathias Uhlen	Mathias	Uhlen	ISMB	
-2010	Stephen Brenner	Stephen	Brenner	ISMB	
+2010	Steven Brenner	Steven	Brenner	ISMB	https://www.iscb.org/archive/conferences/iscb/ismb2010-program/ismb2010-keynotes.html
 2010	Susan Lindquist	Susan	Lindquist	ISMB	
 2010	Svante Paabo	Svante	Paabo	ISMB	
 2010	Chris Sander	Chris	Sander	ISMB	
-2010	David Altschuler	David	Altschuler	ISMB	
+2010	David Altshuler	David	Altshuler	ISMB	https://www.broadinstitute.org/blog/ismb-meeting-david-altshuler
 2010	George Church	George	Church	ISMB	
 2010	Robert Weinberg	Robert	Weinberg	ISMB	
 2011	Bonnie Berger	Bonnie	Berger	ISMB	
@@ -167,8 +167,8 @@ year	full_name	fore_name	last_name	conference	source
 2013	Lior Pachter	Lior	Pachter	ISMB	
 2013	Gary Stormo	Gary	Stormo	ISMB	
 2014	Michal Linial	Michal	Linial	ISMB	
-2014	Eugene Myers	Eugene	Myers	ISMB	
-2014	Zak Kohane	Zak	Kohane	ISMB	
+2014	Eugene W Myers	Eugene	Myers	ISMB	
+2014	Isaac (Zak) Kohane	Isaac	Kohane	ISMB	https://www.iscb.org/ismb2014-program/ismb2014-keynotes/isaac-kohane
 2014	Dana Pe'er	Dana	Pe'er	ISMB	
 2014	Robert Langer	Robert	Langer	ISMB	
 2014	Russ Altman	Russ	Altman	ISMB	
@@ -246,7 +246,7 @@ year	full_name	fore_name	last_name	conference	source
 1997	Eric Lander	Eric	Lander	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1997	Robert Lipshutz	Robert	Lipshutz	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1997	Jonathan King	Jonathan	King	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Rich Roberts	Rich	Roberts	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1997	Richard Roberts	Richard	Roberts	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1997	Temple Smith	Temple	Smith	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1997	Terry Speed	Terry	Speed	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1998	Ruben Abagyan	Ruben	Abagyan	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
@@ -260,7 +260,7 @@ year	full_name	fore_name	last_name	conference	source
 1998	John Yates	John	Yates	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1999	Peer Bork	Peer	Bork	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1999	Cyrus Chothia	Cyrus	Chothia	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Gene Myers	Gene	Myers	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
+1999	Eugene W Myers	Eugene	Myers	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1999	John Moult	John	Moult	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1999	Pitor Slonimsky	Pitor	Slonimsky	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
 1999	Ed Southern	Ed	Southern	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
@@ -322,7 +322,7 @@ year	full_name	fore_name	last_name	conference	source
 2006	David Haussler	David	Haussler	RECOMB	https://doi.org/10.1007/11732990
 2006	Ajay K. Royyuru	Ajay	Royyuru	RECOMB	https://doi.org/10.1007/11732990
 2006	David Sankoff	David	Sankoff	RECOMB	https://doi.org/10.1007/11732990
-2006	Michael S. Waterman	Michael	Waterman	RECOMB	https://doi.org/10.1007/11732990
+2006	Michael Waterman	Michael	Waterman	RECOMB	https://doi.org/10.1007/11732990
 2006	Carl Zimmer	Carl	Zimmer	RECOMB	https://doi.org/10.1007/11732990
 2006	Roman A. Zubarev	Roman	Zubarev	RECOMB	https://doi.org/10.1007/11732990
 2007	Elizabeth Blackburn	Elizabeth	Blackburn	RECOMB	
@@ -340,7 +340,7 @@ year	full_name	fore_name	last_name	conference	source
 2008	Vivian Cheung	Vivian	Cheung	RECOMB	
 2008	Temple Smith	Temple	Smith	RECOMB	
 2008	Suzanne Cory	Suzanne	Cory	RECOMB	
-2009	Carlos D. Bustamante	Carlos	Bustamante	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
+2009	Carlos Bustamante	Carlos	Bustamante	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
 2009	Rade Drmanac	Rade	Drmanac	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
 2009	Mark Gerstein	Mark 	Gerstein	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
 2009	Eran Halperin	Eran	Halperin	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
@@ -380,7 +380,7 @@ year	full_name	fore_name	last_name	conference	source
 2014	Trey Ideker	Trey	Ideker	RECOMB	
 2014	Tom Mitchell	Tom	Mitchell	RECOMB	
 2014	Sarah Tishkoff	Sarah	Tishkoff	RECOMB	
-2015	Madan Babu	Madan	Babu	RECOMB	
+2015	M. Madan Babu	Madan	Babu	RECOMB	
 2015	Bonnie Berger	Bonnie	Berger	RECOMB	
 2015	Magda Konarska	Magda	Konarska	RECOMB	
 2015	Michael Levitt	Michael	Levitt	RECOMB	
