@@ -2,11 +2,12 @@
 title: "Intersection analysis of race/ethnicity and gender"
 output: html_document
 ---
+
 After running 08 and 09...
 
 ```{r}
 pubmed_gender_race <- pubmed_gender_df %>% 
-  left_join(pubmed_race_df, by = c('pmid', 'pmcid', 'journal', 'publication_date', 'year')) %>% 
+  left_join(pubmed_race_df, by = c('pmid', 'journal', 'publication_date', 'year')) %>% 
   filter(!is.na(probability_male) & !is.na(pred.whi)) %>%   
   # mutate(probability_female = 1 - probability_male,
   #        int_male_whi = probability_male*pred.whi,
@@ -73,16 +74,12 @@ iscb_pubmed <- iscb_gender_race %>%
 
 ```{r}
 iscb_pubmed %>%
-  # filter(type != 'Pubmed authors') %>%
   group_by(year, type, race_gender) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
     ggplot(aes(year, mean_prob, fill = race_gender)) +
     geom_bar(stat = 'identity', alpha = 0.9) +
     scale_fill_viridis_d() +
-    # scale_x_continuous(breaks = seq(start_year, end_year, 4)) +
-    # coord_cartesian(xlim = c(start_year, end_year)) +
-    # theme(legend.position = 'None') +
     labs(x = NULL) +
     facet_wrap(~ type) +
     scale_x_date(

@@ -49,6 +49,12 @@ my_jours <- unique(pubmed_gender_df$journal)
 my_confs <- unique(iscb_gender_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
+
+# 294 unique names in iscb dataset:
+iscb_gender_df %>% 
+  distinct(full_name) %>% 
+  nrow() 
+
 ```
 
 34050 *PMC plus fall back* corresponding author names.
