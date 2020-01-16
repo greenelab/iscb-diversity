@@ -179,9 +179,9 @@ recode_race <- function(df){
         'Asian' = 'pred.asi',
         'Black' = 'pred.bla',
         'Hispanic' = 'pred.his',
-        'Others' = 'pred.oth',
+        'Other' = 'pred.oth',
         'White' = 'pred.whi',
-        'All others' = 'pred_sum_others'
+        'Other categories' = 'pred_sum_others'
       )
     )
 }
@@ -225,7 +225,7 @@ gender_breakdown <- function(df, category = 'main', ...) {
         expand = c(0, 0),
         breaks = seq(0, 1, 0.2)
       ) +
-      labs(y = 'Estimated proportion')
+      labs(y = 'Estimated composition')
   } else if (category == 'sub') {
     my_plot <- my_plot +
       scale_y_continuous(
@@ -260,7 +260,7 @@ race_breakdown <- function(df, category = 'main', ...){
         expand = c(0, 0),
         breaks = seq(0, 1, 0.2)
       ) +
-      labs(y = 'Estimated proportion')
+      labs(y = 'Estimated composition')
   } else if (category == 'sub') {
     my_plot <- my_plot +
       scale_x_date(
@@ -278,6 +278,9 @@ race_breakdown <- function(df, category = 'main', ...){
   
 }
 
-get_summary <- function(df){
-  df %>% filter(type != 'Pubmed authors') %>% select(- probabilities) %>% distinct()
+get_keynote_summary <- function(df){
+  df %>% 
+    filter(type != 'Pubmed authors') %>% 
+    select(- c(probabilities, journal)) %>% 
+    distinct()
 }

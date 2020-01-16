@@ -15,24 +15,27 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ## Load data
 
 ```{r}
-alpha <- qnorm(0.975)
+alpha_threshold <- qnorm(0.975)
 
 simple_fore_names <- read_tsv('data/names/fore-names.tsv.xz') %>% 
   select(- n_authors) %>% 
   distinct()
-# dups = simple_fore_names %>% group_by(fore_name) %>% filter(n() >1)
 gender_df <- read_tsv('data/gender/genderize.tsv')
 
-pubmed_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
-  filter(reverse_position == 1) %>%
+pubmed_gender_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
-         publication_date = publication_date %>% ymd(truncated = 2)) %>% 
-  left_join(simple_fore_names, by = 'fore_name') %>% 
-  left_join(gender_df, by = 'fore_name_simple') %>% 
-  mutate(final_gender_pred = ifelse(probability_male > 0.5, 'Male', 'Female'))
+         publication_date = ymd(publication_date, truncated = 2)) %>%
+  left_join(gender_df, by = 'fore_name_simple')
 
-iscb_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+pubmed_gender_df <- pubmed_gender_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>% 
+  summarise(probability_male = mean(probability_male, na.rm = T)) %>% 
+  ungroup()
+
+pubmed_gender_pmids %>% filter(year < '2002-01-01', !is.na(fore_name_simple))
+
+iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
   left_join(simple_fore_names, by = 'fore_name') %>% 
@@ -42,16 +45,22 @@ iscb_df <- read_tsv('data/iscb/keynotes.tsv') %>%
 start_year <- 1997
 end_year <- 2020
 n_years <- end_year - start_year
-my_jours <- unique(pubmed_df$journal)
-my_confs <- unique(iscb_df$conference)
+my_jours <- unique(pubmed_gender_df$journal)
+my_confs <- unique(iscb_gender_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
 ```
 
+34050 *PMC plus fall back* corresponding author names.
+29749 articles.
+
+Between 2000-2001, 11 corresponding author names from 10 BMC Bioinformatics articles were retrieved from PMC.
+
+
 Number of speakers/fellows in compbio conferences across years:
 
 ```{r}
-iscb_df %>%
+iscb_gender_df %>%
   select(year, conference) %>% 
   count(year, conference) %>% 
   ggplot(aes(x = year(year), y = n, color = conference)) +
@@ -67,9 +76,9 @@ iscb_df %>%
 ## Missing data
 
 ```{r}
-iscb_df %>% filter(is.na(probability_male))
-pubmed_df %>% filter(is.na(probability_male)) %>% sample_n(10)
-sum(is.na(pubmed_df$probability_male))
+iscb_gender_df %>% filter(is.na(probability_male))
+pubmed_gender_pmids %>% filter(is.na(probability_male)) %>% sample_n(10)
+sum(is.na(pubmed_gender_df$probability_male))
 ```
 
 2 iscb forenames not genderized (Árpád and Chung-I).
@@ -77,14 +86,14 @@ sum(is.na(pubmed_df$probability_male))
 These mostly include initials only, hyphenated names and perhaps names with accent marks.
 
 ```{r}
-pubmed_df %>% filter(is.na(probability_male)) %>% 
+pubmed_gender_df %>% filter(is.na(probability_male)) %>% 
   count(year, journal) %>% 
   ggplot(aes(year(year), n, fill = journal)) +
   geom_bar(stat = 'identity') +
   scale_fill_viridis_d() +
   ylab('Number of forenames NOT genderized')
 
-pubmed_df %>%
+pubmed_gender_pmids %>%
   filter(is.na(probability_male),
          journal == 'BMC Bioinformatics',
          year < '2002-01-01')
@@ -101,13 +110,13 @@ Prepare data frames for later analyses:
 - compute mean, sd, marginal error
 
 ```{r}
-iscb_pubmed <- iscb_df %>%
+iscb_pubmed <- iscb_gender_df %>%
   rename('journal' = conference) %>% 
-  select(year, journal, probability_male, publication_date, final_gender_pred) %>%
+  select(year, journal, probability_male, publication_date) %>%
   mutate(type = 'Keynote speakers/Fellows') %>%
   bind_rows(
-    pubmed_df %>%
-      select(year, journal, probability_male, publication_date, final_gender_pred) %>%
+    pubmed_gender_df %>%
+      select(year, journal, probability_male, publication_date) %>%
       mutate(type = 'Pubmed authors')
   ) %>%
   mutate(probability_female = 1 - probability_male) %>% 
@@ -120,7 +129,7 @@ iscb_pubmed <- iscb_df %>%
     mean_prob = mean(probabilities, na.rm = T),
     sd_prob = sd(probabilities, na.rm = T),
     n = mean(n),
-    me_prob = alpha * sd_prob / sqrt(n)
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
   ) %>%
   ungroup() 
 ```
@@ -210,28 +219,24 @@ iscb_pubmed %>%
 
 A simpler figure, supplementary Fig S1?
 
-```{r fig.width=10, fig.height=4}
+```{r}
 ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
-       aes(x = year, color = type)) +
-  geom_smooth(data = . %>% filter(type == 'Pubmed authors'),
-              aes(x = publication_date, y = probabilities), alpha = 0.2) +
-  geom_point(data = . %>% get_summary(),
-             aes(y = mean_prob),
-             shape = 2,
-             alpha = 0.5,
-             show.legend = F) +
-  geom_linerange(data = . %>% get_summary(),
-                 aes(ymin = mean_prob - me_prob,
-                     ymax = mean_prob + me_prob),
-                 alpha = 0.5,
-                 show.legend = F
-  ) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  scale_color_viridis_d(option = 'D', end = 0.9) +
-  scale_fill_viridis_d(option = 'D', end = 0.9) +
+  aes(group = type)) +
+  geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
+              aes(x = publication_date, y = probabilities, fill = type, color = type)) +
+  geom_pointrange(data = . %>% get_keynote_summary(),
+                  alpha = 0.75, size = 0.3,
+                  aes(x = year, y = mean_prob, shape = type,
+                      ymin = mean_prob - me_prob,
+                      ymax = mean_prob + me_prob)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
+  scale_x_date(labels = scales::date_format("%Y")) +
+  scale_color_viridis_d(option = 'D', begin = 0.5) +
+  scale_fill_viridis_d(option = 'D', begin = 0.5) +
   coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL, y = 'probability_male') +
-  theme(legend.position = c(0.6, 0.2)) 
+  labs(x = NULL, y = 'Estimated composition') +
+  theme(legend.position = c(0.2, 0.2),
+        legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
 ```
 
 ```{r}

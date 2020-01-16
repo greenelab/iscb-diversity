@@ -20,13 +20,24 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 and use the `wru` package to predict race based on last_names only
 
 ```{r}
-pubmed_race_df <- read_tsv('data/pubmed/authors.tsv.xz') %>%
-  filter(reverse_position == 1) %>%
+articles <- read_tsv('data/pubmed/articles.tsv.xz')
+
+pubmed_race_pmids <- 
+  read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>%
   rename('surname' = last_name) %>% 
   predict_race(surname.only = T, impute.missing = F)
+
+pubmed_race_df <- pubmed_race_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>% 
+  summarise(pred.whi = mean(pred.whi, na.rm = T),
+            pred.bla = mean(pred.bla, na.rm = T),
+            pred.asi = mean(pred.asi, na.rm = T),
+            pred.his = mean(pred.his, na.rm = T),
+            pred.oth = mean(pred.oth, na.rm = T)) %>% 
+  ungroup()
 
 iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   rename('surname' = last_name) %>%
@@ -39,7 +50,7 @@ iscb_race_df %>%
   select(1,2) %>% 
   sample_n(10)
 
-alpha <- qnorm(0.975)
+alpha_threshold <- qnorm(0.975)
 start_year <- 1997
 end_year <- 2020
 n_years <- end_year - start_year
@@ -47,10 +58,22 @@ my_jours <- unique(pubmed_race_df$journal)
 my_confs <- unique(iscb_race_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Others', 'All others')
+race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Other', 'Other categories')
 ```
 
-Pubmed authors: 7891 last_names out of 29615 were not matched.
+```{r}
+# > pubmed_race_df$use_last %>% sum()
+# [1] 9173
+# > pubmed_race_df %>% count(corresponding)
+# # A tibble: 3 x 2
+#   corresponding     n
+#           <dbl> <int>
+# 1             0   120
+# 2             1 24877
+# 3            NA  9053
+```
+
+Pubmed authors: 8810 last_names out of 34050 were not matched.
 iscb: 82 surnames out of 348 were not matched.
 
 ## Prepare data frames for later analyses:
@@ -84,7 +107,7 @@ iscb_pubmed <- iscb_race_df %>%
     mean_prob = mean(probabilities, na.rm = T),
     sd_prob = sd(probabilities, na.rm = T),
     n = mean(n),
-    me_prob = alpha * sd_prob / sqrt(n)
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
   ) %>%
   ungroup() 
 
@@ -99,7 +122,7 @@ i <- 0
 for (jour in my_jours){
   i <- i + 1
   pubmed_race[[i]] <- iscb_pubmed %>%
-    filter(type == 'Pubmed authors' & journal == jour & (Race != 'All others')) %>%
+    filter(type == 'Pubmed authors' & journal == jour & (Race != 'Other categories')) %>%
     group_by(year, Race, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
@@ -115,7 +138,7 @@ i <- 0
 for (conf in my_confs){
   i <- i + 1
   iscb_race[[i]] <- iscb_pubmed %>%
-    filter(type != 'Pubmed authors' & journal == conf & (Race != 'All others')) %>%
+    filter(type != 'Pubmed authors' & journal == conf & (Race != 'Other categories')) %>%
     group_by(year, Race, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup()
@@ -140,7 +163,7 @@ iscb_pubmed %>%
 ## Comparisons
 
 ```{r fig.width=10, fig.height=4}
-ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
+ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'Other categories'),
        aes(x = year)) +
   facet_grid(cols = vars(fct_rev(Race))) +
   geom_smooth(aes(x = publication_date, y = probabilities, color = type, fill = type)) +
@@ -151,14 +174,14 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
     show.legend = F
   ) +
   geom_point(
-    data = . %>% get_summary(),
+    data = . %>% get_keynote_summary(),
     aes(y = mean_prob, color = type),
     shape = 2,
     alpha = 0.5,
     show.legend = F
   ) +
   geom_linerange(
-    data = . %>% get_summary(),
+    data = . %>% get_keynote_summary(),
     aes(
       ymin = mean_prob - me_prob,
       ymax = mean_prob + me_prob,
@@ -176,48 +199,13 @@ ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All o
 
 ```
 
-A simpler figure, supplementary Fig S2?
-```{r fig.width=10, fig.height=4}
-ggplot(iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'All others'),
-       aes(x = year, color = type, fill = type)) +
-  facet_grid(cols = vars(fct_rev(Race))) +
-  geom_smooth(data = . %>% filter(type == 'Pubmed authors'),
-              aes(x = publication_date, y = probabilities)) +
-  geom_point(
-    data = . %>% get_summary(),
-    aes(y = mean_prob),
-    shape = 2,
-    alpha = 0.5,
-    show.legend = F
-  ) +
-  geom_linerange(
-    data = . %>% get_summary(),
-    aes(
-      ymin = mean_prob - me_prob,
-      ymax = mean_prob + me_prob
-    ),
-    alpha = 0.5,
-    show.legend = F
-  ) +
-  guides(fill = F) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  scale_x_date(breaks = '4 years', labels = scales::date_format("%Y")) +
-  scale_color_viridis_d(option = 'D', end = 0.9) +
-  scale_fill_viridis_d(option = 'D', end = 0.9) +
-  coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL) +
-  theme(legend.position = c(0.85, 0.85))
-
-```
-
-
 Here, each circle is a name mention.
 The vertical intervals are confidence intervals of the mean probability of selecting a race/ethnicity category in the US census (triangle).
 
 ```{r}
 # Check: probabilities, if valid, should add up to 1
 iscb_pubmed %>%
-  filter(Race == 'White' | Race == 'Asian' | Race == 'All others') %>% 
+  filter(Race == 'White' | Race == 'Asian' | Race == 'Other categories') %>% 
   group_by(type, year, publication_date, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   summarise(all_prob = sum(mean_prob))
@@ -229,9 +217,30 @@ iscb_pubmed %>%
 
 ### All fellows and keynotes compared to last authors in ISCB partner journals:
 
-```{r fig.height=6, fig.width=8, warning=FALSE, message=FALSE}
+```{r fig.height=8, fig.width=8, warning=FALSE, message=FALSE}
+# A simpler figure
+fig_stats <- ggplot(
+  iscb_pubmed %>% filter(Race == 'White' | Race == 'Asian' | Race == 'Other categories'),
+  aes(group = type)) +
+  facet_grid(cols = vars(fct_rev(Race))) +
+  geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
+              aes(x = publication_date, y = probabilities, fill = type, color = type)) +
+  geom_pointrange(data = . %>% get_keynote_summary(),
+                  alpha = 0.75, size = 0.3,
+                  aes(x = year, y = mean_prob, shape = type,
+                      ymin = mean_prob - me_prob,
+                      ymax = mean_prob + me_prob)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
+  scale_x_date(labels = scales::date_format("%Y")) +
+  scale_color_viridis_d(option = 'D', begin = 0.5) +
+  scale_fill_viridis_d(option = 'D', begin = 0.5) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(x = NULL, y = 'Estimated composition') +
+  theme(legend.position = c(0.84, 0.78),
+        legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
+
 fig_2a <- iscb_pubmed %>%
-  filter(Race != 'All others',
+  filter(Race != 'Other categories',
          type == 'Pubmed authors') %>%
   group_by(year, type, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
@@ -239,7 +248,7 @@ fig_2a <- iscb_pubmed %>%
   race_breakdown(category = 'main', type) 
 
 fig_2c <- iscb_pubmed %>%
-  filter(Race != 'All others',
+  filter(Race != 'Other categories',
          type != 'Pubmed authors') %>%
   group_by(year, type, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
@@ -255,11 +264,11 @@ fig_2b <- bind_rows(pubmed_race) %>%
 fig_2d <- bind_rows(iscb_race) %>%
   race_breakdown(category = 'sub', journal)
 
-fig_2 <- cowplot::plot_grid(fig_2a, fig_2b, fig_2c, fig_2d, labels = 'AUTO')
-
+fig_2_a_d <- cowplot::plot_grid(fig_2a, fig_2b, fig_2c, fig_2d, labels = 'AUTO')
+fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
 fig_2
 
-ggsave('figs/racial_makeup.png', fig_2, width = 7, height = 5)
+ggsave('figs/racial_makeup.png', fig_2, width = 7, height = 7)
 ```
 
 All Asian speakers at PSB 2000?
@@ -273,17 +282,17 @@ PSB only had one keynote speaker in 2000, Wah Chiu.
 What's in Bioinformatics 1999?
 
 ```{r}
-pubmed_race_df %>% 
+pubmed_race_pmids %>% 
   filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
   select(contains('pred')) %>% 
   colMeans() 
 
-pubmed_race_df %>% 
+pubmed_race_pmids %>% 
   filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
   filter(pred.asi > 0.1) %>% 
   select(fore_name, surname, pred.asi) 
 
-pubmed_race_df %>% 
+pubmed_race_pmids %>% 
   filter(year == '1999-01-01' & !is.na(pred.whi)) %>% 
   filter(pred.his > 0.1) %>% 
   select(fore_name, surname, pred.his) 
