@@ -1,0 +1,97 @@
+---
+title: "Intersection analysis of race/ethnicity and gender"
+output: html_document
+---
+After running 08 and 09...
+
+```{r}
+pubmed_gender_race <- pubmed_gender_df %>% 
+  left_join(pubmed_race_df, by = c('pmid', 'pmcid', 'journal', 'publication_date', 'year')) %>% 
+  filter(!is.na(probability_male) & !is.na(pred.whi)) %>%   
+  # mutate(probability_female = 1 - probability_male,
+  #        int_male_whi = probability_male*pred.whi,
+  #        int_male_bla = probability_male*pred.bla,
+  #        int_male_asi = probability_male*pred.asi,
+  #        int_male_his = probability_male*pred.his,
+  #        int_male_oth = probability_male*pred.oth,
+  #        int_female_whi = 1 - int_male_whi,
+  #        int_female_bla = 1 - int_male_bla,
+  #        int_female_asi = 1 - int_male_asi,
+  #        int_female_his = 1 - int_male_his,
+  #        int_female_oth = 1 - int_male_oth)
+  mutate(pred_sum_others = pred.his + pred.oth + pred.bla,
+    probability_female = 1 - probability_male,
+         int_male_whi = probability_male*pred.whi,
+         int_male_oth = probability_male*pred_sum_others,
+         int_male_asi = probability_male*pred.asi,
+         int_female_whi = (1 - probability_male)*pred.whi,
+         int_female_oth = (1 - probability_male)*pred_sum_others,
+         int_female_asi = (1 - probability_male)*pred.asi)
+
+iscb_gender_race <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  left_join(simple_fore_names, by = 'fore_name') %>% 
+  left_join(gender_df, by = 'fore_name_simple') %>% 
+  rename('surname' = last_name) %>% 
+  predict_race(surname.only = T, impute.missing = F) %>% 
+  mutate(pred_sum_others = pred.his + pred.oth + pred.bla,
+    probability_female = 1 - probability_male,
+         int_male_whi = probability_male*pred.whi,
+         int_male_oth = probability_male*pred_sum_others,
+         int_male_asi = probability_male*pred.asi,
+         int_female_whi = (1 - probability_male)*pred.whi,
+         int_female_oth = (1 - probability_male)*pred_sum_others,
+         int_female_asi = (1 - probability_male)*pred.asi)
+
+```
+
+
+```{r}
+iscb_pubmed <- iscb_gender_race %>%
+  rename('journal' = conference) %>% 
+  select(year, journal, contains('int'), publication_date) %>%
+  mutate(type = 'Keynote speakers/Fellows') %>%
+  bind_rows(
+    pubmed_gender_race %>%
+      select(year, journal, contains('int'), publication_date) %>%
+      mutate(type = 'Pubmed authors')
+  ) %>%
+  pivot_longer(contains('int'),
+               names_to = 'race_gender',
+               values_to = 'probabilities') %>%
+  group_by(type, year, publication_date, race_gender) %>%
+  add_count() %>%
+  mutate(
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() 
+```
+
+```{r}
+iscb_pubmed %>%
+  # filter(type != 'Pubmed authors') %>%
+  group_by(year, type, race_gender) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+    ggplot(aes(year, mean_prob, fill = race_gender)) +
+    geom_bar(stat = 'identity', alpha = 0.9) +
+    scale_fill_viridis_d() +
+    # scale_x_continuous(breaks = seq(start_year, end_year, 4)) +
+    # coord_cartesian(xlim = c(start_year, end_year)) +
+    # theme(legend.position = 'None') +
+    labs(x = NULL) +
+    facet_wrap(~ type) +
+    scale_x_date(
+      labels = scales::date_format("%Y"),
+      expand = c(0, 0),
+      limits = c(
+        ymd(start_year - 1, truncated = 2L),
+        ymd(end_year + 1, truncated = 2L)
+      )
+    )
+```
+
