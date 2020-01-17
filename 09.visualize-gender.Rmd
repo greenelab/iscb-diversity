@@ -53,12 +53,19 @@ n_confs <- length(my_confs)
 # 294 unique names in iscb dataset:
 iscb_gender_df %>% 
   distinct(full_name) %>% 
-  nrow() 
+  nrow()
+
+set.seed(0)
+iscb_gender_df %>% 
+  count(full_name) %>% 
+  filter(n > 1) %>% 
+  sample_n(1)
 
 ```
 
 34050 *PMC plus fall back* corresponding author names.
 29749 articles.
+77 names were honored 194 times.
 
 Between 2000-2001, 11 corresponding author names from 10 BMC Bioinformatics articles were retrieved from PMC.
 

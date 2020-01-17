@@ -97,3 +97,31 @@ iscb_pubmed %>%
 
 ```
 
+
+
+```{r}
+iscb_pubmed %>%
+  mutate(pop_gender = ifelse(grepl('female', race_gender), 'Female', 'Male'),
+       race = case_when(
+         grepl('whi', race_gender) ~ 'White',
+         grepl('asi', race_gender) ~ 'Asian',
+         grepl('oth', race_gender) ~ 'Other categories',
+       )) %>% 
+  group_by(year, type, race_gender, pop_gender, race) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+    ggplot(aes(year, mean_prob, fill = race_gender)) +
+    geom_bar(stat = 'identity') +
+    scale_fill_viridis_d(option = 'A') +
+    labs(x = NULL) +
+    facet_wrap(~ type) +
+    scale_x_date(
+      labels = scales::date_format("%Y"),
+      expand = c(0, 0),
+      limits = c(
+        ymd(start_year - 1, truncated = 2L),
+        ymd(end_year + 1, truncated = 2L)
+      )
+    )
+```
+
