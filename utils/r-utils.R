@@ -238,6 +238,55 @@ gender_breakdown <- function(df, category = 'main', ...) {
   my_plot
 }
 
+
+region_breakdown <- function(df, category = 'main', ...) {
+  # plot stacked bargraphs for each gender, mean_prob by year
+  my_plot <- df %>%
+    ggplot(aes(year, mean_prob, fill = region)) +
+    geom_bar(stat = 'identity', alpha = 0.9) +
+    scale_fill_viridis_d(option = 'A') +
+    theme(legend.position = 'None') +
+    labs(x = NULL) +
+    facet_wrap(vars(...), ncol = 2) 
+  
+  if (category == 'main') {
+    my_plot <- my_plot +
+      scale_y_continuous(
+        labels = scales::percent_format(),
+        expand = c(0, 0),
+        breaks = seq(0, 1, 0.2)
+      ) +
+      scale_x_date(
+        labels = scales::date_format("%Y"),
+        expand = c(0, 0),
+        limits = c(
+          ymd(start_year - 1, truncated = 2L),
+          ymd(end_year + 1, truncated = 2L)
+        )
+      )
+      labs(y = 'Estimated composition')
+  } else if (category == 'sub') {
+    my_plot <- my_plot +
+      scale_y_continuous(
+        labels = scales::percent_format(),
+        expand = c(0, 0),
+        breaks = seq(0, 1, 0.5)
+      ) +
+      labs(y = NULL) +
+      scale_x_date(
+        labels = scales::date_format("'%Y"),
+        expand = c(0, 0),
+        limits = c(
+          ymd(start_year - 1, truncated = 2L),
+          ymd(end_year + 1, truncated = 2L)
+        )
+      )
+  }
+  my_plot
+}
+
+
+
 race_breakdown <- function(df, category = 'main', ...){
   # plot stacked bargraphs for each race, mean_prob by year
   my_plot <- df %>%
