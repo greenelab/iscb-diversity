@@ -1,0 +1,221 @@
+---
+title: "Visualize nationality predictions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+source('utils/r-utils.R')
+theme_set(theme_bw() + theme(legend.title = element_blank()))
+
+```
+
+```{r}
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/05d1c44b5cd5b145b19242c55665993085e08910/data/LSTM_results_authors.tsv') %>% 
+  distinct(full_name, .keep_all = T)
+
+alpha_threshold <- qnorm(0.975)
+
+# 
+# dups <- pubmed_nat %>% 
+#   add_count(full_name) %>% 
+#   filter(n > 1) %>% 
+#   arrange(full_name)
+# 
+# no_dups <- pubmed_nat %>% 
+#   distinct()
+# 
+# no_dups%>% 
+#   add_count(full_name) %>% 
+#   filter(n > 1) %>% 
+#   arrange(full_name)
+regs <- colnames(pubmed_nat)[-1]
+
+pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
+  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = ymd(publication_date, truncated = 2)) %>%
+  mutate(full_name = paste(fore_name, last_name)) %>% 
+  left_join(nationalize_df, by = 'full_name')
+
+pubmed_nat_df <- pubmed_nat_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>% 
+  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>% 
+  ungroup()
+
+iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  left_join(nationalize_df, by = 'full_name') 
+
+# not_nat <- pubmed_nat_df %>% filter(is.na(African))
+
+start_year <- 1997
+end_year <- 2020
+n_years <- end_year - start_year
+my_jours <- unique(pubmed_nat_df$journal)
+my_confs <- unique(iscb_nat_df$conference)
+n_jours <- length(my_jours)
+n_confs <- length(my_confs)
+```
+
+
+## Missing data
+
+```{r}
+iscb_nat_df %>% filter(is.na(African))
+pubmed_nat_pmids %>% filter(is.na(African)) %>% sample_n(10)
+sum(is.na(pubmed_nat_df$African))
+```
+
+1457 pubmed forenames not nationalized
+<!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
+
+```{r}
+pubmed_nat_df %>% filter(is.na(African)) %>% 
+  count(year, journal) %>% 
+  ggplot(aes(year(year), n, fill = journal)) +
+  geom_bar(stat = 'identity') +
+  scale_fill_viridis_d() +
+  ylab('Number of forenames NOT nationalized')
+```
+
+The metadata for Bioinformatics and BMC Bioinformatics papers before 2002 only have initials of first and/or middle names. 
+Therefore, we do not have prediction for nats before this year.
+
+## Descriptive statistics
+Prepare data frames for later analyses:
+
+- rbind results of race predictions in iscb and Pubmed
+<!-- - pivot long -->
+- compute mean, sd, marginal error
+
+```{r}
+iscb_pubmed <- iscb_nat_df %>%
+  rename('journal' = conference) %>% 
+  select(year, journal, African:SouthAsian, publication_date) %>%
+  mutate(type = 'Keynote speakers/Fellows') %>%
+  bind_rows(
+    pubmed_nat_df %>%
+      select(year, journal, African:SouthAsian, publication_date) %>%
+      mutate(type = 'Pubmed authors')
+  ) %>%
+  # mutate(probability_female = 1 - African) %>% 
+  pivot_longer(African:SouthAsian,
+               names_to = 'region',
+               values_to = 'probabilities') %>%
+  group_by(type, year, publication_date, region) %>%
+  add_count() %>%
+  mutate(
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() 
+```
+
+## Prepare data frames for analysis
+### By journals
+
+```{r}
+pubmed_nat <- vector('list', length = n_jours)
+i <- 0
+
+for (jour in my_jours){
+  i <- i + 1
+  pubmed_nat[[i]] <- iscb_pubmed %>%
+    filter(type == 'Pubmed authors' & journal == jour) %>%
+    group_by(year, region, journal) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup() 
+}
+```
+
+### By conference keynotes/fellows
+```{r fig.height=6}
+i <- 0
+iscb_nat <- vector('list', length = n_confs)
+
+for (conf in my_confs){
+  i <- i + 1
+  iscb_nat[[i]] <- iscb_pubmed %>%
+    filter(type != 'Pubmed authors' & journal == conf) %>%
+    group_by(year, region, journal) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup()
+}
+```
+
+## Comparisons
+
+```{r}
+fig_3a <- iscb_pubmed %>%
+  filter(type == 'Pubmed authors') %>%
+  group_by(year, type, region) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  region_breakdown('main', type)
+
+fig_3c <- iscb_pubmed %>%
+  filter(type != 'Pubmed authors') %>%
+  group_by(year, type, region) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  region_breakdown('main', type)
+```
+
+```{r}
+fig_3b <- bind_rows(pubmed_nat) %>%
+  region_breakdown(category = 'sub', journal) +
+  theme(legend.position = c(0.75, 0.25),
+        legend.key.height = unit(4, 'mm'),
+        legend.background = element_rect(fill = "transparent", colour = "transparent"))
+# theme(legend.position = c(0.84, 0.78),
+#         legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
+fig_3d <- bind_rows(iscb_nat) %>%
+  region_breakdown(category = 'sub', journal)
+
+# left_col <- cowplot::plot_grid(fig_3a, fig_3b, labels = c('A', 'B'), nrow = 2)
+# fig_3 <- cowplot::plot_grid(left_col, fig_3c, labels = c('', 'C'), ncol = 2)
+fig_3_a_d <- cowplot::plot_grid(fig_3a, fig_3b, fig_3c, fig_3d, labels = 'AUTO')
+# fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
+fig_3_a_d
+ggsave('figs/region_breakdown.png', fig_3, width = 7, height = 5)
+
+
+```
+
+## Mean and standard deviation of predicted probabilities
+
+A simpler figure, supplementary Fig S3?
+
+```{r}
+fig_3s <- ggplot(iscb_pubmed,
+  aes(group = type)) +
+  geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
+              aes(x = publication_date, y = probabilities, fill = type, color = type)) +
+  geom_pointrange(data = . %>% get_keynote_summary(),
+                  alpha = 0.75, size = 0.3,
+                  aes(x = year, y = mean_prob, shape = type,
+                      ymin = mean_prob - me_prob,
+                      ymax = mean_prob + me_prob)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
+  scale_x_date(labels = scales::date_format("'%Y")) +
+  scale_color_viridis_d(option = 'D', begin = 0.5) +
+  scale_fill_viridis_d(option = 'D', begin = 0.5) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(x = NULL, y = 'Estimated composition') +
+  theme(legend.position = c(0.85, 0.15),
+        legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
+  facet_wrap(vars(region))
+
+fig_3s
+ggsave('figs/region_sup.png', fig_3s, width = 6.5, height = 5)
+```
+
+```{r}
+sessionInfo()
+```
+
