@@ -39,8 +39,7 @@ iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
   left_join(simple_fore_names, by = 'fore_name') %>% 
-  left_join(gender_df, by = 'fore_name_simple') %>% 
-  mutate(final_gender_pred = ifelse(probability_male > 0.5, 'Male', 'Female'))
+  left_join(gender_df, by = 'fore_name_simple')
 
 start_year <- 1997
 end_year <- 2020
