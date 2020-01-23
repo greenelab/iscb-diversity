@@ -6,6 +6,25 @@ output: html_document
 After running 08 and 09...
 
 ```{r}
+articles <- read_tsv('data/pubmed/articles.tsv.xz')
+
+pubmed_race_pmids <- 
+  read_tsv('data/names/corresponding-authors.tsv.xz') %>%
+  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = ymd(publication_date, truncated = 2)) %>%
+  rename('surname' = last_name) %>% 
+  predict_race(surname.only = T, impute.missing = F)
+
+pubmed_race_df <- pubmed_race_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>% 
+  mutate(pred.whi = mean(pred.whi, na.rm = T),
+            pred.bla = mean(pred.bla, na.rm = T),
+            pred.asi = mean(pred.asi, na.rm = T),
+            pred.his = mean(pred.his, na.rm = T),
+            pred.oth = mean(pred.oth, na.rm = T)) %>% 
+  ungroup()
+
 pubmed_gender_race <- pubmed_gender_df %>% 
   left_join(pubmed_race_df, by = c('pmid', 'journal', 'publication_date', 'year')) %>% 
   filter(!is.na(probability_male) & !is.na(pred.whi)) %>%   
@@ -124,4 +143,53 @@ iscb_pubmed %>%
       )
     )
 ```
+
+
+Who are missings?
+
+```{r}
+pubmed_gender_race_all <- pubmed_gender_df %>% 
+  left_join(pubmed_race_df, by = c('pmid', 'journal', 'publication_date', 'year'))
+
+iscb_gender_race %>% 
+  filter(is.na(probability_male))
+
+iscb_gender_race %>% 
+  filter(is.na(pred.whi)) %>% 
+  nrow()
+
+pubmed_gender_race_all %>% 
+  filter(is.na(probability_male)) %>% 
+  select(contains('pred')) %>% 
+  # group_by(year) %>% 
+  colMeans(na.rm = T)
+
+missing_gender <- pubmed_gender_race_all %>% 
+  filter(is.na(probability_male)) %>% 
+  select(fore_name_simple, fore_name)
+
+
+pubmed_gender_race_all %>% 
+  filter(is.na(probability_male), grepl('-', fore_name)) %>% 
+  select(contains('pred')) %>% 
+  colMeans(na.rm = T)
+
+nchar(missing_gender$fore_name) %>% table()
+m2 <- missing_gender %>% filter(nchar(fore_name) ==2)
+m3 <- missing_gender %>% filter(grepl('\\.| ', fore_name))
+m4 <- missing_gender %>% filter(grepl('-', fore_name))
+
+pubmed_gender_race_all %>% 
+  filter(is.na(pred.whi)) %>% 
+  select(contains('male')) %>% 
+  colMeans(na.rm = T)
+
+
+pubmed_gender_df <- pubmed_gender_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>% 
+  summarise(probability_male = mean(probability_male, na.rm = T)) %>% 
+  ungroup()
+```
+
+
 
