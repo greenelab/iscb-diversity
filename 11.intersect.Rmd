@@ -25,6 +25,19 @@ pubmed_race_df <- pubmed_race_pmids %>%
             pred.oth = mean(pred.oth, na.rm = T)) %>% 
   ungroup()
 
+pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
+  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = ymd(publication_date, truncated = 2)) %>%
+  mutate(full_name = paste(fore_name, last_name)) %>% 
+  left_join(nationalize_df, by = 'full_name')
+
+pubmed_nat_df <- pubmed_nat_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>% 
+  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>% 
+  ungroup()
+
+
 pubmed_gender_race <- pubmed_gender_df %>% 
   left_join(pubmed_race_df, by = c('pmid', 'journal', 'publication_date', 'year')) %>% 
   filter(!is.na(probability_male) & !is.na(pred.whi)) %>%   
@@ -48,6 +61,27 @@ pubmed_gender_race <- pubmed_gender_df %>%
          int_female_oth = (1 - probability_male)*pred_sum_others,
          int_female_asi = (1 - probability_male)*pred.asi)
 
+
+pubmed_gender_nat <- pubmed_gender_df %>% 
+  left_join(pubmed_nat_df, by = c('pmid', 'journal', 'publication_date', 'year')) %>% 
+  filter(!is.na(probability_male) & !is.na(African)) %>% 
+  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African,
+         probability_female = 1 - probability_male,
+         # int_male_African = probability_male*African,
+         int_male_CelticEnglish = probability_male*CelticEnglish,
+         int_male_European = probability_male*European,
+         int_male_EastAsian = probability_male*EastAsian,
+         int_male_Other = probability_male*OtherCategories,
+         # int_male_Muslim = probability_male*pred.asi,
+         # int_male_Hispanic = probability_male*African,
+         # int_male_Israel = probability_male*pred_sum_others,
+         # int_male_European = probability_male*pred.asi,
+         int_female_CelticEnglish = probability_female*CelticEnglish,
+         int_female_European = probability_female*European,
+         int_female_EastAsian = probability_female*EastAsian,
+         int_female_Other = probability_female*OtherCategories)
+  
+  
 iscb_gender_race <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
@@ -64,6 +98,24 @@ iscb_gender_race <- read_tsv('data/iscb/keynotes.tsv') %>%
          int_female_oth = (1 - probability_male)*pred_sum_others,
          int_female_asi = (1 - probability_male)*pred.asi)
 
+iscb_nat_race <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  left_join(nationalize_df, by = 'full_name') %>% 
+  left_join(simple_fore_names, by = 'fore_name') %>% 
+  left_join(gender_df, by = 'fore_name_simple') %>% 
+  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African,
+         probability_female = 1 - probability_male,
+         # int_male_African = probability_male*African,
+         int_male_CelticEnglish = probability_male*CelticEnglish,
+         int_male_European = probability_male*European,
+         int_male_EastAsian = probability_male*EastAsian,
+         int_male_Other = probability_male*OtherCategories,
+         int_female_CelticEnglish = probability_female*CelticEnglish,
+         int_female_European = probability_female*European,
+         int_female_EastAsian = probability_female*EastAsian,
+         int_female_Other = probability_female*OtherCategories)
+my2020 <- iscb_nat_race %>% filter(year=='2020-01-01')
 ```
 
 
