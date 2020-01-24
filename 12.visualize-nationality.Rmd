@@ -17,21 +17,6 @@ nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nat
 
 alpha_threshold <- qnorm(0.975)
 
-# 
-# dups <- pubmed_nat %>% 
-#   add_count(full_name) %>% 
-#   filter(n > 1) %>% 
-#   arrange(full_name)
-# 
-# no_dups <- pubmed_nat %>% 
-#   distinct()
-# 
-# no_dups%>% 
-#   add_count(full_name) %>% 
-#   filter(n > 1) %>% 
-#   arrange(full_name)
-regs <- colnames(pubmed_nat)[-1]
-
 pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
@@ -48,8 +33,6 @@ iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
   left_join(nationalize_df, by = 'full_name') 
-
-# not_nat <- pubmed_nat_df %>% filter(is.na(African))
 
 start_year <- 1997
 end_year <- 2019
@@ -83,7 +66,7 @@ pubmed_nat_pmids %>% filter(is.na(African)) %>% sample_n(10)
 sum(is.na(pubmed_nat_df$African))
 ```
 
-1457 pubmed forenames not nationalized
+1457 pubmed full names not nationalized
 <!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
 
 ```{r}
@@ -92,7 +75,7 @@ pubmed_nat_df %>% filter(is.na(African)) %>%
   ggplot(aes(year(year), n, fill = journal)) +
   geom_bar(stat = 'identity') +
   scale_fill_viridis_d() +
-  ylab('Number of forenames NOT nationalized')
+  ylab('Number of full names NOT nationalized')
 ```
 
 
@@ -196,20 +179,14 @@ fig_4b <- bind_rows(pubmed_nat) %>%
 fig_4d <- bind_rows(iscb_nat) %>%
   region_breakdown(category = 'sub', journal)
 
-# fig_4 <- cowplot::plot_grid(left_col, fig_4c, labels = c('', 'C'), ncol = 2)
 fig_4_a_d <- cowplot::plot_grid(fig_4a, fig_4b, fig_4c, fig_4d, labels = 'AUTO')
-# fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
-# fig_4_a_d
-# ggsave('figs/region_breakdown.png', fig_4_a_d, width = 7, height = 5.5)
-
-
 ```
 
 ## Mean and standard deviation of predicted probabilities
 
 A simpler figure, supplementary Fig S3?
 
-```{r}
+```{r fig.height=8, fig.width=8}
 fig_4s <- iscb_nat_df %>%
   rename('journal' = conference) %>% 
   select(year, journal, African:SouthAsian, publication_date) %>%
@@ -257,9 +234,6 @@ fig_4s <- iscb_nat_df %>%
         legend.text = element_text(size = 7),
         legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
   facet_wrap(vars(fct_relevel(region, c('CelticEnglish', 'European', 'EastAsian', 'OtherCategories'))), nrow = 1)
-
-# fig_4s
-# ggsave('figs/region_sup.png', fig_4s, width = 6.5, height = 5)
 
 fig_4 <- cowplot::plot_grid(fig_4_a_d, fig_4s, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
 fig_4
