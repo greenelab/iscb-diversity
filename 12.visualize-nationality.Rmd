@@ -52,12 +52,29 @@ iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
 # not_nat <- pubmed_nat_df %>% filter(is.na(African))
 
 start_year <- 1997
-end_year <- 2020
+end_year <- 2019
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_nat_df$journal)
 my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
+region_levels <- c('CelticEnglish', 'European', 'EastAsian', 'Hispanic', 'SouthAsian', 'Muslim', 'Israel', 'African')
+```
+
+```{r}
+set.seed(0)
+top_names <- map_dfc(region_levels, function(x) {
+  nationalize_df %>% 
+    filter((!!sym(x)) > 0.9) %>% 
+    sample_n(10) %>% 
+    select(full_name) %>% 
+    rename(!!x := full_name)
+  }) 
+
+top_names %>% write_tsv('data/names/example_nationalities.tsv')
+
+readin <- read_tsv('data/names/example_nationalities.tsv')
+
 ```
 
 
@@ -81,8 +98,14 @@ pubmed_nat_df %>% filter(is.na(African)) %>%
   ylab('Number of forenames NOT nationalized')
 ```
 
-The metadata for Bioinformatics and BMC Bioinformatics papers before 2002 only have initials of first and/or middle names. 
-Therefore, we do not have prediction for nats before this year.
+
+```{r}
+pubmed_nat_df %>% 
+  filter(year == '2000-01-01', !is.na(African))
+```
+
+In 2010, there is only one article that has nationality prediction.
+Should we drop?
 
 ## Descriptive statistics
 Prepare data frames for later analyses:
@@ -90,6 +113,7 @@ Prepare data frames for later analyses:
 - rbind results of race predictions in iscb and Pubmed
 <!-- - pivot long -->
 - compute mean, sd, marginal error
+
 
 ```{r}
 iscb_pubmed <- iscb_nat_df %>%
@@ -151,38 +175,35 @@ for (conf in my_confs){
 ## Comparisons
 
 ```{r}
-fig_3a <- iscb_pubmed %>%
+fig_4a <- iscb_pubmed %>%
   filter(type == 'Pubmed authors') %>%
   group_by(year, type, region) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
   region_breakdown('main', type)
 
-fig_3c <- iscb_pubmed %>%
+fig_4c <- iscb_pubmed %>%
   filter(type != 'Pubmed authors') %>%
   group_by(year, type, region) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
   region_breakdown('main', type)
-```
 
-```{r}
-fig_3b <- bind_rows(pubmed_nat) %>%
+fig_4b <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
   theme(legend.position = c(0.75, 0.25),
-        legend.key.height = unit(4, 'mm'),
+        legend.key.height = unit(2.5, 'mm'),
+        legend.text = element_text(size = 7),
         legend.background = element_rect(fill = "transparent", colour = "transparent"))
-# theme(legend.position = c(0.84, 0.78),
-#         legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
-fig_3d <- bind_rows(iscb_nat) %>%
+
+fig_4d <- bind_rows(iscb_nat) %>%
   region_breakdown(category = 'sub', journal)
 
-# left_col <- cowplot::plot_grid(fig_3a, fig_3b, labels = c('A', 'B'), nrow = 2)
-# fig_3 <- cowplot::plot_grid(left_col, fig_3c, labels = c('', 'C'), ncol = 2)
-fig_3_a_d <- cowplot::plot_grid(fig_3a, fig_3b, fig_3c, fig_3d, labels = 'AUTO')
+# fig_4 <- cowplot::plot_grid(left_col, fig_4c, labels = c('', 'C'), ncol = 2)
+fig_4_a_d <- cowplot::plot_grid(fig_4a, fig_4b, fig_4c, fig_4d, labels = 'AUTO')
 # fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
-fig_3_a_d
-ggsave('figs/region_breakdown.png', fig_3, width = 7, height = 5)
+# fig_4_a_d
+# ggsave('figs/region_breakdown.png', fig_4_a_d, width = 7, height = 5.5)
 
 
 ```
@@ -192,27 +213,62 @@ ggsave('figs/region_breakdown.png', fig_3, width = 7, height = 5)
 A simpler figure, supplementary Fig S3?
 
 ```{r}
-fig_3s <- ggplot(iscb_pubmed,
-  aes(group = type)) +
+fig_4s <- iscb_nat_df %>%
+  rename('journal' = conference) %>% 
+  select(year, journal, African:SouthAsian, publication_date) %>%
+  mutate(type = 'Keynote speakers/Fellows') %>%
+  bind_rows(
+    pubmed_nat_df %>%
+      select(year, journal, African:SouthAsian, publication_date) %>%
+      mutate(type = 'Pubmed authors')
+  ) %>%
+  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African) %>% 
+  select(-c(Hispanic, SouthAsian, African, Israel, Muslim)) %>% 
+  pivot_longer(c(CelticEnglish, EastAsian, European, OtherCategories),
+               names_to = 'region',
+               values_to = 'probabilities') %>%
+  group_by(type, year, publication_date, region) %>%
+  add_count() %>%
+  mutate(
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() %>% 
+  ggplot(aes(group = type)) +
   geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
-              aes(x = publication_date, y = probabilities, fill = type, color = type)) +
+              aes(x = publication_date, y = probabilities, 
+                  fill = type, 
+                  color = type)) +
   geom_pointrange(data = . %>% get_keynote_summary(),
                   alpha = 0.75, size = 0.3,
                   aes(x = year, y = mean_prob, shape = type,
                       ymin = mean_prob - me_prob,
                       ymax = mean_prob + me_prob)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
-  scale_x_date(labels = scales::date_format("'%Y")) +
-  scale_color_viridis_d(option = 'D', begin = 0.5) +
-  scale_fill_viridis_d(option = 'D', begin = 0.5) +
+  scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
+               limits = c(ymd(start_year, truncated = 2L),
+          ymd(end_year, truncated = 2L))) +
+  scale_color_manual(values = '#8dd3c7') +
+  scale_fill_manual(values = '#8dd3c7') +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL, y = 'Estimated composition') +
-  theme(legend.position = c(0.85, 0.15),
+  theme(legend.position = c(0.88, 0.8),
+        legend.key.height = unit(4, 'mm'),
+        legend.key.width = unit(5, 'mm'),
+        legend.text = element_text(size = 7),
         legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
-  facet_wrap(vars(region))
+  facet_wrap(vars(fct_relevel(region, c('CelticEnglish', 'European', 'EastAsian', 'OtherCategories'))), nrow = 1)
 
-fig_3s
-ggsave('figs/region_sup.png', fig_3s, width = 6.5, height = 5)
+# fig_4s
+# ggsave('figs/region_sup.png', fig_4s, width = 6.5, height = 5)
+
+fig_4 <- cowplot::plot_grid(fig_4_a_d, fig_4s, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
+fig_4
+
+ggsave('figs/region_breakdown.png', fig_4, width = 7, height = 7)
+
 ```
 
 ```{r}

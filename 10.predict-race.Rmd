@@ -232,8 +232,10 @@ fig_stats <- ggplot(
                       ymax = mean_prob + me_prob)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
   scale_x_date(labels = scales::date_format("%Y")) +
-  scale_color_viridis_d(begin = 0.5) +
-  scale_fill_viridis_d(begin = 0.5) +
+  # scale_color_viridis_d(begin = 0.5) +
+  # scale_fill_viridis_d(begin = 0.5) +
+  scale_color_manual(values = '#8dd3c7') +
+  scale_fill_manual(values = '#8dd3c7') +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL, y = 'Estimated composition') +
   theme(legend.position = c(0.84, 0.78),

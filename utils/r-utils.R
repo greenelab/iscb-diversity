@@ -204,8 +204,6 @@ gender_breakdown <- function(df, category = 'main', ...) {
     ggplot(aes(year, mean_prob, fill = fct_relevel(gender, c('Male', 'Female')))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
     scale_fill_viridis_d(option = 'E', end = 0.8, direction = -1) +
-    # scale_x_continuous(breaks = seq(start_year, end_year, 4)) +
-    # coord_cartesian(xlim = c(start_year, end_year)) +
     theme(legend.position = 'None') +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 1)      +
@@ -240,12 +238,14 @@ gender_breakdown <- function(df, category = 'main', ...) {
 
 
 region_breakdown <- function(df, category = 'main', ...) {
-  # plot stacked bargraphs for each gender, mean_prob by year
+  # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
     ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
-    geom_bar(stat = 'identity', alpha = 0.9) +
+    geom_bar(stat = 'identity') +
     # scale_fill_viridis_d(option = 'A') +
-    paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
+    # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
+    # scale_fill_brewer(palette = 'Set3') +
+    scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
     theme(legend.position = 'None') +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2) 
@@ -293,9 +293,9 @@ race_breakdown <- function(df, category = 'main', ...){
   my_plot <- df %>%
     ggplot(aes(year, mean_prob, fill = fct_relevel(Race, race_levels))) +
     geom_bar(stat = 'identity') +
-    scale_fill_viridis_d(direction = -1) +
-    # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto_black') +
-    # paletteer::scale_fill_paletteer_d('ggthemes::colorblind', direction = -1) +
+    # scale_fill_viridis_d(direction = -1) +
+    # scale_fill_brewer(palette = 'Set3') +
+    scale_fill_manual(values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada')) +
     theme(legend.position = 'None') +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2)
