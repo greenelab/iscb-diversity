@@ -72,9 +72,6 @@ top_names <- map_dfc(region_levels, function(x) {
   }) 
 
 top_names %>% write_tsv('data/names/example_nationalities.tsv')
-
-readin <- read_tsv('data/names/example_nationalities.tsv')
-
 ```
 
 
