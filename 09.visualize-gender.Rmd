@@ -42,7 +42,7 @@ iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   left_join(gender_df, by = 'fore_name_simple')
 
 start_year <- 1997
-end_year <- 2020
+end_year <- 2019
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_gender_df$journal)
 my_confs <- unique(iscb_gender_df$conference)

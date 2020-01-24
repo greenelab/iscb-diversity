@@ -52,7 +52,7 @@ iscb_race_df %>%
 
 alpha_threshold <- qnorm(0.975)
 start_year <- 1997
-end_year <- 2020
+end_year <- 2019
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_race_df$journal)
 my_confs <- unique(iscb_race_df$conference)
@@ -232,8 +232,8 @@ fig_stats <- ggplot(
                       ymax = mean_prob + me_prob)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
   scale_x_date(labels = scales::date_format("%Y")) +
-  scale_color_viridis_d(option = 'D', begin = 0.5) +
-  scale_fill_viridis_d(option = 'D', begin = 0.5) +
+  scale_color_viridis_d(begin = 0.5) +
+  scale_fill_viridis_d(begin = 0.5) +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL, y = 'Estimated composition') +
   theme(legend.position = c(0.84, 0.78),

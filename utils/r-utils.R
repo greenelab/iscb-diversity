@@ -214,7 +214,7 @@ gender_breakdown <- function(df, category = 'main', ...) {
       expand = c(0, 0),
       limits = c(
         ymd(start_year - 1, truncated = 2L),
-        ymd(end_year + 1, truncated = 2L)
+        ymd(end_year, truncated = 2L)
       )
     )
   
@@ -242,9 +242,10 @@ gender_breakdown <- function(df, category = 'main', ...) {
 region_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each gender, mean_prob by year
   my_plot <- df %>%
-    ggplot(aes(year, mean_prob, fill = region)) +
+    ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
-    scale_fill_viridis_d(option = 'A') +
+    # scale_fill_viridis_d(option = 'A') +
+    paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
     theme(legend.position = 'None') +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2) 
@@ -261,9 +262,9 @@ region_breakdown <- function(df, category = 'main', ...) {
         expand = c(0, 0),
         limits = c(
           ymd(start_year - 1, truncated = 2L),
-          ymd(end_year + 1, truncated = 2L)
+          ymd(end_year, truncated = 2L)
         )
-      )
+      ) +
       labs(y = 'Estimated composition')
   } else if (category == 'sub') {
     my_plot <- my_plot +
@@ -274,11 +275,11 @@ region_breakdown <- function(df, category = 'main', ...) {
       ) +
       labs(y = NULL) +
       scale_x_date(
-        labels = scales::date_format("'%Y"),
+        labels = scales::date_format("'%y"),
         expand = c(0, 0),
         limits = c(
           ymd(start_year - 1, truncated = 2L),
-          ymd(end_year + 1, truncated = 2L)
+          ymd(end_year, truncated = 2L)
         )
       )
   }
@@ -293,6 +294,8 @@ race_breakdown <- function(df, category = 'main', ...){
     ggplot(aes(year, mean_prob, fill = fct_relevel(Race, race_levels))) +
     geom_bar(stat = 'identity') +
     scale_fill_viridis_d(direction = -1) +
+    # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto_black') +
+    # paletteer::scale_fill_paletteer_d('ggthemes::colorblind', direction = -1) +
     theme(legend.position = 'None') +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2)
@@ -302,7 +305,7 @@ race_breakdown <- function(df, category = 'main', ...){
       scale_x_date(
         labels = scales::date_format("%Y"),
         expand = c(0, 0),
-        limits = c(ymd(start_year - 1, truncated = 2L), ymd(end_year + 1, truncated = 2L))
+        limits = c(ymd(start_year - 1, truncated = 2L), ymd(end_year, truncated = 2L))
       ) +
       scale_y_continuous(
         labels = scales::percent_format(),
@@ -315,7 +318,7 @@ race_breakdown <- function(df, category = 'main', ...){
       scale_x_date(
         labels = scales::date_format("'%y"),
         expand = c(0, 0),
-        limits = c(ymd(start_year - 1, truncated = 2L), ymd(end_year + 1, truncated = 2L))
+        limits = c(ymd(start_year - 1, truncated = 2L), ymd(end_year, truncated = 2L))
       ) +
       scale_y_continuous(
         labels = scales::percent_format(),
