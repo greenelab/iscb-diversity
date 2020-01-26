@@ -242,13 +242,11 @@ region_breakdown <- function(df, category = 'main', ...) {
   my_plot <- df %>%
     ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
     geom_bar(stat = 'identity') +
-    # scale_fill_viridis_d(option = 'A') +
     # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
     # scale_fill_brewer(palette = 'Set3') +
     scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
     theme(legend.position = 'None') +
-    labs(x = NULL) +
-    facet_wrap(vars(...), ncol = 2) 
+    labs(x = NULL) 
   
   if (category == 'main') {
     my_plot <- my_plot +
@@ -259,13 +257,10 @@ region_breakdown <- function(df, category = 'main', ...) {
       ) +
       scale_x_date(
         labels = scales::date_format("%Y"),
-        expand = c(0, 0),
-        limits = c(
-          ymd(start_year - 1, truncated = 2L),
-          ymd(end_year, truncated = 2L)
-        )
+        expand = c(0, 0)
       ) +
-      labs(y = 'Estimated composition')
+      labs(y = 'Estimated composition') +
+      facet_wrap(vars(...), ncol = 2, scales = 'free_x') 
   } else if (category == 'sub') {
     my_plot <- my_plot +
       scale_y_continuous(
@@ -276,12 +271,9 @@ region_breakdown <- function(df, category = 'main', ...) {
       labs(y = NULL) +
       scale_x_date(
         labels = scales::date_format("'%y"),
-        expand = c(0, 0),
-        limits = c(
-          ymd(start_year - 1, truncated = 2L),
-          ymd(end_year, truncated = 2L)
-        )
-      )
+        expand = c(0, 0)
+      ) +
+      facet_wrap(vars(...), nrow = 1) 
   }
   my_plot
 }
