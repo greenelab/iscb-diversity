@@ -70,6 +70,7 @@ pubmed_nat_pmids %>% filter(is.na(African)) %>% sample_n(10)
 sum(is.na(pubmed_nat_df$African))
 ```
 
+All ISCB speakers have nationality predictions.
 1457 pubmed full names not nationalized
 <!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
 
@@ -85,22 +86,22 @@ pubmed_nat_df %>% filter(is.na(African)) %>%
 
 ```{r}
 pubmed_nat_df %>% 
-  filter(year == '2000-01-01', !is.na(African))
+  filter(year == '2002-01-01', !is.na(African))
 ```
 
-In 2010, there is only one article that has nationality prediction.
+In 2000, there is only one article that has nationality prediction.
+(9 articles in 2001).
 Should we drop?
 
 ## Descriptive statistics
 Prepare data frames for later analyses:
 
 - rbind results of race predictions in iscb and Pubmed
-<!-- - pivot long -->
+- pivot long
 - compute mean, sd, marginal error
 
-
 ```{r}
-iscb_pubmed <- iscb_nat_df %>%
+iscb_pubmed_oth <- iscb_nat_df %>%
   rename('journal' = conference) %>% 
   select(year, journal, African:SouthAsian, publication_date) %>%
   mutate(type = 'Keynote speakers/Fellows') %>%
@@ -109,8 +110,8 @@ iscb_pubmed <- iscb_nat_df %>%
       select(year, journal, African:SouthAsian, publication_date) %>%
       mutate(type = 'Pubmed authors')
   ) %>%
-  # mutate(probability_female = 1 - African) %>% 
-  pivot_longer(African:SouthAsian,
+  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African) %>% 
+  pivot_longer(c(African:SouthAsian, OtherCategories), 
                names_to = 'region',
                values_to = 'probabilities') %>%
   group_by(type, year, publication_date, region) %>%
@@ -122,6 +123,9 @@ iscb_pubmed <- iscb_nat_df %>%
     me_prob = alpha_threshold * sd_prob / sqrt(n)
   ) %>%
   ungroup() 
+
+iscb_pubmed <- iscb_pubmed_oth %>% 
+  filter(region != 'OtherCategories')
 ```
 
 ## Prepare data frames for analysis
@@ -164,11 +168,12 @@ iscb_nat_df %>% filter(year == '2011-01-01' & conference == 'PSB')
 iscb_nat_df %>% filter(year == '2020-01-01' & conference == 'PSB')
 ```
 
-## Comparisons
+## Figures for paper
 
-```{r}
+### Figure 4: Compared to the name collection of Pubmed authors, Celtic English honorees are overrepresented while East Asian honorees are underrepresented.
+
+```{r fig.height=7, fig.width=9}
 fig_4a <- iscb_pubmed %>%
-  # filter(type == 'Pubmed authors') %>%
   filter(year < '2020-01-01') %>% 
   group_by(year, type, region) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
@@ -181,131 +186,57 @@ fig_4a <- iscb_pubmed %>%
         legend.text = element_text(size = 8),
         legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
 
-# fig_4a <- iscb_pubmed %>%
-#   filter(type != 'Pubmed authors') %>%
-#   group_by(year, type, region) %>%
-#   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-#   ungroup() %>%
-#   region_breakdown('main', type)
-
-
-# fig_4_a_d <- cowplot::plot_grid(fig_4a, fig_4b, fig_4c, fig_4d, labels = 'AUTO')
-```
-
-## Mean and standard deviation of predicted probabilities
-
-A simpler figure, supplementary Fig S3?
-
-```{r fig.height=8, fig.width=8}
-fig_4b <- iscb_nat_df %>%
-  rename('journal' = conference) %>% 
-  select(year, journal, African:SouthAsian, publication_date) %>%
-  mutate(type = 'Keynote speakers/Fellows') %>%
-  bind_rows(
-    pubmed_nat_df %>%
-      select(year, journal, African:SouthAsian, publication_date) %>%
-      mutate(type = 'Pubmed authors')
-  ) %>%
-  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African) %>% 
-  select(-c(Hispanic, SouthAsian, African, Israel, Muslim)) %>% 
-  pivot_longer(c(CelticEnglish, EastAsian, European, OtherCategories),
-               names_to = 'region',
-               values_to = 'probabilities') %>%
-  group_by(type, year, publication_date, region) %>%
-  add_count() %>%
-  mutate(
-    mean_prob = mean(probabilities, na.rm = T),
-    sd_prob = sd(probabilities, na.rm = T),
-    n = mean(n),
-    me_prob = alpha_threshold * sd_prob / sqrt(n)
-  ) %>%
-  ungroup() %>% 
+## Mean and standard deviation of predicted probabilities:
+fig_4b <- iscb_pubmed_oth %>% 
+  filter(!(region %in% c('Hispanic', 'SouthAsian', 'African', 'Israel', 'Muslim'))) %>%
   recode_region() %>% 
-  ggplot(aes(group = type)) +
-  geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
-              aes(x = publication_date, y = probabilities, 
-                  fill = type, 
-                  color = type)) +
-  geom_pointrange(data = . %>% get_keynote_summary(),
-                  alpha = 0.75, size = 0.3,
-                  aes(x = year, y = mean_prob, shape = type,
-                      ymin = mean_prob - me_prob,
-                      ymax = mean_prob + me_prob)) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
-  scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
-               limits = c(ymd(start_year, truncated = 2L),
-          ymd(end_year, truncated = 2L))) +
-  scale_color_manual(values = '#3fa392') +
-  scale_fill_manual(values = '#3fa392') +
-  coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL, y = 'Estimated composition') +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = c(0.88, 0.83),
+  loess_and_ci() +
+  theme(legend.position = c(0.88, 0.83),
         legend.key.height = unit(4, 'mm'),
         legend.key.width = unit(5, 'mm'),
-        legend.text = element_text(size = 6),
-        legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
+        legend.text = element_text(size = 6)) +
   facet_wrap(vars(fct_relevel(region, c('Celtic English', 'European', 'East Asian', 'Other categories'))), nrow = 1)
 
-# fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_height = c(2, 1))
-# fig_4
-
 fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
-
+fig_4
 ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
 
 ```
 
-```{r}
+### Supplementary Figure S4
 
-fig_s4a <- bind_rows(pubmed_nat) %>%
+Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
+ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries
+
+```{r fig.width=9}
+fig_s4_1 <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
-  theme(legend.position = 'right'
-        ,
+  theme(legend.position = 'right',
         legend.key.height = unit(3.5, 'mm'),
         legend.margin = margin(0,0.3,0, 0.2, unit='cm')
-        # legend.text = element_text(size = 7),
-        # legend.background = element_rect(fill = "transparent", colour = "transparent")
         )
 
-fig_s4b <- bind_rows(iscb_nat) %>%
+fig_s4_2 <- bind_rows(iscb_nat) %>%
   filter(year < '2020-01-01') %>% 
   region_breakdown(category = 'sub', journal)
 
-fig_s4 <- cowplot::plot_grid(fig_s4a, fig_s4b, labels = 'AUTO', ncol = 1)
+fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
+fig_s4
 ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
 ```
 
-Supplementary figure?
-```{r}
-fig_s4b <- iscb_pubmed %>%
-  ggplot(aes(group = type)) +
-  geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
-              aes(x = publication_date, y = probabilities, 
-                  fill = type, 
-                  color = type)) +
-  geom_pointrange(data = . %>% get_keynote_summary(),
-                  alpha = 0.75, size = 0.3,
-                  aes(x = year, y = mean_prob, shape = type,
-                      ymin = mean_prob - me_prob,
-                      ymax = mean_prob + me_prob)) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
-  scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
-               limits = c(ymd(start_year, truncated = 2L),
-          ymd(end_year, truncated = 2L))) +
-  scale_color_manual(values = '#8dd3c7') +
-  scale_fill_manual(values = '#8dd3c7') +
-  coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL, y = 'Estimated composition') +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = c(0.84, 0.2),
-        legend.key.height = unit(4, 'mm'),
-        legend.key.width = unit(5, 'mm'),
-        legend.text = element_text(size = 8),
-        legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
-  facet_wrap(vars(fct_relevel(region, c('CelticEnglish', 'European', 'EastAsian', 'OtherCategories')))) 
+### Supplementary Figure S5
+It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
+There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field.
+However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
 
-ggsave('figs/fig_s4b.png', fig_s4b, width = 6, height = 6)
+```{r fig.height=6}
+fig_s5 <- iscb_pubmed %>%
+  loess_and_ci() +
+  theme(legend.position = c(0.84, 0.2)) +
+  facet_wrap(vars(fct_relevel(region, c('CelticEnglish', 'European', 'EastAsian', 'OtherCategories')))) 
+fig_s5
+ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
 
 ```
 
