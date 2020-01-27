@@ -197,6 +197,19 @@ recode_gender <- function(df){
   )
 }
 
+recode_region <- function(df){
+  # recode the Race column in df (output from wru::predict_race())
+  df %>%
+    mutate(
+      region = fct_recode(
+        region, 
+        'Celtic English' = 'CelticEnglish',
+        'East Asian' = 'EastAsian',
+        'South Asian' = 'SouthAsian',
+        'Other categories' = 'OtherCategories')
+    )
+}
+
 gender_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each gender, mean_prob by year
   my_plot <- df %>%
@@ -249,6 +262,7 @@ gender_breakdown <- function(df, category = 'main', ...) {
 region_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
+    recode_region() %>% 
     ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
     geom_bar(stat = 'identity') +
     # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +

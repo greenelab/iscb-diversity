@@ -45,12 +45,12 @@ my_jours <- unique(pubmed_nat_df$journal)
 my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-region_levels <- c('CelticEnglish', 'European', 'EastAsian', 'Hispanic', 'SouthAsian', 'Muslim', 'Israel', 'African')
+region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israel', 'African')
 ```
 
 ```{r}
 set.seed(0)
-top_names <- map_dfc(region_levels, function(x) {
+top_names <- map_dfc(colnames(nationalize_df)[-1], function(x) {
   nationalize_df %>% 
     filter((!!sym(x)) > 0.9) %>% 
     sample_n(10) %>% 
@@ -161,6 +161,7 @@ for (conf in my_confs){
 iscb_pubmed %>%
     filter(type != 'Pubmed authors' & year == '2011-01-01' & journal == 'PSB')
 iscb_nat_df %>% filter(year == '2011-01-01' & conference == 'PSB')
+iscb_nat_df %>% filter(year == '2020-01-01' & conference == 'PSB')
 ```
 
 ## Comparisons
@@ -219,6 +220,7 @@ fig_4b <- iscb_nat_df %>%
     me_prob = alpha_threshold * sd_prob / sqrt(n)
   ) %>%
   ungroup() %>% 
+  recode_region() %>% 
   ggplot(aes(group = type)) +
   geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
               aes(x = publication_date, y = probabilities, 
@@ -233,16 +235,17 @@ fig_4b <- iscb_nat_df %>%
   scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
                limits = c(ymd(start_year, truncated = 2L),
           ymd(end_year, truncated = 2L))) +
-  scale_color_manual(values = '#8dd3c7') +
-  scale_fill_manual(values = '#8dd3c7') +
+  scale_color_manual(values = '#3fa392') +
+  scale_fill_manual(values = '#3fa392') +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL, y = 'Estimated composition') +
-  theme(legend.position = c(0.88, 0.83),
+  theme(panel.grid.minor = element_blank(),
+        legend.position = c(0.88, 0.83),
         legend.key.height = unit(4, 'mm'),
         legend.key.width = unit(5, 'mm'),
         legend.text = element_text(size = 6),
         legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
-  facet_wrap(vars(fct_relevel(region, c('CelticEnglish', 'European', 'EastAsian', 'OtherCategories'))), nrow = 1)
+  facet_wrap(vars(fct_relevel(region, c('Celtic English', 'European', 'East Asian', 'Other categories'))), nrow = 1)
 
 # fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_height = c(2, 1))
 # fig_4
@@ -294,7 +297,8 @@ fig_s4b <- iscb_pubmed %>%
   scale_fill_manual(values = '#8dd3c7') +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = NULL, y = 'Estimated composition') +
-  theme(legend.position = c(0.84, 0.2),
+  theme(panel.grid.minor = element_blank(),
+        legend.position = c(0.84, 0.2),
         legend.key.height = unit(4, 'mm'),
         legend.key.width = unit(5, 'mm'),
         legend.text = element_text(size = 8),
