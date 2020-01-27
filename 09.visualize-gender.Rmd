@@ -114,11 +114,10 @@ pubmed_gender_pmids %>%
 The metadata for Bioinformatics and BMC Bioinformatics papers before 2002 only have initials of first and/or middle names. 
 Therefore, we do not have prediction for genders before this year.
 
-## Descriptive statistics
-Prepare data frames for later analyses:
+## Prepare data frames for later analyses
 
 - rbind results of race predictions in iscb and Pubmed
-<!-- - pivot long -->
+- pivot long
 - compute mean, sd, marginal error
 
 ```{r}
@@ -161,13 +160,10 @@ for (jour in my_jours){
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
     ungroup() 
 }
-
-
-
 ```
 
 ### By conference keynotes/fellows
-```{r fig.height=6}
+```{r}
 i <- 0
 iscb_gender <- vector('list', length = n_confs)
 
@@ -181,23 +177,27 @@ for (conf in my_confs){
 }
 ```
 
-## Comparisons
+
+## Figures for paper
+
+### Figure 1: ISCB Fellows and keynote speakers appear more evenly split between men and women than PubMed authors, but the proportion has not reached parity.
+
+```{r fig.height=5, fig.width=9}
+fig_1 <- iscb_pubmed %>%
+  filter(year < '2020-01-01') %>%
+  group_by(year, type, gender) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  gender_breakdown('main', fct_rev(type))
+fig_1
+ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
+
+```
+
+### Supplementary Figure S1
+Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
 
 ```{r}
-# fig_1a <- iscb_pubmed %>%
-#   filter(type == 'Pubmed authors') %>%
-#   group_by(year, type, gender) %>%
-#   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-#   ungroup() %>%
-#   gender_breakdown('main', type)
-# 
-# fig_1b <- iscb_pubmed %>%
-#   filter(type != 'Pubmed authors') %>%
-#   group_by(year, type, gender) %>%
-#   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-#   ungroup() %>%
-#   gender_breakdown('main', type)
-
 # By journal:
 fig_1c <- bind_rows(pubmed_gender) %>%
   gender_breakdown(category = 'sub', journal) +
@@ -209,30 +209,9 @@ fig_1c <- bind_rows(pubmed_gender) %>%
 fig_1d <- bind_rows(iscb_gender) %>%
   gender_breakdown(category = 'sub', journal) 
 
-# left_col <- cowplot::plot_grid(fig_1a, fig_1b, labels = c('A', 'B'), nrow = 2)
-# fig_1 <- cowplot::plot_grid(left_col, fig_1c, labels = c('', 'C'), ncol = 2)
-# fig_1
-# ggsave('figs/gender_breakdown.png', fig_1, width = 7, height = 5)
-
-
-
-
 fig_s1 <- cowplot::plot_grid(fig_1c, fig_1d, labels = 'AUTO', ncol = 1)
+fig_s1
 ggsave('figs/fig_s1.png', fig_s1, width = 6, height = 3.5)
-```
-
-
-
-```{r}
-fig_1 <- iscb_pubmed %>%
-  filter(year < '2020-01-01') %>%
-  group_by(year, type, gender) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-  ungroup() %>%
-  gender_breakdown('main', fct_rev(type))
-
-ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
-
 ```
 
 
@@ -250,8 +229,6 @@ iscb_pubmed %>%
 
 ## Mean and standard deviation of predicted probabilities
 
-A simpler figure, supplementary Fig S1?
-
 ```{r}
 ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
   aes(group = type)) +
@@ -267,7 +244,7 @@ ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
   scale_color_viridis_d(option = 'D', begin = 0.5) +
   scale_fill_viridis_d(option = 'D', begin = 0.5) +
   coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL, y = 'Estimated composition') +
+  labs(x = NULL, y = 'Estimated white composition') +
   theme(legend.position = c(0.2, 0.2),
         legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
 ```
