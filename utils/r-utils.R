@@ -258,7 +258,6 @@ gender_breakdown <- function(df, category = 'main', ...) {
   my_plot
 }
 
-
 region_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
@@ -300,8 +299,6 @@ region_breakdown <- function(df, category = 'main', ...) {
   }
   my_plot
 }
-
-
 
 race_breakdown <- function(df, category = 'main', ...){
   # plot stacked bargraphs for each race, mean_prob by year
@@ -350,4 +347,28 @@ get_keynote_summary <- function(df){
     filter(type != 'Pubmed authors') %>% 
     select(- c(probabilities, journal)) %>% 
     distinct()
+}
+
+loess_and_ci <- function(df){
+  df %>% 
+    ggplot(aes(group = type)) +
+    geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
+                aes(x = publication_date, y = probabilities, 
+                    fill = type, 
+                    color = type)) +
+    geom_pointrange(data = . %>% get_keynote_summary(),
+                    alpha = 0.75, size = 0.3,
+                    aes(x = year, y = mean_prob, shape = type,
+                        ymin = mean_prob - me_prob,
+                        ymax = mean_prob + me_prob)) +
+    scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
+    scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
+                 limits = c(ymd(start_year, truncated = 2L),
+                            ymd(end_year, truncated = 2L))) +
+    scale_color_manual(values = '#3fa392') +
+    scale_fill_manual(values = '#3fa392') +
+    coord_cartesian(ylim = c(0, 1)) +
+    labs(x = NULL, y = 'Estimated composition') +
+    theme(panel.grid.minor = element_blank(),
+          legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
 }
