@@ -184,36 +184,57 @@ for (conf in my_confs){
 ## Comparisons
 
 ```{r}
-fig_1a <- iscb_pubmed %>%
-  filter(type == 'Pubmed authors') %>%
-  group_by(year, type, gender) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-  ungroup() %>%
-  gender_breakdown('main', type)
+# fig_1a <- iscb_pubmed %>%
+#   filter(type == 'Pubmed authors') %>%
+#   group_by(year, type, gender) %>%
+#   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+#   ungroup() %>%
+#   gender_breakdown('main', type)
+# 
+# fig_1b <- iscb_pubmed %>%
+#   filter(type != 'Pubmed authors') %>%
+#   group_by(year, type, gender) %>%
+#   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+#   ungroup() %>%
+#   gender_breakdown('main', type)
 
-fig_1b <- iscb_pubmed %>%
-  filter(type != 'Pubmed authors') %>%
-  group_by(year, type, gender) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-  ungroup() %>%
-  gender_breakdown('main', type)
-
-fig_1c <- bind_rows(iscb_gender) %>%
+# By journal:
+fig_1c <- bind_rows(pubmed_gender) %>%
   gender_breakdown(category = 'sub', journal) +
-  theme(legend.position = c(0.2, 0.95),
-        legend.key.height = unit(4, 'mm'),
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
+  theme(legend.position = 'right',
+        legend.key.height = unit(3.5, 'mm'),
+        legend.margin = margin(1.3,0.7,0, 0.6, unit='cm'))
 
-left_col <- cowplot::plot_grid(fig_1a, fig_1b, labels = c('A', 'B'), nrow = 2)
-fig_1 <- cowplot::plot_grid(left_col, fig_1c, labels = c('', 'C'), ncol = 2)
-fig_1
-ggsave('figs/gender_breakdown.png', fig_1, width = 7, height = 5)
+# By conference:
+fig_1d <- bind_rows(iscb_gender) %>%
+  gender_breakdown(category = 'sub', journal) 
 
-# By journals:
-bind_rows(pubmed_gender) %>%
-  gender_breakdown(category = 'sub', journal)
+# left_col <- cowplot::plot_grid(fig_1a, fig_1b, labels = c('A', 'B'), nrow = 2)
+# fig_1 <- cowplot::plot_grid(left_col, fig_1c, labels = c('', 'C'), ncol = 2)
+# fig_1
+# ggsave('figs/gender_breakdown.png', fig_1, width = 7, height = 5)
+
+
+
+
+fig_s1 <- cowplot::plot_grid(fig_1c, fig_1d, labels = 'AUTO', ncol = 1)
+ggsave('figs/fig_s1.png', fig_s1, width = 6, height = 3.5)
+```
+
+
+
+```{r}
+fig_1 <- iscb_pubmed %>%
+  filter(year < '2020-01-01') %>%
+  group_by(year, type, gender) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  gender_breakdown('main', fct_rev(type))
+
+ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
 
 ```
+
 
 ## Overview of gender prediction distribution
 

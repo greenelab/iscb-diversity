@@ -204,17 +204,7 @@ gender_breakdown <- function(df, category = 'main', ...) {
     ggplot(aes(year, mean_prob, fill = fct_relevel(gender, c('Male', 'Female')))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
     scale_fill_viridis_d(option = 'E', end = 0.8, direction = -1) +
-    theme(legend.position = 'None') +
-    labs(x = NULL) +
-    facet_wrap(vars(...), ncol = 1)      +
-    scale_x_date(
-      labels = scales::date_format("%Y"),
-      expand = c(0, 0),
-      limits = c(
-        ymd(start_year - 1, truncated = 2L),
-        ymd(end_year, truncated = 2L)
-      )
-    )
+    labs(x = NULL)
   
   if (category == 'main') {
     my_plot <- my_plot +
@@ -223,7 +213,17 @@ gender_breakdown <- function(df, category = 'main', ...) {
         expand = c(0, 0),
         breaks = seq(0, 1, 0.2)
       ) +
-      labs(y = 'Estimated composition')
+      labs(y = 'Estimated composition') +
+      facet_wrap(vars(...), nrow = 1, scales = 'free_x') +
+      theme(legend.position = 'bottom',
+            legend.key.height = unit(3, 'mm'),
+            legend.key.width = unit(6, 'mm'),
+            # legend.text = element_text(size = 8),
+            legend.margin = margin(-0.2, 0, 0, 0, unit='cm')) +
+      scale_x_date(
+        labels = scales::date_format("%Y"),
+        expand = c(0, 0)
+      )
   } else if (category == 'sub') {
     my_plot <- my_plot +
       scale_y_continuous(
@@ -231,7 +231,16 @@ gender_breakdown <- function(df, category = 'main', ...) {
         expand = c(0, 0),
         breaks = seq(0, 1, 0.5)
       ) +
-      labs(y = NULL)
+      labs(y = NULL) +
+      facet_wrap(vars(...), nrow = 1) +
+      scale_x_date(
+        labels = scales::date_format("'%y"),
+        expand = c(0, 0),
+        limits = c(
+          ymd(start_year - 1, truncated = 2L),
+          ymd(end_year, truncated = 2L)
+        )) +
+      theme(legend.position = 'None')
   }
   my_plot
 }
