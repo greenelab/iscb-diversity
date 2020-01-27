@@ -17,5 +17,6 @@ See the following rendered notebooks:
 - [06.combine-names](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/06.combine-names.ipynb)
 - [07.corresponding-authors](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/07.corresponding-authors.ipynb)
 - [08.genderize](https://nbviewer.jupyter.org/github/greenelab/iscb-diversity/blob/master/08.genderize.ipynb)
-- [08.visualize-gender](08.visualize-gender.html)
-- [09.predict-race](09.predict-race.html)
+- [09.visualize-gender](09.visualize-gender.html)
+- [10.predict-race](10.predict-race.html)
+- [11.visualize-nationality](11.visualize-nationality.html)
