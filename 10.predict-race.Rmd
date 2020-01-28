@@ -234,11 +234,11 @@ fig_2
 ggsave('figs/racial_makeup.png', fig_2, width = 7, height = 7)
 ```
 
-### Supplementary Figure S2
+### Supplementary Figure S2 {#sup_fig_s2}
 
 For each race/ethnicity category, the mean predicted probability of Pubmed articles is shown as teal LOESS curve, and the mean probability and 95% confidence interval of the ISCB honoree predictions are shown as dark circles and vertical lines.
 
-```{r}
+```{r message=F, warning=F}
 fig_s2 <- iscb_pubmed %>% 
   filter(Race != 'Other categories') %>% 
   loess_and_ci() +

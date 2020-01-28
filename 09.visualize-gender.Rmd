@@ -194,10 +194,10 @@ ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
 
 ```
 
-### Supplementary Figure S1
+### Supplementary Figure S1 {#sup_fig_s1}
 Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
 
-```{r}
+```{r fig.width=6, fig.height=3.5, warning=FALSE, message=FALSE}
 # By journal:
 fig_1c <- bind_rows(pubmed_gender) %>%
   gender_breakdown(category = 'sub', journal) +
