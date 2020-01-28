@@ -27,7 +27,7 @@ pubmed_race_pmids <-
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>%
-  rename('surname' = last_name) %>% 
+  rename('surname' = last_name_simple) %>% 
   predict_race(surname.only = T, impute.missing = F)
 
 pubmed_race_df <- pubmed_race_pmids %>% 
@@ -36,7 +36,7 @@ pubmed_race_df <- pubmed_race_pmids %>%
   ungroup()
 
 iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
-  rename('surname' = last_name) %>%
+  rename('surname' = last_name_simple) %>%
   mutate(year = ymd(year, truncated = 2)) %>% 
   predict_race(surname.only = T, impute.missing = F)
 
@@ -60,12 +60,31 @@ iscb_race_df %>%
   select(1,2) %>% 
   sample_n(10)
 
-pubmed_race_df %>% 
+pubmed_race_pmids %>% 
+  filter(is.na(last_name)) %>% 
+  nrow()
+
+pubmed_race_pmids %>% 
+  filter(is.na(surname)) %>% 
+  nrow()
+
+pubmed_race_pmids %>% 
+  filter(!is.na(surname)&is.na(pred.whi)) %>% 
+  nrow()
+
+iscb_race_df %>% 
   filter(is.na(pred.whi)) %>% 
   nrow()
+
+iscb_race_df %>% 
+  filter(is.na(pred.whi)) %>% 
+  select(surname) %>%
+  sample_n(10)
 ```
 
 Pubmed authors: 7188 articles out of 29749 did not have race/ethnicity predictions.
+8770 names out of 34,010 names did not have race/ethnicity predictions.
+40 corresponding authors with empty last name field.
 ISCB honorees: 98 names out of 411 did not have race/ethnicity predictions.
 
 ## Prepare data frames for later analyses
@@ -245,7 +264,7 @@ fig_s2 <- iscb_pubmed %>%
   theme(legend.position = c(0.84, 0.3)) +
   facet_wrap(vars(fct_relevel(Race, race_levels)))
 fig_s2
-ggsave('figs/fig_s2.png', fig_s2, width = 7, height = 7)
+ggsave('figs/fig_s2.png', fig_s2, width = 6, height = 4)
 ```
 
 All Asian speakers at PSB 2000?

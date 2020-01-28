@@ -208,12 +208,12 @@ ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
 Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
 ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries
 
-```{r fig.width=9}
+```{r fig.width=6, fig.height=3.5}
 fig_s4_1 <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
   theme(legend.position = 'right',
         legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(0, 1.3, 0, 1.0, unit='cm')
+        legend.margin = margin(0, 0.3, 0, 0.1, unit='cm')
         )
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
