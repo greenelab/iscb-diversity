@@ -204,17 +204,17 @@ ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
 
 ```
 
-### Supplementary Figure S4
+### Supplementary Figure S4 {#sup_fig_s4}
 
 Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
 ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries
 
-```{r fig.width=9}
+```{r fig.width=6, fig.height=3.5}
 fig_s4_1 <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
   theme(legend.position = 'right',
         legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(0,0.2,0, 0.2, unit='cm')
+        legend.margin = margin(0, 0.3, 0, 0.1, unit='cm')
         )
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
@@ -226,7 +226,7 @@ fig_s4
 ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
 ```
 
-### Supplementary Figure S5
+### Supplementary Figure S5 {#sup_fig_s4}
 It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
 There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field.
 However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
