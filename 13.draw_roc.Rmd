@@ -1,0 +1,38 @@
+---
+title: "Plotting ROC curves"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+source('utils/r-utils.R')
+```
+
+```{r}
+roc_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/master/models/LSTM_roc_curves.tsv') %>% 
+  rename('region' = category) %>% 
+  recode_region() %>% 
+  group_by(region) %>%
+  mutate(Sensitivity = tpr, Specificity = 1-fpr, dSens = c(abs(diff(1-tpr)), 0)) %>% 
+  ungroup()
+
+auc_df <- roc_df %>% group_by(region) %>% summarise(auc = sum((1-fpr)*dSens)) %>% arrange(desc(auc)) %>% 
+  mutate(auc_pct = 100*auc, reg_auc = paste0(region, ', AUC = ', round(auc_pct, 1), '%'))
+
+region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israel', 'African')
+
+fig_3 <- roc_df %>% 
+  left_join(auc_df, by = 'region') %>% 
+  ggplot(aes(x = Sensitivity, y = Specificity, color = fct_relevel(reg_auc, as.character(auc_df$reg_auc)))) +
+  scale_color_manual(values = c('#b3de69', '#fdb462', '#8dd3c7', '#fccde5', '#ffffb3', '#bebada',  '#80b1d3', '#fb8072')) +
+  geom_step(size = 1, alpha = 0.8) +
+  coord_fixed() +
+  scale_x_reverse(breaks = seq(1, 0, -0.2), labels = scales::percent) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent, limits = c(NA, 1.05)) +
+  theme(legend.position = c(0.6, 0.4), 
+        legend.text.align = 1)
+
+ggsave('figs/fig_3.png', fig_3, height = 4, width = 4)
+```
+
