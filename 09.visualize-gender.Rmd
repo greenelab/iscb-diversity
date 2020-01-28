@@ -90,12 +90,60 @@ iscb_gender_df %>%
 ```{r}
 iscb_gender_df %>% filter(is.na(probability_male))
 pubmed_gender_pmids %>% filter(is.na(probability_male)) %>% sample_n(10)
-sum(is.na(pubmed_gender_df$probability_male))
+sum(is.na(pubmed_gender_pmids$probability_male))
+pubmed_gender_pmids %>% 
+  filter(is.na(probability_male)) %>% 
+  # pull(fore_name) %>% 
+  # unique() %>% 
+  nrow()
+
+# 45 corresponding authors with empty fore name field (i.e., missing metadata)
+pubmed_gender_pmids %>% 
+  filter(is.na(fore_name)) %>% 
+  nrow()
+
+# 1466 corresponding authors with fore name that is None once simplified (i.e., initials only)
+pubmed_gender_pmids %>% 
+  filter(!is.na(fore_name)&is.na(fore_name_simple)) %>% 
+  nrow()
+
+# 1578 corresponding authors with fore name but no predictions
+pubmed_gender_pmids %>% 
+  filter(is.na(probability_male) & !is.na(fore_name_simple)) %>% 
+  nrow()
+
+# 30961 predicted names
+pubmed_gender_pmids %>% 
+  filter(!is.na(probability_male)) %>% 
+  nrow()
+
+# number of characters in fore names field
+# counts <- pubmed_gender_pmids %>% 
+#   filter(is.na(probability_male)) %>% 
+#   pull(fore_name) %>% 
+#   nchar() %>% 
+#   table()
+# 
+# counts
+# sum(counts)
+# sum(counts[1:3])/sum(counts)
+
+
+
+pubmed_gender_pmids %>% 
+  filter(is.na(probability_male) & !is.na(fore_name_simple),
+         grepl('-', fore_name_simple)) %>% 
+  nrow()
+
+pubmed_gender_pmids %>% 
+  filter(is.na(probability_male) & !is.na(fore_name_simple),
+         grepl('-', fore_name_simple)) %>% 
+  nrow()/1578
+
 ```
 
 2 iscb forenames not genderized (Árpád and Chung-I).
-2835 pubmed forenames not genderized.
-These mostly include initials only, hyphenated names and perhaps names with accent marks.
+These NA predictions mostly include initials only, hyphenated names and perhaps names with accent marks.
 
 ```{r}
 pubmed_gender_df %>% filter(is.na(probability_male)) %>% 
