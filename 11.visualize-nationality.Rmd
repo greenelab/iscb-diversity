@@ -12,7 +12,8 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 ```{r}
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/05d1c44b5cd5b145b19242c55665993085e08910/data/LSTM_results_authors.tsv') %>% 
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/24c8508d47ccb0f5f08ebf99b745fea2389ccf6a/data/LSTM_results_authors.tsv') %>% 
+  rename('full_name' = X1) %>% 
   distinct(full_name, .keep_all = T)
 
 all_full_names <- read_tsv('data/names/full-names.tsv.xz')
@@ -213,7 +214,7 @@ fig_s4_1 <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
   theme(legend.position = 'right',
         legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(0,0.3,0, 0.2, unit='cm')
+        legend.margin = margin(0,0.2,0, 0.2, unit='cm')
         )
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
