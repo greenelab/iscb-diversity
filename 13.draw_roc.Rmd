@@ -73,7 +73,7 @@ fig_3b <- bind_rows(cal_dfs) %>%
   geom_line() +
   scale_color_manual(values = c('#b3de69', '#fdb462', '#8dd3c7', '#fccde5', '#ffffb3', '#bebada',  '#80b1d3', '#fb8072')) +
   theme(legend.position = 'None') +
-  labs(x = 'Prediction bin midpoint', y = 'Observed event rate')
+  labs(x = 'Predicted probability', y = 'Fraction of names')
 
 fig_3b
 calibration_plot <- cowplot::plot_grid(fig_3a, fig_3b, labels = 'AUTO', nrow = 1, align = 'h')
