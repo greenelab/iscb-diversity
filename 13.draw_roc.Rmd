@@ -41,7 +41,8 @@ fig_3a <- roc_df %>%
 library(caret)
 
 predictions_df <- read_tsv('https://raw.githubusercontent.com/arielah/wiki-nationality-estimate/predictions/data/LSTM_results_test.tsv') %>% 
-  mutate(y_true = as.factor(truth))
+  mutate(y_true = as.factor(truth)) %>% 
+  select(-truth)
 
 regs <- predictions_df %>% select(African:SouthAsian) %>% colnames()
 cal_dfs <- list()
@@ -53,7 +54,7 @@ for (reg in regs) {
   
   cal_dfs[[reg]] <- calibration(y_true_bin ~ prob,
                                 data = pred_reg,
-                                cuts = 10,
+                                cuts = 20,
                                 class = 'TRUE')$data %>%
     mutate(region = reg)
 }
@@ -78,6 +79,76 @@ fig_3b <- bind_rows(cal_dfs) %>%
 fig_3b
 calibration_plot <- cowplot::plot_grid(fig_3a, fig_3b, labels = 'AUTO', nrow = 1, align = 'h')
 ggsave('figs/fig_3.png', calibration_plot, height = 3.7, width = 7)
+
+```
+
+```{r}
+library(superheat)
+heat_dat <- predictions_df %>% 
+  group_by(y_true) %>% 
+  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>% 
+  rename('region' = y_true,
+         'Celtic English ' = 'CelticEnglish',
+         'East Asian ' = 'EastAsian',
+         'South Asian ' = 'SouthAsian',
+         'African ' = 'African',
+         'European ' = 'European',
+         'Israel ' = 'Israel',
+         'Hispanic ' = 'Hispanic',
+         'Muslim ' = 'Muslim') %>% 
+  # recode_region() %>%
+  mutate(
+    region = fct_recode(
+      region, 
+      'Celtic English ' = 'CelticEnglish',
+         'East Asian ' = 'EastAsian',
+         'South Asian ' = 'SouthAsian',
+         'African ' = 'African',
+         'European ' = 'European',
+         'Israel ' = 'Israel',
+         'Hispanic ' = 'Hispanic',
+         'Muslim ' = 'Muslim')
+  ) %>% 
+column_to_rownames('region')
+ordered_regs <- paste0(as.character(auc_df$region), ' ')
+
+
+my_heat <- superheat(
+  heat_dat[ordered_regs, ordered_regs],
+  grid.hline.col = "white",
+  grid.vline.col = "white",
+  heat.pal = rev(viridis::inferno(3)),
+  left.label.text.alignment = 'right',
+  bottom.label.text.alignment = 'right',
+  left.label.col = 'white',
+  bottom.label.text.angle = 90,
+  bottom.label.text.size = 4, 
+  left.label.text.size = 4,
+  bottom.label.col = 'white',
+  padding = 0.5,
+  row.title = 'True label',
+  column.title = 'Prediction'
+)
+
+pdf('figs/heat_confusion.pdf')
+superheat(
+  heat_dat[ordered_regs, ordered_regs],
+  grid.hline.col = "white",
+  grid.vline.col = "white",
+  heat.pal = rev(viridis::inferno(3)),
+  left.label.text.alignment = 'right',
+  bottom.label.text.alignment = 'right',
+  left.label.col = 'white',
+  bottom.label.text.angle = 90,
+  bottom.label.text.size = 4, 
+  left.label.text.size = 4,
+  bottom.label.col = 'white',
+  padding = 0.5,
+  row.title = 'True label',
+  column.title = 'Prediction'
+)
+dev.off()
+
 
 ```
 
