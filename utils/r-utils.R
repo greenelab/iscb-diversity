@@ -206,6 +206,7 @@ recode_region <- function(df){
         'Celtic English' = 'CelticEnglish',
         'East Asian' = 'EastAsian',
         'South Asian' = 'SouthAsian',
+        'Israeli' = 'Israel',
         'Other categories' = 'OtherCategories')
     )
 }
