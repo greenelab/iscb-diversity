@@ -7,7 +7,7 @@ output: html_document
 library(tidyverse)
 library(lubridate)
 source('utils/r-utils.R')
-theme_set(theme_bw() + theme(legend.title = element_blank()))
+theme_set(theme_bw())
 
 ```
 
@@ -38,7 +38,8 @@ fig_3a <- roc_df %>%
   coord_fixed() +
   scale_x_reverse(breaks = seq(1, 0, -0.2), labels = scales::percent) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent, limits = c(NA, 1.05)) +
-  theme(legend.position = c(0.6, 0.4), 
+  theme(legend.position = c(0.6, 0.4),
+        legend.title = element_blank(),
         legend.text.align = 1)
 ```
 
@@ -83,77 +84,6 @@ fig_3b <- bind_rows(cal_dfs) %>%
   labs(x = 'Predicted probability', y = 'Fraction of names')
 
 fig_3b
-calibration_plot <- cowplot::plot_grid(fig_3a, fig_3b, labels = 'AUTO', nrow = 1, align = 'h')
-ggsave('figs/fig_3.png', calibration_plot, height = 3.7, width = 7)
-
-```
-
-```{r}
-library(superheat)
-heat_dat <- predictions_df %>% 
-  group_by(y_true) %>% 
-  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>% 
-  rename('region' = y_true,
-         'Celtic English ' = 'CelticEnglish',
-         'East Asian ' = 'EastAsian',
-         'South Asian ' = 'SouthAsian',
-         'African ' = 'African',
-         'European ' = 'European',
-         'Israel ' = 'Israel',
-         'Hispanic ' = 'Hispanic',
-         'Muslim ' = 'Muslim') %>% 
-  # recode_region() %>%
-  mutate(
-    region = fct_recode(
-      region, 
-      'Celtic English ' = 'CelticEnglish',
-         'East Asian ' = 'EastAsian',
-         'South Asian ' = 'SouthAsian',
-         'African ' = 'African',
-         'European ' = 'European',
-         'Israel ' = 'Israel',
-         'Hispanic ' = 'Hispanic',
-         'Muslim ' = 'Muslim')
-  ) %>% 
-column_to_rownames('region')
-ordered_regs <- paste0(as.character(auc_df$region), ' ')
-
-
-my_heat <- superheat(
-  heat_dat[ordered_regs, ordered_regs],
-  grid.hline.col = "white",
-  grid.vline.col = "white",
-  heat.pal = rev(viridis::inferno(3)),
-  left.label.text.alignment = 'right',
-  bottom.label.text.alignment = 'right',
-  left.label.col = 'white',
-  bottom.label.text.angle = 90,
-  bottom.label.text.size = 4, 
-  left.label.text.size = 4,
-  bottom.label.col = 'white',
-  padding = 0.5,
-  row.title = 'True label',
-  column.title = 'Prediction'
-)
-
-pdf('figs/heat_confusion.pdf')
-superheat(
-  heat_dat[ordered_regs, ordered_regs],
-  grid.hline.col = "white",
-  grid.vline.col = "white",
-  heat.pal = rev(viridis::inferno(3)),
-  left.label.text.alignment = 'right',
-  bottom.label.text.alignment = 'right',
-  left.label.col = 'white',
-  bottom.label.text.angle = 90,
-  bottom.label.text.size = 4, 
-  left.label.text.size = 4,
-  bottom.label.col = 'white',
-  padding = 0.5,
-  row.title = 'True label',
-  column.title = 'Prediction'
-)
-dev.off()
 
 
 ```
@@ -172,13 +102,31 @@ heat_dat <- predictions_df %>%
   rename('reg_true' = region) %>% 
   pivot_longer(-reg_true, names_to = 'region', values_to = 'pred_prob') %>% 
   left_join(auc_df, by = 'region') %>% 
-  mutate(scale_pred_prob = pred_prob/(n/n_obs))
+  mutate(scale_pred_prob = log2((pred_prob)/(n/n_obs)))
 
-ggplot(heat_dat, aes(reg_true, region, fill = log2(scale_pred_prob))) + 
+ordered_regs <- auc_df$region %>% as.character()
+fig_3c <- ggplot(heat_dat, aes(fct_relevel(reg_true, ordered_regs), 
+                     fct_relevel(region, ordered_regs), 
+                     fill = scale_pred_prob)) + 
   geom_tile() +
-  scale_fill_gradient2(midpoint = 0, high = '#440154FF', low = '#94D840FF')
+  # scale_fill_gradient2(midpoint = 0, high = '#440154FF', low = '#94D840FF') +
+  scale_fill_gradientn(
+                         colours = c("#94D840FF","white","#440154FF"),
+                       values = scales::rescale(c(min(heat_dat$scale_pred_prob),
+                                          0,
+                                          max(heat_dat$scale_pred_prob)))
+                       ) +
+  coord_fixed() +
+  labs(x = 'True region', y = 'Predicted region', fill = bquote(log[2]~'FC')) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        legend.position = 'top')
+fig_3c
+# library(viridis)
+# scales::show_col(viridis_pal(option = 'D')(20))
+# viridis_pal(option = 'D')(20)
 
-scales::show_col(viridis_pal(option = 'D')(20))
-viridis_pal(option = 'D')(20)
+fig_3 <- cowplot::plot_grid(fig_3a, fig_3b, fig_3c, labels = 'AUTO', nrow = 1,
+                             align = 'h')
+ggsave('figs/fig_3.png', fig_3, height = 4, width = 10)
 ```
 
