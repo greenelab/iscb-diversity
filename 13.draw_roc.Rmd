@@ -19,8 +19,14 @@ roc_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality
   mutate(Sensitivity = tpr, Specificity = 1-fpr, dSens = c(abs(diff(1-tpr)), 0)) %>% 
   ungroup()
 
-auc_df <- roc_df %>% group_by(region) %>% summarise(auc = sum((1-fpr)*dSens)) %>% arrange(desc(auc)) %>% 
-  mutate(auc_pct = 100*auc, reg_auc = paste0(region, ', AUC = ', round(auc_pct, 1), '%'))
+auc_df <- roc_df %>% 
+  group_by(region) %>% 
+  # add_count() %>% 
+  summarise(auc = sum((1 - fpr) * dSens),
+            n = n()) %>% 
+  arrange(desc(auc)) %>%
+  mutate(auc_pct = 100 * auc,
+         reg_auc = paste0(region, ', AUC = ', round(auc_pct, 1), '%'))
 
 region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israel', 'African')
 
@@ -150,5 +156,29 @@ superheat(
 dev.off()
 
 
+```
+
+```{r}
+n_obs <- sum(auc_df$n)
+heat_dat <- predictions_df %>% 
+  rename('region' = y_true,
+         'Celtic English' = 'CelticEnglish',
+         'East Asian' = 'EastAsian',
+         'South Asian' = 'SouthAsian') %>% 
+  recode_region() %>% 
+  group_by(region) %>% 
+  summarise_at(vars(African:`South Asian`), mean, na.rm = T) %>% 
+  ungroup() %>% 
+  rename('reg_true' = region) %>% 
+  pivot_longer(-reg_true, names_to = 'region', values_to = 'pred_prob') %>% 
+  left_join(auc_df, by = 'region') %>% 
+  mutate(scale_pred_prob = pred_prob/(n/n_obs))
+
+ggplot(heat_dat, aes(reg_true, region, fill = log2(scale_pred_prob))) + 
+  geom_tile() +
+  scale_fill_gradient2(midpoint = 0, high = '#440154FF', low = '#94D840FF')
+
+scales::show_col(viridis_pal(option = 'D')(20))
+viridis_pal(option = 'D')(20)
 ```
 
