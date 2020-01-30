@@ -20,6 +20,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 and use the `wru` package to predict race based on last_names only
 
 ```{r}
+all_full_names <- read_tsv('data/names/full-names.tsv.xz')
 articles <- read_tsv('data/pubmed/articles.tsv.xz')
 
 pubmed_race_pmids <- 
@@ -36,6 +37,7 @@ pubmed_race_df <- pubmed_race_pmids %>%
   ungroup()
 
 iscb_race_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+  left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
   rename('surname' = last_name_simple) %>%
   mutate(year = ymd(year, truncated = 2)) %>% 
   predict_race(surname.only = T, impute.missing = F)
