@@ -61,7 +61,7 @@ for (reg in regs) {
   
   cal_dfs[[reg]] <- calibration(y_true_bin ~ prob,
                                 data = pred_reg,
-                                cuts = 20,
+                                cuts = 11,
                                 class = 'TRUE')$data %>%
     mutate(region = reg)
 }
@@ -106,27 +106,32 @@ heat_dat <- predictions_df %>%
 
 ordered_regs <- auc_df$region %>% as.character()
 fig_3c <- ggplot(heat_dat, aes(fct_relevel(reg_true, ordered_regs), 
-                     fct_relevel(region, ordered_regs), 
-                     fill = scale_pred_prob)) + 
+                               fct_relevel(region, ordered_regs), 
+                               fill = scale_pred_prob)) + 
   geom_tile() +
-  # scale_fill_gradient2(midpoint = 0, high = '#440154FF', low = '#94D840FF') +
   scale_fill_gradientn(
-                         colours = c("#94D840FF","white","#440154FF"),
-                       values = scales::rescale(c(min(heat_dat$scale_pred_prob),
-                                          0,
-                                          max(heat_dat$scale_pred_prob)))
-                       ) +
+    colours = c("#3CBC75FF","white","#440154FF"),
+    values = scales::rescale(
+      c(min(heat_dat$scale_pred_prob),
+        0,
+        max(heat_dat$scale_pred_prob)))
+  ) +
   coord_fixed() +
   labs(x = 'True region', y = 'Predicted region', fill = bquote(log[2]~'FC')) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        legend.position = 'top')
-fig_3c
+        legend.position = 'top',
+        legend.key.height = unit(0.2, 'cm'),
+        legend.title = element_text(vjust = 1),
+        legend.margin = margin(0, 0,0, -1, unit='cm'),
+        axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)))
+# fig_3c
 # library(viridis)
 # scales::show_col(viridis_pal(option = 'D')(20))
 # viridis_pal(option = 'D')(20)
 
 fig_3 <- cowplot::plot_grid(fig_3a, fig_3b, fig_3c, labels = 'AUTO', nrow = 1,
-                             align = 'h')
-ggsave('figs/fig_3.png', fig_3, height = 4, width = 10)
+                            rel_widths = c(2,2,1.6))
+ggsave('figs/fig_3.png', fig_3, height = 4, width = 10) 
 ```
 
