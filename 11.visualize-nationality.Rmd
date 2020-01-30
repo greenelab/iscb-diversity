@@ -8,15 +8,15 @@ library(tidyverse)
 library(lubridate)
 source('utils/r-utils.R')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
-
 ```
 
 ```{r}
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/24c8508d47ccb0f5f08ebf99b745fea2389ccf6a/data/LSTM_results_authors.tsv') %>% 
-  rename('full_name' = X1) %>% 
-  distinct(full_name, .keep_all = T)
-
 all_full_names <- read_tsv('data/names/full-names.tsv.xz')
+
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>% 
+  rename('full_name' = X1) %>% 
+  distinct(full_name, .keep_all = T) %>% 
+  left_join(all_full_names, by = 'full_name')
 
 alpha_threshold <- qnorm(0.975)
 
@@ -24,8 +24,7 @@ pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>%
-  mutate(full_name = paste(fore_name, last_name)) %>% 
-  left_join(nationalize_df, by = 'full_name')
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
 
 pubmed_nat_df <- pubmed_nat_pmids %>% 
   group_by(pmid, journal, publication_date, year) %>% 
@@ -35,9 +34,7 @@ pubmed_nat_df <- pubmed_nat_pmids %>%
 iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
-  select(- full_name) %>% 
-  left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
-  left_join(nationalize_df, by = 'full_name') 
+  left_join(nationalize_df, by = c('fore_name', 'last_name')) 
 
 start_year <- 1997
 end_year <- 2019
@@ -67,12 +64,13 @@ top_names %>% write_tsv('data/names/example_nationalities.tsv')
 
 ```{r}
 iscb_nat_df %>% filter(is.na(African)) 
-pubmed_nat_pmids %>% filter(is.na(African)) %>% sample_n(10)
+pubmed_nat_pmids %>% filter(is.na(African))
+pubmed_nat_pmids %>% filter(is.na(African)&!is.na(fore_name_simple.x))
 sum(is.na(pubmed_nat_df$African))
 ```
 
 All ISCB speakers have nationality predictions.
-1457 pubmed full names not nationalized
+1506 pubmed full names not nationalized because they don't have fore_name_simple.
 <!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
 
 ```{r}
