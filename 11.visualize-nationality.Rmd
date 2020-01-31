@@ -224,7 +224,7 @@ fig_s4
 ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
 ```
 
-### Supplementary Figure S5 {#sup_fig_s4}
+### Supplementary Figure S5 {#sup_fig_s5}
 It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
 There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field.
 However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
