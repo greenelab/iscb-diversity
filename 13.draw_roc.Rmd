@@ -14,7 +14,7 @@ theme_set(theme_bw())
 ```{r}
 roc_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/master/models/LSTM_roc_curves.tsv') %>% 
   rename('region' = category) %>% 
-  recode_region() %>% 
+  recode_region_letter() %>% 
   group_by(region) %>%
   mutate(Sensitivity = tpr, Specificity = 1-fpr, dSens = c(abs(diff(1-tpr)), 0)) %>% 
   ungroup()
@@ -29,6 +29,7 @@ auc_df <- roc_df %>%
          reg_auc = paste0(region, ', AUC = ', round(auc_pct, 1), '%'))
 
 region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
+region_levels_let <- toupper(letters[1:8])
 
 fig_3a <- roc_df %>% 
   left_join(auc_df, by = 'region') %>% 
@@ -91,14 +92,24 @@ fig_3b
 ```{r}
 n_obs <- sum(auc_df$n)
 heat_dat <- predictions_df %>% 
+  # rename('region' = y_true,
+  #        'Celtic English' = 'CelticEnglish',
+  #        'East Asian' = 'EastAsian',
+  #        'South Asian' = 'SouthAsian',
+  #        'Israeli' = 'Israel') %>% 
   rename('region' = y_true,
-         'Celtic English' = 'CelticEnglish',
-         'East Asian' = 'EastAsian',
-         'South Asian' = 'SouthAsian',
-         'Israeli' = 'Israel') %>% 
-  recode_region() %>% 
+         'A' = 'CelticEnglish',
+        'C' = 'EastAsian',
+        'E' = 'SouthAsian',
+        'G' = 'Israel',
+        'H' = 'African',
+        'B' = 'European',
+        'D' = 'Hispanic',
+        'F' = 'Muslim') %>% 
+  recode_region_letter() %>% 
   group_by(region) %>% 
-  summarise_at(vars(African:`South Asian`), mean, na.rm = T) %>% 
+  # summarise_at(vars(African:`South Asian`), mean, na.rm = T) %>% 
+  summarise_if(is.numeric, mean, na.rm = T) %>% 
   ungroup() %>% 
   rename('reg_true' = region) %>% 
   pivot_longer(-reg_true, names_to = 'region', values_to = 'pred_prob') %>% 
