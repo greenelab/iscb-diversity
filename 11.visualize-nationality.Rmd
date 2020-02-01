@@ -213,7 +213,7 @@ fig_s4_1 <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
   theme(legend.position = 'right',
         legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(0, 0.3, 0, 0.1, unit='cm')
+        legend.margin = margin(0, 1, 0, 1.1, unit='cm')
         )
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
