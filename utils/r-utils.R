@@ -207,6 +207,8 @@ recode_region <- function(df){
         'East Asian' = 'EastAsian',
         'South Asian' = 'SouthAsian',
         'Israeli' = 'Israel',
+        'Arabic' = 'Muslim',
+        'African' = 'Africa',
         'Other categories' = 'OtherCategories')
     )
 }

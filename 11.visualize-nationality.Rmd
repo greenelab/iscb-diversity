@@ -43,7 +43,7 @@ my_jours <- unique(pubmed_nat_df$journal)
 my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
+region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Israeli', 'African')
 ```
 
 ```{r}

@@ -28,7 +28,7 @@ auc_df <- roc_df %>%
   mutate(auc_pct = 100 * auc,
          reg_auc = paste0(region, ', AUC = ', round(auc_pct, 1), '%'))
 
-region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
+region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Israeli', 'African')
 
 fig_3a <- roc_df %>% 
   left_join(auc_df, by = 'region') %>% 
@@ -95,7 +95,8 @@ heat_dat <- predictions_df %>%
          'Celtic English' = 'CelticEnglish',
          'East Asian' = 'EastAsian',
          'South Asian' = 'SouthAsian',
-         'Israeli' = 'Israel') %>% 
+         'Israeli' = 'Israel',
+         'Arabic' = 'Muslim') %>% 
   recode_region() %>% 
   group_by(region) %>% 
   summarise_at(vars(African:`South Asian`), mean, na.rm = T) %>% 
