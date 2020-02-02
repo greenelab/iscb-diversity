@@ -12,18 +12,18 @@ theme_set(theme_bw())
 ```
 
 ```{r}
-roc_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/master/models/LSTM_roc_curves.tsv') %>% 
-  rename('region' = category) %>% 
-  recode_region_letter() %>% 
+roc_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/master/models/LSTM_roc_curves.tsv') %>%
+  rename('region' = category) %>%
+  recode_region_letter() %>%
   group_by(region) %>%
-  mutate(Sensitivity = tpr, Specificity = 1-fpr, dSens = c(abs(diff(1-tpr)), 0)) %>% 
+  mutate(Sensitivity = tpr, Specificity = 1-fpr, dSens = c(abs(diff(1-tpr)), 0)) %>%
   ungroup()
 
-auc_df <- roc_df %>% 
-  group_by(region) %>% 
-  # add_count() %>% 
+auc_df <- roc_df %>%
+  group_by(region) %>%
+  # add_count() %>%
   summarise(auc = sum((1 - fpr) * dSens),
-            n = n()) %>% 
+            n = n()) %>%
   arrange(desc(auc)) %>%
   mutate(auc_pct = 100 * auc,
          reg_auc = paste0(region, ', AUC = ', round(auc_pct, 1), '%'))
@@ -31,8 +31,8 @@ auc_df <- roc_df %>%
 region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
 region_levels_let <- toupper(letters[1:8])
 
-fig_3a <- roc_df %>% 
-  left_join(auc_df, by = 'region') %>% 
+fig_3a <- roc_df %>%
+  left_join(auc_df, by = 'region') %>%
   ggplot(aes(x = Sensitivity, y = Specificity, color = fct_relevel(reg_auc, as.character(auc_df$reg_auc)))) +
   scale_color_manual(values = c('#b3de69', '#fdb462', '#8dd3c7', '#fccde5', '#ffffb3', '#bebada',  '#80b1d3', '#fb8072')) +
   geom_step(size = 1, alpha = 0.8) +
@@ -48,8 +48,8 @@ fig_3a <- roc_df %>%
 ```{r}
 library(caret)
 
-predictions_df <- read_tsv('https://raw.githubusercontent.com/arielah/wiki-nationality-estimate/predictions/data/LSTM_results_test.tsv') %>% 
-  mutate(y_true = as.factor(truth)) %>% 
+predictions_df <- read_tsv('https://raw.githubusercontent.com/arielah/wiki-nationality-estimate/predictions/data/LSTM_results_test.tsv') %>%
+  mutate(y_true = as.factor(truth)) %>%
   select(-truth)
 
 regs <- predictions_df %>% select(African:SouthAsian) %>% colnames()
@@ -57,9 +57,9 @@ cal_dfs <- list()
 for (reg in regs) {
   pred_reg <- predictions_df %>%
     mutate(y_true_bin = as.factor((y_true == reg))) %>%
-    rename(prob = reg) %>% 
+    rename(prob = reg) %>%
     select(y_true_bin, prob)
-  
+
   cal_dfs[[reg]] <- calibration(y_true_bin ~ prob,
                                 data = pred_reg,
                                 cuts = 11,
@@ -72,7 +72,7 @@ cal_dfs$EastAsian
 
 ```{r}
 fig_3b <- bind_rows(cal_dfs) %>%
-  recode_region() %>% 
+  recode_region() %>%
   ggplot(aes(x = midpoint/100, y = Percent/100, color = fct_relevel(region, as.character(auc_df$region)))) +
   geom_abline(slope = 1, linetype = 2, alpha = 0.5) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 20L), breaks = seq(0, 1, 0.2), limits = c(-0.005, 1.045)) +
@@ -91,12 +91,12 @@ fig_3b
 
 ```{r}
 n_obs <- sum(auc_df$n)
-heat_dat <- predictions_df %>% 
+heat_dat <- predictions_df %>%
   # rename('region' = y_true,
   #        'Celtic English' = 'CelticEnglish',
   #        'East Asian' = 'EastAsian',
   #        'South Asian' = 'SouthAsian',
-  #        'Israeli' = 'Israel') %>% 
+  #        'Israeli' = 'Israel') %>%
   rename('region' = y_true,
          'A' = 'CelticEnglish',
         'C' = 'EastAsian',
@@ -105,21 +105,21 @@ heat_dat <- predictions_df %>%
         'H' = 'African',
         'B' = 'European',
         'D' = 'Hispanic',
-        'F' = 'Muslim') %>% 
-  recode_region_letter() %>% 
-  group_by(region) %>% 
-  # summarise_at(vars(African:`South Asian`), mean, na.rm = T) %>% 
-  summarise_if(is.numeric, mean, na.rm = T) %>% 
-  ungroup() %>% 
-  rename('reg_true' = region) %>% 
-  pivot_longer(-reg_true, names_to = 'region', values_to = 'pred_prob') %>% 
-  left_join(auc_df, by = 'region') %>% 
+        'F' = 'Muslim') %>%
+  recode_region_letter() %>%
+  group_by(region) %>%
+  # summarise_at(vars(African:`South Asian`), mean, na.rm = T) %>%
+  summarise_if(is.numeric, mean, na.rm = T) %>%
+  ungroup() %>%
+  rename('reg_true' = region) %>%
+  pivot_longer(-reg_true, names_to = 'region', values_to = 'pred_prob') %>%
+  left_join(auc_df, by = 'region') %>%
   mutate(scale_pred_prob = log2((pred_prob)/(n/n_obs)))
 
 ordered_regs <- auc_df$region %>% as.character()
-fig_3c <- ggplot(heat_dat, aes(fct_relevel(reg_true, ordered_regs), 
-                               fct_relevel(region, ordered_regs), 
-                               fill = scale_pred_prob)) + 
+fig_3c <- ggplot(heat_dat, aes(fct_relevel(reg_true, ordered_regs),
+                               fct_relevel(region, ordered_regs),
+                               fill = scale_pred_prob)) +
   geom_tile() +
   scale_fill_gradientn(
     colours = c("#3CBC75FF","white","#440154FF"),
@@ -144,6 +144,5 @@ fig_3c <- ggplot(heat_dat, aes(fct_relevel(reg_true, ordered_regs),
 
 fig_3 <- cowplot::plot_grid(fig_3a, fig_3b, fig_3c, labels = 'AUTO', nrow = 1,
                             rel_widths = c(2,2,1.6))
-ggsave('figs/fig_3.png', fig_3, height = 4, width = 10) 
+ggsave('figs/fig_3.png', fig_3, height = 4, width = 10)
 ```
-
