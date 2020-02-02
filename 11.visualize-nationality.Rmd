@@ -13,9 +13,9 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```{r}
 all_full_names <- read_tsv('data/names/full-names.tsv.xz')
 
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>% 
-  rename('full_name' = X1) %>% 
-  distinct(full_name, .keep_all = T) %>% 
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>%
+  rename('full_name' = X1) %>%
+  distinct(full_name, .keep_all = T) %>%
   left_join(all_full_names, by = 'full_name')
 
 alpha_threshold <- qnorm(0.975)
@@ -26,15 +26,15 @@ pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
          publication_date = ymd(publication_date, truncated = 2)) %>%
   left_join(nationalize_df, by = c('fore_name', 'last_name'))
 
-pubmed_nat_df <- pubmed_nat_pmids %>% 
-  group_by(pmid, journal, publication_date, year) %>% 
-  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>% 
+pubmed_nat_df <- pubmed_nat_pmids %>%
+  group_by(pmid, journal, publication_date, year) %>%
+  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
   ungroup()
 
 iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
-         year = ymd(year, truncated = 2)) %>% 
-  left_join(nationalize_df, by = c('fore_name', 'last_name')) 
+         year = ymd(year, truncated = 2)) %>%
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
 
 start_year <- 1997
 end_year <- 2019
@@ -43,18 +43,19 @@ my_jours <- unique(pubmed_nat_df$journal)
 my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Israeli', 'African')
+region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
+region_levels_let <- toupper(letters[1:8])
 ```
 
 ```{r}
 set.seed(0)
 top_names <- map_dfc(colnames(nationalize_df)[-1], function(x) {
-  nationalize_df %>% 
-    filter((!!sym(x)) > 0.9) %>% 
-    sample_n(10) %>% 
-    select(full_name) %>% 
+  nationalize_df %>%
+    filter((!!sym(x)) > 0.9) %>%
+    sample_n(10) %>%
+    select(full_name) %>%
     rename(!!x := full_name)
-  }) 
+  })
 
 top_names %>% write_tsv('data/names/example_nationalities.tsv')
 ```
@@ -63,7 +64,7 @@ top_names %>% write_tsv('data/names/example_nationalities.tsv')
 ## Missing data
 
 ```{r}
-iscb_nat_df %>% filter(is.na(African)) 
+iscb_nat_df %>% filter(is.na(African))
 pubmed_nat_pmids %>% filter(is.na(African))
 pubmed_nat_pmids %>% filter(is.na(African)&!is.na(fore_name_simple.x))
 sum(is.na(pubmed_nat_df$African))
@@ -74,8 +75,8 @@ All ISCB speakers have nationality predictions.
 <!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
 
 ```{r}
-pubmed_nat_df %>% filter(is.na(African)) %>% 
-  count(year, journal) %>% 
+pubmed_nat_df %>% filter(is.na(African)) %>%
+  count(year, journal) %>%
   ggplot(aes(year(year), n, fill = journal)) +
   geom_bar(stat = 'identity') +
   scale_fill_viridis_d() +
@@ -84,7 +85,7 @@ pubmed_nat_df %>% filter(is.na(African)) %>%
 
 
 ```{r}
-pubmed_nat_df %>% 
+pubmed_nat_df %>%
   filter(year == '2002-01-01', !is.na(African))
 ```
 
@@ -101,7 +102,7 @@ Prepare data frames for later analyses:
 
 ```{r}
 iscb_pubmed_oth <- iscb_nat_df %>%
-  rename('journal' = conference) %>% 
+  rename('journal' = conference) %>%
   select(year, journal, African:SouthAsian, publication_date) %>%
   mutate(type = 'Keynote speakers/Fellows') %>%
   bind_rows(
@@ -109,8 +110,8 @@ iscb_pubmed_oth <- iscb_nat_df %>%
       select(year, journal, African:SouthAsian, publication_date) %>%
       mutate(type = 'Pubmed authors')
   ) %>%
-  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African) %>% 
-  pivot_longer(c(African:SouthAsian, OtherCategories), 
+  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African) %>%
+  pivot_longer(c(African:SouthAsian, OtherCategories),
                names_to = 'region',
                values_to = 'probabilities') %>%
   group_by(type, year, publication_date, region) %>%
@@ -121,9 +122,9 @@ iscb_pubmed_oth <- iscb_nat_df %>%
     n = mean(n),
     me_prob = alpha_threshold * sd_prob / sqrt(n)
   ) %>%
-  ungroup() 
+  ungroup()
 
-iscb_pubmed <- iscb_pubmed_oth %>% 
+iscb_pubmed <- iscb_pubmed_oth %>%
   filter(region != 'OtherCategories')
 ```
 
@@ -140,7 +141,7 @@ for (jour in my_jours){
     filter(type == 'Pubmed authors' & journal == jour) %>%
     group_by(year, region, journal) %>%
     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-    ungroup() 
+    ungroup()
 }
 ```
 
@@ -173,7 +174,7 @@ iscb_nat_df %>% filter(year == '2020-01-01' & conference == 'PSB')
 
 ```{r fig.height=7, fig.width=9}
 fig_4a <- iscb_pubmed %>%
-  filter(year < '2020-01-01') %>% 
+  filter(year < '2020-01-01') %>%
   group_by(year, type, region) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
   ungroup() %>%
@@ -186,15 +187,15 @@ fig_4a <- iscb_pubmed %>%
         legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
 
 ## Mean and standard deviation of predicted probabilities:
-fig_4b <- iscb_pubmed_oth %>% 
+fig_4b <- iscb_pubmed_oth %>%
   filter(!(region %in% c('Hispanic', 'SouthAsian', 'African', 'Israel', 'Muslim'))) %>%
-  recode_region() %>% 
+  recode_region_letter() %>%
   loess_and_ci() +
   theme(legend.position = c(0.88, 0.83),
         legend.key.height = unit(4, 'mm'),
         legend.key.width = unit(5, 'mm'),
         legend.text = element_text(size = 6)) +
-  facet_wrap(vars(fct_relevel(region, c('Celtic English', 'European', 'East Asian', 'Other categories'))), nrow = 1)
+  facet_wrap(vars(fct_relevel(region, c('A', 'B', 'C', 'O'))), nrow = 1)
 
 fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
 fig_4
@@ -212,11 +213,11 @@ fig_s4_1 <- bind_rows(pubmed_nat) %>%
   region_breakdown(category = 'sub', journal) +
   theme(legend.position = 'right',
         legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(0, 0.3, 0, 0.1, unit='cm')
+        legend.margin = margin(0, 1, 0, 1.1, unit='cm')
         )
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
-  filter(year < '2020-01-01') %>% 
+  filter(year < '2020-01-01') %>%
   region_breakdown(category = 'sub', journal)
 
 fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
@@ -231,10 +232,10 @@ However, just because a nationality isn't underrepresented against the field doe
 
 ```{r fig.height=6}
 fig_s5 <- iscb_pubmed %>%
-  recode_region() %>% 
+  recode_region_letter() %>%
   loess_and_ci() +
   theme(legend.position = c(0.84, 0.2)) +
-  facet_wrap(vars(fct_relevel(region, region_levels))) 
+  facet_wrap(vars(fct_relevel(region, region_levels_let)))
 fig_s5
 ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
 
@@ -244,4 +245,3 @@ ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
 ```{r}
 sessionInfo()
 ```
-
