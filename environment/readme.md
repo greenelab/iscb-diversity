@@ -12,3 +12,10 @@ However, if you'd like to for development, run the following command with this d
 # Build the Docker image specified by Dockerfile
 docker build --tag docker.pkg.github.com/greenelab/iscb-diversity/iscb-diversity .
 ```
+
+If you'd like to evaluate changes to the requirements in a currently running container,
+you can run the following command (from the repository's root directory):
+
+```shell
+docker exec iscb-diversity pip install --upgrade --requirement environment/requirements.txt
+```

@@ -7,7 +7,7 @@ nbconvert~=5.6.1
 notebook~=6.0.3
 numpy~=1.18.1
 pandas~=1.0.1
-git+https://github.com/dhimmel/pubmedpy.git@b5d7c8cd15da9dfb8cb4be00486a68424e24dfb1
+git+https://github.com/dhimmel/pubmedpy.git@4e716ac51c5550b33eff550cf47074b99f774b5e
 ratelimit~=2.2.1
 requests~=2.23.0
 sickle~=0.6.5
