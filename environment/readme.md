@@ -10,5 +10,5 @@ However, if you'd like to for development, run the following command with this d
 
 ```shell
 # Build the Docker image specified by Dockerfile
-docker build --tag iscb-diversity .
+docker build --tag docker.pkg.github.com/greenelab/iscb-diversity/iscb-diversity .
 ```
