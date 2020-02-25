@@ -23,7 +23,7 @@ docker run \
   --env JUPYTER_TOKEN=ksbegpqzrurktbkikyo \
   --publish 8899:8888 \
   --mount type=bind,source="$(pwd)",target=/user/jupyter \
-  iscb-diversity
+  docker.pkg.github.com/greenelab/iscb-diversity/iscb-diversity
 ```
 
 Then navigate to the following URL in your browser:

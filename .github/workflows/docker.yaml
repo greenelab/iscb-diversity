@@ -1,0 +1,27 @@
+name: Build & Publish Docker
+on:
+  push:
+    paths:
+    - environment/Dockerfile
+    - environment/requirements.txt
+    - .github/workflows/build-docker.yaml
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: docker.pkg.github.com/${{ github.repository }}/iscb-diversity
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    - name: Build Docker image
+      working-directory: environment
+      run: docker build --tag ${{ env.IMAGE_NAME }} .
+    - name: Publish Image
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push' && !github.event.repository.fork
+      # https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-docker-for-use-with-github-packages
+      run: |
+        docker login \
+          --username ${{ github.event.repository.name }} \
+          --password ${{ secrets.GITHUB_TOKEN }} \
+          docker.pkg.github.com
+        docker push ${{ env.IMAGE_NAME }}
