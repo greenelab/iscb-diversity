@@ -1,5 +1,6 @@
 backoff~=1.10.0
 eutils~=0.6.0
+geopy~=1.21.0
 ipywidgets~=7.5.1
 jsonlines~=1.2.0
 lxml~=4.5.0
@@ -7,7 +8,7 @@ nbconvert~=5.6.1
 notebook~=6.0.3
 numpy~=1.18.1
 pandas~=1.0.1
-git+https://github.com/dhimmel/pubmedpy.git@4e716ac51c5550b33eff550cf47074b99f774b5e
+git+https://github.com/dhimmel/pubmedpy.git@f262385e7246e7214380aa2bee81c600f8dc6377
 ratelimit~=2.2.1
 requests~=2.23.0
 sickle~=0.6.5
