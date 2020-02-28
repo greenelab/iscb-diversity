@@ -1,5 +1,6 @@
 backoff~=1.10.0
 eutils~=0.6.0
+git+https://github.com/elyase/geotext.git@21a8a7f5eebea40f270beef9ede4d9a57e3c81c3
 geopy~=1.21.0
 ipywidgets~=7.5.1
 jsonlines~=1.2.0
