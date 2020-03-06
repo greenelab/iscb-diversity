@@ -1,0 +1,317 @@
+---
+title: "Affiliation analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(rnaturalearth)
+source('utils/r-utils.R')
+theme_set(theme_bw() + theme(legend.title = element_blank()))
+```
+
+```{r}
+world <- ne_countries(scale='medium',returnclass = 'sf') 
+nat_to_reg <- world %>% 
+  as_tibble() %>% 
+  select(iso_a2, name, region_wb) %>% 
+  rename('countries' = iso_a2,
+         'country_name' = name,
+         'region' = region_wb)
+```
+
+```{r}
+all_full_names <- read_tsv('data/names/full-names.tsv.xz')
+
+# nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>%
+#   rename('full_name' = X1) %>%
+#   distinct(full_name, .keep_all = T) %>%
+#   left_join(all_full_names, by = 'full_name')
+
+alpha_threshold <- qnorm(0.975)
+
+pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
+  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = ymd(publication_date, truncated = 2)) 
+
+pubmed_aff_df <- pubmed_aff_pmids %>% 
+  select(pmid, journal, publication_date, year, countries) %>% 
+  left_join(nat_to_reg, by = 'countries')
+# pubmed_aff_df <- pubmed_aff_pmids %>%
+#   group_by(pmid, journal, publication_date, year) %>%
+#   summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
+#   ungroup()
+
+# iscb_aff_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+#   mutate(publication_date = ymd(year, truncated = 2),
+#          year = ymd(year, truncated = 2)) %>%
+#   left_join(nat_to_reg, by = 'countries')
+
+  
+
+start_year <- 1997
+end_year <- 2019
+n_years <- end_year - start_year
+my_jours <- unique(pubmed_aff_df$journal)
+my_confs <- unique(iscb_aff_df$conference)
+n_jours <- length(my_jours)
+n_confs <- length(my_confs)
+region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
+region_levels_let <- toupper(letters[1:8])
+```
+
+```{r}
+# table(pubmed_aff_pmids$corresponding)
+# table(pubmed_aff_pmids$use_last)
+pubmed_aff_df <- pubmed_aff_pmids %>%
+  select(pmid, journal, publication_date, year, countries) %>%
+  separate_rows(countries) %>%
+  add_count(pmid) %>%
+  mutate(probabilities = 1 / n) %>%
+  left_join(nat_to_reg, by = 'countries') %>%
+  filter(!is.na(country_name)) %>%
+  filter(!is.na(country_name)) %>%
+  mutate(row = row_number()) %>%
+  pivot_wider(
+    names_from = region,
+    values_from = probabilities,
+    values_fill = list(probabilities = 0)
+  ) %>%
+  select(-row)
+```
+
+
+```{r}
+# pubmed_aff_df_wide <- pubmed_aff_df %>% 
+
+table(pubmed_aff_df$region)
+
+pubmed_aff_df %>% 
+  filter(!is.na(countries)) %>% 
+  filter(is.na(region))
+```
+
+
+
+```{r}
+# set.seed(0)
+# top_names <- map_dfc(colnames(nationalize_df)[-1], function(x) {
+#   nationalize_df %>%
+#     filter((!!sym(x)) > 0.9) %>%
+#     sample_n(10) %>%
+#     select(full_name) %>%
+#     rename(!!x := full_name)
+#   })
+# 
+# top_names %>% write_tsv('data/names/example_affionalities.tsv')
+```
+
+
+
+## Missing data
+
+```{r}
+# iscb_aff_df %>% filter(is.na(countries))
+pubmed_aff_pmids %>% filter(is.na(countries))
+sum(is.na(pubmed_aff_pmids$countries))
+sum(is.na(pubmed_aff_df$countries))
+
+```
+
+```{r}
+# pubmed_aff_df %>% filter(is.na(African)) %>%
+#   count(year, journal) %>%
+#   ggplot(aes(year(year), n, fill = journal)) +
+#   geom_bar(stat = 'identity') +
+#   scale_fill_viridis_d() +
+#   ylab('Number of full names NOT nationalized')
+```
+
+
+[for now]
+
+```{r}
+pubmed_aff <- vector('list', length = n_jours)
+i <- 0
+
+
+for (jour in my_jours) {
+  i <- i + 1
+  pubmed_aff[[i]] <- pubmed_aff_df %>%
+    pivot_longer(c(`North America`:`Middle East & North Africa`),
+               names_to = 'region',
+               values_to = 'probabilities') %>% 
+    filter(journal == jour) %>%
+    group_by(year, region, journal) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup()
+}
+check = pubmed_aff[[1]]
+bind_rows(pubmed_aff) %>%
+  # filter(year < '2020-01-01') %>%
+  region_breakdown(category = 'main', journal)
+
+# pubmed_aff %>%
+#   region_breakdown('main', fct_rev(type))
+```
+
+
+
+
+## Descriptive statistics
+Prepare data frames for later analyses:
+
+- rbind results of race predictions in iscb and Pubmed
+- pivot long
+- compute mean, sd, marginal error
+
+```{r}
+iscb_pubmed_oth <- iscb_aff_df %>%
+  rename('journal' = conference) %>%
+  select(year, journal, African:SouthAsian, publication_date) %>%
+  mutate(type = 'Keynote speakers/Fellows') %>%
+  bind_rows(
+    pubmed_aff_df %>%
+      select(year, journal, African:SouthAsian, publication_date) %>%
+      mutate(type = 'Pubmed authors')
+  ) %>%
+  mutate(OtherCategories = SouthAsian + Hispanic + Muslim + Israel + African) %>%
+  pivot_longer(c(African:SouthAsian, OtherCategories),
+               names_to = 'region',
+               values_to = 'probabilities') %>%
+  group_by(type, year, publication_date, region) %>%
+  add_count() %>%
+  mutate(
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
+  ) %>%
+  ungroup()
+
+iscb_pubmed <- iscb_pubmed_oth %>%
+  filter(region != 'OtherCategories')
+```
+
+## Prepare data frames for analysis
+### By journals
+
+```{r}
+pubmed_aff <- vector('list', length = n_jours)
+i <- 0
+
+for (jour in my_jours){
+  i <- i + 1
+  pubmed_aff[[i]] <- iscb_pubmed %>%
+    filter(type == 'Pubmed authors' & journal == jour) %>%
+    group_by(year, region, journal) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup()
+}
+```
+
+
+
+### By conference keynotes/fellows
+```{r fig.height=6}
+i <- 0
+iscb_aff <- vector('list', length = n_confs)
+
+for (conf in my_confs){
+  i <- i + 1
+  iscb_aff[[i]] <- iscb_pubmed %>%
+    filter(type != 'Pubmed authors' & journal == conf) %>%
+    group_by(year, region, journal) %>%
+    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+    ungroup()
+}
+```
+
+
+```{r}
+iscb_pubmed %>%
+    filter(type != 'Pubmed authors' & year == '2011-01-01' & journal == 'PSB')
+iscb_aff_df %>% filter(year == '2011-01-01' & conference == 'PSB')
+iscb_aff_df %>% filter(year == '2020-01-01' & conference == 'PSB')
+```
+
+## Figures for paper
+
+### Figure 4: Compared to the name collection of Pubmed authors, Celtic English honorees are overrepresented while East Asian honorees are underrepresented.
+
+```{r fig.height=7, fig.width=9}
+fig_4a <- iscb_pubmed %>%
+  filter(year < '2020-01-01') %>%
+  group_by(year, type, region) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+  ungroup() %>%
+  region_breakdown('main', fct_rev(type)) +
+  guides(fill = guide_legend(nrow = 1)) +
+  theme(legend.position = 'bottom',
+        legend.key.height = unit(3, 'mm'),
+        legend.key.width = unit(3, 'mm'),
+        legend.text = element_text(size = 8),
+        legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
+
+## Mean and standard deviation of predicted probabilities:
+fig_4b <- iscb_pubmed_oth %>%
+  filter(!(region %in% c('Hispanic', 'SouthAsian', 'African', 'Israel', 'Muslim'))) %>%
+  recode_region_letter() %>%
+  loess_and_ci() +
+  theme(legend.position = c(0.88, 0.83),
+        legend.key.height = unit(4, 'mm'),
+        legend.key.width = unit(5, 'mm'),
+        legend.text = element_text(size = 6)) +
+  facet_wrap(vars(fct_relevel(region, c('A', 'B', 'C', 'O'))), nrow = 1)
+
+fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
+fig_4
+ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
+
+```
+
+### Supplementary Figure S4 {#sup_fig_s4}
+
+Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
+ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries
+
+```{r fig.width=6, fig.height=3.5}
+fig_s4_1 <- bind_rows(pubmed_aff) %>%
+  region_breakdown(category = 'sub', journal) +
+  theme(legend.position = 'right',
+        legend.key.height = unit(3.5, 'mm'),
+        legend.margin = margin(0, 1, 0, 1.1, unit='cm')
+        )
+
+fig_s4_2 <- bind_rows(iscb_aff) %>%
+  filter(year < '2020-01-01') %>%
+  region_breakdown(category = 'sub', journal)
+
+fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
+fig_s4
+ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
+```
+
+### Supplementary Figure S5 {#sup_fig_s5}
+It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
+There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field.
+However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
+
+```{r fig.height=6}
+fig_s5 <- iscb_pubmed %>%
+  recode_region_letter() %>%
+  loess_and_ci() +
+  theme(legend.position = c(0.84, 0.2)) +
+  facet_wrap(vars(fct_relevel(region, region_levels_let)))
+fig_s5
+ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
+
+```
+
+
+```{r}
+sessionInfo()
+```
+
