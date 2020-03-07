@@ -288,7 +288,8 @@ region_breakdown <- function(df, category = 'main', ...) {
     # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
     # scale_fill_brewer(palette = 'Set3') +
     scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
-    theme(legend.position = 'None') +
+    theme(legend.position = 'None',
+          panel.grid.minor = element_blank()) +
     labs(x = NULL) 
   
   if (category == 'main') {
@@ -320,6 +321,48 @@ region_breakdown <- function(df, category = 'main', ...) {
   }
   my_plot
 }
+
+affiliation_breakdown <- function(df, category = 'main', ...) {
+  # plot stacked bargraphs for each region, mean_prob by year
+  my_plot <- df %>%
+    ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
+    geom_bar(stat = 'identity') +
+    scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+    theme(legend.position = 'None',
+          panel.grid.minor = element_blank()) +
+    labs(x = NULL) 
+  
+  if (category == 'main') {
+    my_plot <- my_plot +
+      scale_y_continuous(
+        labels = scales::percent_format(),
+        expand = c(0, 0),
+        breaks = seq(0, 1, 0.2)
+      ) +
+      scale_x_date(
+        labels = scales::date_format("%Y"),
+        expand = c(0, 0)
+      ) +
+      labs(y = 'Estimated composition') +
+      facet_wrap(vars(...), ncol = 2, scales = 'free_x') 
+  } else if (category == 'sub') {
+    my_plot <- my_plot +
+      scale_y_continuous(
+        labels = scales::percent_format(),
+        expand = c(0, 0),
+        breaks = seq(0, 1, 0.5)
+      ) +
+      labs(y = NULL) +
+      scale_x_date(
+        labels = scales::date_format("'%y"),
+        expand = c(0, 0)
+      ) +
+      facet_wrap(vars(...), nrow = 1) 
+  }
+  my_plot
+}
+
+
 
 race_breakdown <- function(df, category = 'main', ...){
   # plot stacked bargraphs for each race, mean_prob by year
