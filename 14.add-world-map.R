@@ -32,11 +32,11 @@ my_world <- world %>%
           legend.title = element_blank(),
           panel.border = element_rect(fill = NA)))
 
-ggsave('figs/2020-01-31_groupings.png', gworld)
+ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 3)
 
-world %>%
-  select(iso_a2, iso_a3, name, name_long, region_wb) %>%
-  write_tsv('data/countries/world-map.tsv')
+# world %>%
+#   select(iso_a2, iso_a3, name, name_long, region_wb) %>%
+#   write_tsv('data/countries/world-map.tsv')
 
 my_world %>%
   as_tibble() %>%
@@ -58,4 +58,4 @@ ordered_region_wb <- c("North America","Europe & Central Asia",
         panel.border = element_rect(fill = NA),
         legend.title = element_blank()))
 
-ggsave('figs/2020-01-31_natural-earth-world-map.png', gworld)
+ggsave('figs/2020-01-31_natural-earth-world-map.png', gworld, width = 7, height = 2.5)
