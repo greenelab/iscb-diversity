@@ -1,412 +1,415 @@
-year	full_name	fore_name	last_name	conference	source
-2009	Michael Waterman	Michael	Waterman	ISCB Fellow	
-2009	Temple Smith	Temple	Smith	ISCB Fellow	
-2009	Janet Thornton	Janet	Thornton	ISCB Fellow	
-2009	David Sankoff	David	Sankoff	ISCB Fellow	
-2009	David Lipman	David	Lipman	ISCB Fellow	
-2009	David Haussler	David	Haussler	ISCB Fellow	
-2010	Alfonso Valencia	Alfonso	Valencia	ISCB Fellow	
-2010	Gary Stormo	Gary	Stormo	ISCB Fellow	
-2010	Chris Sander	Chris	Sander	ISCB Fellow	
-2010	Lawrence Hunter	Lawrence	Hunter	ISCB Fellow	
-2010	Russ Altman	Russ	Altman	ISCB Fellow	
-2011	Richard Durbin	Richard	Durbin	ISCB Fellow	
-2011	Philip Bourne	Philip	Bourne	ISCB Fellow	
-2011	Soren Brunak	Soren	Brunak	ISCB Fellow	
-2011	Julio Collado-Vides	Julio	Collado-Vides	ISCB Fellow	
-2011	Michael Ashburner	Michael	Ashburner	ISCB Fellow	
-2012	Martin Vingron	Martin	Vingron	ISCB Fellow	
-2012	Gunnar von Heijne	Gunnar	Heijne	ISCB Fellow	
-2012	Ron Shamir	Ron	Shamir	ISCB Fellow	
-2012	Pavel Pevzner	Pavel	Pevzner	ISCB Fellow	
-2012	Jill Mesirov	Jill	Mesirov	ISCB Fellow	
-2012	Peter Karp	Peter	Karp	ISCB Fellow	
-2012	Bonnie Berger	Bonnie	Berger	ISCB Fellow	
-2013	Steven Salzberg	Steven	Salzberg	ISCB Fellow	
-2013	Eugene W Myers	Eugene	Myers	ISCB Fellow	
-2013	Ruth Nussinov	Ruth	Nussinov	ISCB Fellow	
-2013	Webb Miller	Webb	Miller	ISCB Fellow	
-2013	Satoru Miyano	Satoru	Miyano	ISCB Fellow	
-2013	Minoru Kanehisa	Minoru	Kanehisa	ISCB Fellow	
-2013	David Eisenberg	David	Eisenberg	ISCB Fellow	
-2013	Pierre Baldi	Pierre	Baldi	ISCB Fellow	
-2014	Andrej Sali	Andrej	Sali	ISCB Fellow	
-2014	Nir Friedman	Nir	Friedman	ISCB Fellow	
-2014	Robert Gentleman	Robert	Gentleman	ISCB Fellow	
-2014	Ewan Birney	Ewan	Birney	ISCB Fellow	
-2014	Amos Bairoch	Amos	Bairoch	ISCB Fellow	
-2015	Burkhard Rost	Burkhard	Rost	ISCB Fellow	
-2015	Michael Levitt	Michael	Levitt	ISCB Fellow	
-2015	Desmond Higgins	Desmond	Higgins	ISCB Fellow	
-2015	Thomas Lengauer	Thomas	Lengauer	ISCB Fellow	
-2015	Mark Gerstein	Mark	Gerstein	ISCB Fellow	
-2015	Cyrus Chothia	Cyrus	Chothia	ISCB Fellow	
-2015	Rolf Apweiler	Rolf	Apweiler	ISCB Fellow	
-2016	Shoshana Wodak	Shoshana	Wodak	ISCB Fellow	
-2016	Haim Wolfson	Haim	Wolfson	ISCB Fellow	
-2016	Lincoln Stein	Lincoln	Stein	ISCB Fellow	
-2016	Sarah Teichmann	Sarah	Teichmann	ISCB Fellow	
-2016	Anna Tramontano	Anna	Tramontano	ISCB Fellow	
-2016	Aviv Regev	Aviv	Regev	ISCB Fellow	
-2016	Christine Orengo	Christine	Orengo	ISCB Fellow	
-2016	Michal Linial	Michal	Linial	ISCB Fellow	
-2016	Barry Honig	Barry	Honig	ISCB Fellow	
-2016	Janet Kelso	Janet	Kelso	ISCB Fellow	
-2016	Dan Gusfield	Dan	Gusfield	ISCB Fellow	
-2016	Helen Berman	Helen	Berman	ISCB Fellow	
-2016	Steven Brenner	Steven	Brenner	ISCB Fellow	
-2017	Tandy Warnow	Tandy	Warnow	ISCB Fellow	
-2017	Olga Troyanskaya	Olga	Troyanskaya	ISCB Fellow	
-2017	William Noble	William	Noble	ISCB Fellow	
-2017	Lior Pachter	Lior	Pachter	ISCB Fellow	
-2017	Anders Krogh	Anders	Krogh	ISCB Fellow	
-2017	Andrea Califano	Andrea	Califano	ISCB Fellow	
-2017	Alex Bateman	Alex	Bateman	ISCB Fellow	
-2018	Mike Steel	Mike	Steel	ISCB Fellow	
-2018	Mona Singh	Mona	Singh	ISCB Fellow	
-2018	Bernard Moret	Bernard	Moret	ISCB Fellow	
-2018	William Pearson	William	Pearson	ISCB Fellow	
-2018	Hanah Margalit	Hanah	Margalit	ISCB Fellow	
-2018	Yves Moreau	Yves	Moreau	ISCB Fellow	
-2018	Terry Gaasterland	Terry	Gaasterland	ISCB Fellow	
-2018	Patricia Babbit	Patricia	Babbit	ISCB Fellow	
-2019	Vineet Bafna	Vineet	Bafna	ISCB Fellow	
-2019	Eleazar Eskin	Eleazar	Eskin	ISCB Fellow	
-2019	Shirley Liu	Shirley	Liu	ISCB Fellow	
-2019	Marie-France Sagot	Marie-France	Sagot	ISCB Fellow	
-2002	Stephen Altschul	Stephen	Altschul	ISMB	
-2002	Michael Ashburner	Michael	Ashburner	ISMB	
-2002	Ford Doolittle	Ford	Doolittle	ISMB	
-2002	Terry Gaasterland	Terry	Gaasterland	ISMB	
-2002	Barry Honig	Barry	Honig	ISMB	
-2002	David Baker	David	Baker	ISMB	
-2002	John Reinitz	John	Reinitz	ISMB	
-2002	Isidore Rigoutsos	Isidore	Rigoutsos	ISMB	
-2003	Sydney Brenner	Sydney	Brenner	ISMB	
-2003	David Haussler	David	Haussler	ISMB	
-2003	Yoshihide Hayashizaki	Yoshihide	Hayashizaki	ISMB	
-2003	W. James Kent	James	Kent	ISMB	
-2003	John Mattick	John	Mattick	ISMB	
-2003	David Sankoff	David	Sankoff	ISMB	
-2003	Ron Shamir	Ron	Shamir	ISMB	
-2003	Michael Waterman	Michael	Waterman	ISMB	
-2004	Uri Alon	Uri	Alon	ISMB	
-2004	Eric Green	Eric	Green	ISMB	
-2004	Leroy Hood	Leroy	Hood	ISMB	
-2004	David Lipman	David	Lipman	ISMB	
-2004	Matthias Mann	Matthias	Mann	ISMB	
-2004	Denis Noble	Denis	Noble	ISMB	
-2004	Svante Paabo	Svante	Paabo	ISMB	
-2004	Anna Tramontano	Anna	Tramontano	ISMB	
-2005	Ewan Birney	Ewan	Birney	ISMB	
-2005	Janet Thornton	Janet	Thornton	ISMB	
-2005	Howard Cash	Howard	Cash	ISMB	
-2005	Peter J Hunter	Peter	Hunter	ISMB	
-2005	Jill Mesirov	Jill	Mesirov	ISMB	
-2005	Satoru Miyano	Satoru	Miyano	ISMB	
-2005	Pavel Pevzner	Pavel	Pevzner	ISMB	
-2005	Gunnar von Heijne	Gunnar	Heijne	ISMB	
-2006	Robert Huber	Robert	Huber	ISMB	
-2006	Tom Blundell	Tom	Blundell	ISMB	
-2006	Kurt Wuthrich	Kurt	Wuthrich	ISMB	
-2006	Mathieu Blanchette	Mathieu	Blanchette	ISMB	
-2006	Elana Conti	Elana	Conti	ISMB	
-2006	Charles DeLisi	Charles	DeLisi	ISMB	
-2006	Richard Roberts	Richard	Roberts	ISMB	
-2006	Michael Waterman	Michael	Waterman	ISMB	
-2007	Eran Segal	Eran	Segal	ISMB	
-2007	Temple Smith	Temple	Smith	ISMB	
-2007	Soren Brunak	Soren	Brunak	ISMB	
-2007	Stephen Burley	Stephen	Burley	ISMB	
-2007	Michael Eisen	Michael	Eisen	ISMB	
-2007	Anne-Claude Gavin	Anne-Claude	Gavin	ISMB	
-2007	John Mattick	John	Mattick	ISMB	
-2007	Erin O'Shea	Erin	O'Shea	ISMB	
-2007	Renee Schroeder	Renee	Schroeder	ISMB	
-2007	Terry Speed	Terry	Speed	ISMB	
-2008	Aviv Regev	Aviv	Regev	ISMB	
-2008	David Haussler	David	Haussler	ISMB	
-2008	Claire M. Fraser-Liggett	Claire	Fraser-Liggett	ISMB	
-2008	David Jaffe	David	Jaffe	ISMB	
-2008	Eugene W Myers	Eugene	Myers	ISMB	
-2008	Morag Park	Morag	Park	ISMB	
-2008	Bernhard O. Palsson	Bernhard	Palsson	ISMB	
-2008	Hanah Margalit	Hanah	Margalit	ISMB	
-2009	Trey Ideker	Trey	Ideker	ISMB	
-2009	Webb Miller	Webb	Miller	ISMB	
-2009	Pierre-Henri Gouyon	Pierre-Henri	Gouyon	ISMB	
-2009	Daphne Koller	Daphne	Koller	ISMB	
-2009	Thomas Lengauer	Thomas	Lengauer	ISMB	
-2009	Eugenia Maria del Pino Veintimilla	Eugenia	Veintimilla	ISMB	
-2009	Thomaso Poggio	Thomaso	Poggio	ISMB	
-2009	Mathias Uhlen	Mathias	Uhlen	ISMB	
-2010	Steven Brenner	Steven	Brenner	ISMB	https://www.iscb.org/archive/conferences/iscb/ismb2010-program/ismb2010-keynotes.html
-2010	Susan Lindquist	Susan	Lindquist	ISMB	
-2010	Svante Paabo	Svante	Paabo	ISMB	
-2010	Chris Sander	Chris	Sander	ISMB	
-2010	David Altshuler	David	Altshuler	ISMB	https://www.broadinstitute.org/blog/ismb-meeting-david-altshuler
-2010	George Church	George	Church	ISMB	
-2010	Robert Weinberg	Robert	Weinberg	ISMB	
-2011	Bonnie Berger	Bonnie	Berger	ISMB	
-2011	Olga Troyanskaya	Olga	Troyanskaya	ISMB	
-2011	Janet Thornton	Janet	Thornton	ISMB	
-2011	Alfonso Valencia	Alfonso	Valencia	ISMB	
-2011	Luis Serrano	Luis	Serrano	ISMB	
-2011	Michael Ashburner	Michael	Ashburner	ISMB	
-2012	Richard Lathrop	Richard	Lathrop	ISMB	
-2012	Lawrence Hunter	Lawrence	Hunter	ISMB	
-2012	Ziv Bar-Joseph	Ziv	Bar-Joseph	ISMB	
-2012	Barbara Wold	Barbara	Wold	ISMB	
-2012	Richard Durbin	Richard	Durbin	ISMB	
-2012	Andrej Sali	Andrej	Sali	ISMB	
-2012	Gunnar von Heijne	Gunnar	Heijne	ISMB	
-2013	Goncalo Abecasis	Goncalo	Abecasis	ISMB	
-2013	Gil Ast	Gil	Ast	ISMB	
-2013	David Eisenberg	David	Eisenberg	ISMB	
-2013	Carole Goble	Carole	Goble	ISMB	
-2013	Lior Pachter	Lior	Pachter	ISMB	
-2013	Gary Stormo	Gary	Stormo	ISMB	
-2014	Michal Linial	Michal	Linial	ISMB	
-2014	Eugene W Myers	Eugene	Myers	ISMB	
-2014	Isaac (Zak) Kohane	Isaac	Kohane	ISMB	https://www.iscb.org/ismb2014-program/ismb2014-keynotes/isaac-kohane
-2014	Dana Pe'er	Dana	Pe'er	ISMB	
-2014	Robert Langer	Robert	Langer	ISMB	
-2014	Russ Altman	Russ	Altman	ISMB	
-2015	Michael Levitt	Michael	Levitt	ISMB	
-2015	Curtis Huttenhower	Curtis	Huttenhower	ISMB	
-2015	Eileen Furlong	Eileen	Furlong	ISMB	
-2015	Kenneth Wolfe	Kenneth	Wolfe	ISMB	
-2015	Cyrus Chothia	Cyrus	Chothia	ISMB	
-2015	Amos Bairoch	Amos	Bairoch	ISMB	
-2016	Ruth Nussinov	Ruth	Nussinov	ISMB	
-2016	Debora Marks	Debora	Marks	ISMB	
-2016	Sandrine Dudoit	Sandrine	Dudoit	ISMB	
-2016	Sarah Teichmann	Sarah	Teichmann	ISMB	
-2016	Serafim Batzoglou	Serafim	Batzoglou	ISMB	
-2016	Soren Brunak	Soren	Brunak	ISMB	
-2017	Aviv Regev	Aviv	Regev	ISMB	
-2017	James Sharpe	James	Sharpe	ISMB	
-2017	Christoph Bock	Christoph	Bock	ISMB	
-2017	Zhiping Weng	Zhiping	Weng	ISMB	
-2017	Pavel Pevzner	Pavel	Pevzner	ISMB	
-2018	Steven Salzberg	Steven	Salzberg	ISMB	
-2018	Cole Trapnell	Cole	Trapnell	ISMB	
-2018	Martha L. Bulyk	Martha	Bulyk	ISMB	
-2018	M. Madan Babu	Madan	Babu	ISMB	
-2018	Ruth Nussinov	Ruth	Nussinov	ISMB	
-2019	Nikolaus Rajewsky	Nikolaus	Rajewsky	ISMB	
-2019	William Noble	William	Noble	ISMB	
-2019	Alexis Battle	Alexis	Battle	ISMB	
-2019	Christophe Dessimoz	Christophe	Dessimoz	ISMB	
-2019	Bonnie Berger	Bonnie	Berger	ISMB	
-1999	Steven Brenner	Steven	Brenner	PSB	
-2000	Wah Chiu	Wah	Chiu	PSB	
-2001	David Haussler	David	Haussler	PSB	
-2002	David Botstein	David	Botstein	PSB	
-2002	Rebecca Eisenberg	Rebecca	Eisenberg	PSB	
-2003	Marvin Cassman	Marvin	Cassman	PSB	
-2003	Latanya Sweeney	Latanya	Sweeney	PSB	
-2004	Henry Greely	Henry	Greely	PSB	
-2004	Deborah Nickerson	Deborah	Nickerson	PSB	
-2005	David Eisenberg	David	Eisenberg	PSB	
-2005	Arti Rai	Arti	Rai	PSB	
-2006	Michael Ashburner	Michael	Ashburner	PSB	
-2006	Eric Meslin	Eric	Meslin	PSB	
-2007	Elizabeth Blackburn	Elizabeth	Blackburn	PSB	
-2007	Marc Rotenberg	Marc	Rotenberg	PSB	
-2008	John Dupre	John	Dupre	PSB	
-2008	Andrew McCulloch	Andrew	McCulloch	PSB	
-2009	Greg Hampikian	Greg	Hampikian	PSB	
-2009	Drew Endy	Drew	Endy	PSB	
-2010	Stanley Nelson	Stanley	Nelson	PSB	
-2010	Isaac Kohane	Isaac	Kohane	PSB	
-2011	Vijay Pande	Vijay	Pande	PSB	
-2011	Ellen Wright Clayton	Ellen	Clayton	PSB	
-2012	Elaine Mardis	Elaine	Mardis	PSB	
-2012	James Heywood	James	Heywood	PSB	
-2013	David Ewing Duncan	David	Duncan	PSB	
-2013	Dan Roden	Dan	Roden	PSB	
-2014	Atul Butte	Atul	Butte	PSB	
-2014	Douglas Fridsma	Douglas	Fridsma	PSB	
-2015	David Haussler	David	Haussler	PSB	
-2015	Lucila Ohno-Machado	Lucila	Ohno-Machado	PSB	
-2016	Winter Mason	Winter	Mason	PSB	
-2016	Nancy Cox	Nancy	Cox	PSB	
-2017	David Magnus	David	Magnus	PSB	
-2017	Neil Risch	Neil	Risch	PSB	
-2018	Carlos Bustamante	Carlos	Bustamante	PSB	
-2018	Jennifer Wagner	Jennifer	Wagner	PSB	
-2019	Russ Altman	Russ	Altman	PSB	
-2019	Lawrence Hunter	Lawrence	Hunter	PSB	
-2020	Carole Goble	Carole	Goble	PSB	
-2020	Ifeoma Ajunwa	Ifeoma	Ajunwa	PSB	
-1997	David Botstein	David	Botstein	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Sam Karlin	Sam	Karlin	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Martin Karplus	Martin	Karplus	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Eric Lander	Eric	Lander	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Robert Lipshutz	Robert	Lipshutz	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Jonathan King	Jonathan	King	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Richard Roberts	Richard	Roberts	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Temple Smith	Temple	Smith	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1997	Terry Speed	Terry	Speed	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	Ruben Abagyan	Ruben	Abagyan	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	Charles Cantor	Charles	Cantor	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	David Cox	David	Cox	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	Ron Davis	Ron	Davis	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	Klaus Gubernator	Klaus	Gubernator	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	Joshua Lederberg	Joshua	Lederberg	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	Michael Levitt	Michael	Levitt	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	David Schwartz	David	Schwartz	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1998	John Yates	John	Yates	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Peer Bork	Peer	Bork	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Cyrus Chothia	Cyrus	Chothia	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Eugene W Myers	Eugene	Myers	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	John Moult	John	Moult	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Pitor Slonimsky	Pitor	Slonimsky	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Ed Southern	Ed	Southern	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	Peter Willett	Peter	Willett	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-1999	John Wooley	John	Wooley	RECOMB	https://doi.org/10.1007/978-3-319-31957-5
-2000	Eric Davidson	Eric	Davidson	RECOMB	
-2000	Walter Gilbert	Walter	Gilbert	RECOMB	
-2000	Takashi Gojobori	Takashi	Gojobori	RECOMB	
-2000	Leroy Hood	Leroy	Hood	RECOMB	
-2000	Minoru Kanehisa	Minoru	Kanehisa	RECOMB	
-2000	Hans Lehrach	Hans	Lehrach	RECOMB	
-2000	Yvonne Martin	Yvonne	Martin	RECOMB	
-2000	Yusuke Nakamura	Yusuke	Nakamura	RECOMB	
-2000	Svante Paabo	Svante	Paabo	RECOMB	
-2001	George Church	George	Church	RECOMB	
-2001	Phillip Sharp	Phillip	Sharp	RECOMB	
-2001	Mark Adams	Mark	Adams	RECOMB	
-2001	Roger Brent	Roger	Brent	RECOMB	
-2001	Franz Lang	Franz	Lang	RECOMB	
-2001	Klaus Lindpaintner	Klaus	Lindpaintner	RECOMB	
-2001	Yvonne Martin	Yvonne	Martin	RECOMB	
-2001	Mark Ptashne	Mark	Ptashne	RECOMB	
-2001	Matthias Wilm	Matthias	Wilm	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/schedule.html
-2002	Ruben Abagyan	Ruben	Abagyan	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	Ali H. Brivanlou	Ali	Brivanlou	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	Evan Eichler	Evan	Eichler	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	"Harold ""Skip"" Garner"	Harold	Garner	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	David Ho	David	Ho	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	Gerry Rubin	Gerry	Rubin	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	J. Craig Venter	Craig 	Venter	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2002	Marc Vidal	Marc 	Vidal	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196
-2003	Edward Trifonov	Edward	Trifonov	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Christiane Nüsslein-Volhard	Christiane	Nüsslein-Volhard	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Árpád Furka	Árpád	Furka	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Andrew Clark	Andrew	Clark	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	David Haussler	David 	Haussler	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Arthur Lesk	Arthur 	Lesk	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Dieter Oesterhelt	Dieter	Oesterhelt	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Terry Speed	Terry	Speed	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2003	Kari Stefansson	Kari	Stefansson	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075
-2004	Carlos Bustamante	Carlos 	Bustamante	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/974614
-2004	Russell Doolittle	Russell 	Doolittle	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/974614
-2004	Christine Orengo	Christine	Orengo	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/974614
-2004	Deborah Nickerson	Deborah	Nickerson	RECOMB	
-2004	Richard Karp	Richard	Karplus	RECOMB	
-2004	Elizabeth Winzeler	Elizabeth	Winzeler	RECOMB	
-2004	William McGinnis	William	McGinnis	RECOMB	
-2004	Martin Nowak	Martin	Nowak	RECOMB	
-2004	Andrew Fire	Andrew	Fire	RECOMB	
-2005	David Altshuler	David	Altshuler	RECOMB	https://doi.org/10.1007/b135594
-2005	Wolfgang Baumeister	Wolfgang 	Baumeister	RECOMB	https://doi.org/10.1007/b135594
-2005	James Collins	James	Collins	RECOMB	https://doi.org/10.1007/b135594
-2005	Charles DeLisi	Charles 	DeLisi	RECOMB	https://doi.org/10.1007/b135594
-2005	Jonathan King	Jonathan	King	RECOMB	https://doi.org/10.1007/b135594
-2005	Eric Lander	Eric	Lander	RECOMB	https://doi.org/10.1007/b135594
-2005	Michael Levine	Michael	Levine	RECOMB	https://doi.org/10.1007/b135594
-2005	Susan Lindquist	Susan	Lindquist	RECOMB	https://doi.org/10.1007/b135594
-2006	Anne-Claude Gavin	Anne-Claude	Gavin	RECOMB	https://doi.org/10.1007/11732990
-2006	David Haussler	David	Haussler	RECOMB	https://doi.org/10.1007/11732990
-2006	Ajay K. Royyuru	Ajay	Royyuru	RECOMB	https://doi.org/10.1007/11732990
-2006	David Sankoff	David	Sankoff	RECOMB	https://doi.org/10.1007/11732990
-2006	Michael Waterman	Michael	Waterman	RECOMB	https://doi.org/10.1007/11732990
-2006	Carl Zimmer	Carl	Zimmer	RECOMB	https://doi.org/10.1007/11732990
-2006	Roman A. Zubarev	Roman	Zubarev	RECOMB	https://doi.org/10.1007/11732990
-2007	Elizabeth Blackburn	Elizabeth	Blackburn	RECOMB	
-2007	Patrick Brown	Patrick	Brown	RECOMB	
-2007	Abby Dernburg	Abby	Dernburg	RECOMB	
-2007	Jennifer Marshall Graves	Jennifer	Graves	RECOMB	
-2007	Yishi Jin	Yishi	Jin	RECOMB	
-2007	Jay Keasling	Jay	Keasling	RECOMB	
-2007	Harry Noller	Harry	Noller	RECOMB	
-2007	Aviv Regev	Aviv	Regev	RECOMB	
-2008	Edison Liu	Edison	Liu	RECOMB	
-2008	Sang Yup Lee	Sang	Lee	RECOMB	
-2008	Andrei Lupas	Andrei	Lupas	RECOMB	
-2008	Howard Cedar	Howard	Cedar	RECOMB	
-2008	Vivian Cheung	Vivian	Cheung	RECOMB	
-2008	Temple Smith	Temple	Smith	RECOMB	
-2008	Suzanne Cory	Suzanne	Cory	RECOMB	
-2009	Carlos Bustamante	Carlos	Bustamante	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Rade Drmanac	Rade	Drmanac	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Mark Gerstein	Mark 	Gerstein	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Eran Halperin	Eran	Halperin	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Michael Hammer	Michael	Hammer	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Joanna Mountain	Joanna	Mountain	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Stephen Quake	Stephen	Quake	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Mostafa Ronaghi	Mostafa	Ronaghi	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Pardis Sabeti	Pardis	Sabeti	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2009	Michael Snyder	Michael	Snyder	RECOMB	http://doi.org/10.1007/978-3-642-02008-7
-2010	Cecilia Arraiano	Cecilia	Arraiano	RECOMB	
-2010	David Bartel	David	Bartel	RECOMB	
-2010	Isaac Kohane	Isaac	Kohane	RECOMB	
-2010	Phil Kapranov	Phil	Kapranov	RECOMB	
-2010	Norbert Perrimon	Norbert	Perrimon	RECOMB	
-2010	Mona Singh	Mona	Singh	RECOMB	
-2011	Evan Eichler	Evan	Eichler	RECOMB	
-2011	Daphne Koller	Daphne	Koller	RECOMB	
-2011	Marco Marra	Marco	Marra	RECOMB	
-2011	Joe Nadeau	Joe	Nadeau	RECOMB	
-2011	Karen Nelson	Karen	Nelson	RECOMB	
-2011	Jun Wang	Jun	Wang	RECOMB	https://doi.org/10.1007/978-3-642-20036-6
-2011	Elaine Mardis	Elaine	Mardis	RECOMB	
-2012	Richard Durbin	Richard	Durbin	RECOMB	
-2012	Eileen Furlong	Eileen	Furlong	RECOMB	
-2012	Thomas Gingeras	Thomas	Gingeras	RECOMB	
-2012	Alfonso Valencia	Alfonso	Valencia	RECOMB	
-2012	Ada Yonath	Ada	Yonath	RECOMB	
-2013	Deborah Nickerson	Deborah	Nickerson	RECOMB	
-2013	Chung-I Wu	Chung-I	Wu	RECOMB	
-2013	Takashi Gojobori	Takashi	Gojobori	RECOMB	
-2013	Scott Fraser	Scott	Fraser	RECOMB	
-2013	Nadia Rosenthal	Nadia	Rosenthal	RECOMB	
-2013	Xiaoliang Sunney Xie	Xiaoliang	Xie	RECOMB	
-2014	Ian Baldwin	Ian	Baldwin	RECOMB	
-2014	Atul Butte	Atul	Butte	RECOMB	
-2014	James Collins	James	Collins	RECOMB	
-2014	Trey Ideker	Trey	Ideker	RECOMB	
-2014	Tom Mitchell	Tom	Mitchell	RECOMB	
-2014	Sarah Tishkoff	Sarah	Tishkoff	RECOMB	
-2015	M. Madan Babu	Madan	Babu	RECOMB	
-2015	Bonnie Berger	Bonnie	Berger	RECOMB	
-2015	Magda Konarska	Magda	Konarska	RECOMB	
-2015	Michael Levitt	Michael	Levitt	RECOMB	
-2015	Bas van Steensel	Bas	van Steensel	RECOMB	
-2015	Waclaw Szybalski	Waclaw	Szybalski	RECOMB	
-2016	Peter Kim	Peter	Kim	RECOMB	
-2016	Rob Knight	Rob	Knight	RECOMB	
-2016	Leonid Kruglyak	Leonid	Kruglyak	RECOMB	
-2016	Phil Bradley	Phil	Bradley	RECOMB	
-2016	Teresa Przytycka	Teresa	Prztycka	RECOMB	
-2016	Karen Adelman	Karen	Adelman	RECOMB	
-2017	Colin Collins	Colin	Collins	RECOMB	
-2017	Joe Gray	Joe	Gray	RECOMB	
-2017	Laxmi Parida	Laxmi	Parida	RECOMB	
-2017	Ben Raphael	Ben	Raphael	RECOMB	
-2017	Michael Schnall-Levin	Michael	Schnall-Levin	RECOMB	
-2017	Jun Wang	Jun	Wang	RECOMB	
-2018	Peter Campbell	Peter	Campbell	RECOMB	
-2018	Nevan Krogan	Nevan	Krogan	RECOMB	
-2018	Ron Shamir	Ron	Shamir	RECOMB	
-2018	Francois Spitz	Francois	Spitz	RECOMB	
-2018	Sarah Teichmann	Sarah	Teichmann	RECOMB	
-2018	Tandy Warnow	Tandy	Warnow	RECOMB	
-2019	Carlos Bustamante	Carlos	Bustamante	RECOMB	
-2019	Rachel Kolodny	Rachel	Kolodny	RECOMB	
-2019	Mihai Pop	Mihai	Pop	RECOMB	
-2019	Franziska Michor	Franziska	Michor	RECOMB	
-2019	Eytan Ruppin	Eytan	Ruppin	RECOMB	
-2019	Alfonso Valencia	Alfonso	Valencia	RECOMB	
+year	full_name	fore_name	last_name	conference	source	affiliations	afflcountries
+2009	Michael Waterman	Michael	Waterman	ISCB Fellow		University of Southern California	United States
+2009	Temple Smith	Temple	Smith	ISCB Fellow		Boston University	United States
+2009	Janet Thornton	Janet	Thornton	ISCB Fellow		EMBL-EBI	United Kingdom
+2009	David Sankoff	David	Sankoff	ISCB Fellow		University of Ottawa	Canada
+2009	David Lipman	David	Lipman	ISCB Fellow		Impossible Foods	United States
+2009	David Haussler	David	Haussler	ISCB Fellow		University of California Santa Cruz	United States
+2010	Alfonso Valencia	Alfonso	Valencia	ISCB Fellow		Barcelona Supercomputing Center & Spanish National Bioinformatics Institute	Spain
+2010	Gary Stormo	Gary	Stormo	ISCB Fellow		Washington University	United States
+2010	Chris Sander	Chris	Sander	ISCB Fellow		Memorial Sloan-Kettering Cancer Center	United States
+2010	Lawrence Hunter	Lawrence	Hunter	ISCB Fellow		University of Colorado	United States
+2010	Russ Altman	Russ	Altman	ISCB Fellow		Stanford University	United States
+2011	Richard Durbin	Richard	Durbin	ISCB Fellow		Wellcome Trust Sanger Institute	United Kingdom
+2011	Philip Bourne	Philip	Bourne	ISCB Fellow		University of Virginia	United States
+2011	Soren Brunak	Soren	Brunak	ISCB Fellow		Novo Nordisk Foundation	Denmark
+2011	Julio Collado-Vides	Julio	Collado-Vides	ISCB Fellow		UNAM	Mexico
+2011	Michael Ashburner	Michael	Ashburner	ISCB Fellow		University of Cambridge	United Kingdom
+2012	Martin Vingron	Martin	Vingron	ISCB Fellow		Max Planck Institute for Molecular Genetics	Germany
+2012	Gunnar von Heijne	Gunnar	Heijne	ISCB Fellow		Stockholm University	Sweden
+2012	Ron Shamir	Ron	Shamir	ISCB Fellow		Tel Aviv University	Israel
+2012	Pavel Pevzner	Pavel	Pevzner	ISCB Fellow		University of California San Diego	United States
+2012	Jill Mesirov	Jill	Mesirov	ISCB Fellow		The Broad Institute	United States
+2012	Peter Karp	Peter	Karp	ISCB Fellow		SRI International	United States
+2012	Bonnie Berger	Bonnie	Berger	ISCB Fellow		Massachusetts Institute of Technology	United States
+2013	Steven Salzberg	Steven	Salzberg	ISCB Fellow		Johns Hopkins University	United States
+2013	Eugene W Myers	Eugene	Myers	ISCB Fellow		MPI-CBG	Germany
+2013	Ruth Nussinov	Ruth	Nussinov	ISCB Fellow		Tel Aviv University|National Cancer Institute	Israel|United States
+2013	Webb Miller	Webb	Miller	ISCB Fellow		Penn State University	United States
+2013	Satoru Miyano	Satoru	Miyano	ISCB Fellow		University of Tokyo	Japan
+2013	Minoru Kanehisa	Minoru	Kanehisa	ISCB Fellow		Kyoto University	Japan
+2013	David Eisenberg	David	Eisenberg	ISCB Fellow		University of California Los Angeles	United States
+2013	Pierre Baldi	Pierre	Baldi	ISCB Fellow		University of California Irvine	United States
+2014	Andrej Sali	Andrej	Sali	ISCB Fellow		University of California San Francisco	United States
+2014	Nir Friedman	Nir	Friedman	ISCB Fellow		Hebrew University Jerusalem	Israel
+2014	Robert Gentleman	Robert	Gentleman	ISCB Fellow		23andMe	United States
+2014	Ewan Birney	Ewan	Birney	ISCB Fellow		EMBL-EBI	United Kingdom
+2014	Amos Bairoch	Amos	Bairoch	ISCB Fellow		University of Geneva	Switzerland
+2015	Burkhard Rost	Burkhard	Rost	ISCB Fellow		Technical University Munich	Germany
+2015	Michael Levitt	Michael	Levitt	ISCB Fellow		Stanford University	United States
+2015	Desmond Higgins	Desmond	Higgins	ISCB Fellow		University College, Dublin	Ireland
+2015	Thomas Lengauer	Thomas	Lengauer	ISCB Fellow		Max-Planck Institute for Informatics	Germany
+2015	Mark Gerstein	Mark	Gerstein	ISCB Fellow		Yale University	United States
+2015	Cyrus Chothia	Cyrus	Chothia	ISCB Fellow		Wolfson College Cambridge University	United Kingdom
+2015	Rolf Apweiler	Rolf	Apweiler	ISCB Fellow		EMBL-EBI	United Kingdom
+2016	Shoshana Wodak	Shoshana	Wodak	ISCB Fellow		Sick Kids	Canada
+2016	Haim Wolfson	Haim	Wolfson	ISCB Fellow		Tel Aviv University	Israel
+2016	Lincoln Stein	Lincoln	Stein	ISCB Fellow		Ontario Institute for Cancer Research	Canada
+2016	Sarah Teichmann	Sarah	Teichmann	ISCB Fellow		EMBL-EBI	United Kingdom
+2016	Anna Tramontano	Anna	Tramontano	ISCB Fellow		University of Rome	Italy
+2016	Aviv Regev	Aviv	Regev	ISCB Fellow		Broad Institute	United States
+2016	Christine Orengo	Christine	Orengo	ISCB Fellow		University College London	United Kingdom
+2016	Michal Linial	Michal	Linial	ISCB Fellow		Hebrew University Jerusalem	Israel
+2016	Barry Honig	Barry	Honig	ISCB Fellow		Columbia University	United States
+2016	Janet Kelso	Janet	Kelso	ISCB Fellow		MPI for Evolutionary Anthropology	Germany
+2016	Dan Gusfield	Dan	Gusfield	ISCB Fellow		University of California Davis	United States
+2016	Helen Berman	Helen	Berman	ISCB Fellow		Rutgers University	United States
+2016	Steven Brenner	Steven	Brenner	ISCB Fellow		University of California Berkeley	United States
+2017	Tandy Warnow	Tandy	Warnow	ISCB Fellow		University of Illinois Urbana-Champaign	United States
+2017	Olga Troyanskaya	Olga	Troyanskaya	ISCB Fellow		Princeton University|Simons Foundation	United States
+2017	William Noble	William	Noble	ISCB Fellow		University of Washington	United States
+2017	Lior Pachter	Lior	Pachter	ISCB Fellow		Caltech	United States
+2017	Anders Krogh	Anders	Krogh	ISCB Fellow		University of Copenhagen	Denmark
+2017	Andrea Califano	Andrea	Califano	ISCB Fellow		Columbia-Presbyterian Medical Center	United States
+2017	Alex Bateman	Alex	Bateman	ISCB Fellow		EMBL-EBI	United Kingdom
+2018	Mike Steel	Mike	Steel	ISCB Fellow		Canterbury University	New Zealand
+2018	Mona Singh	Mona	Singh	ISCB Fellow		Princeton University	United States
+2018	Bernard Moret	Bernard	Moret	ISCB Fellow		Polytechnique Federale de Laussane	Switzerland
+2018	William Pearson	William	Pearson	ISCB Fellow		University of Virginia	United States
+2018	Hanah Margalit	Hanah	Margalit	ISCB Fellow		Hebrew University	Israel
+2018	Yves Moreau	Yves	Moreau	ISCB Fellow		Katholieke Universiteit Leuven	Belgium
+2018	Terry Gaasterland	Terry	Gaasterland	ISCB Fellow		University of California San Diego	United States
+2018	Patricia Babbit	Patricia	Babbit	ISCB Fellow		University of California San Francisco	United States
+2019	Vineet Bafna	Vineet	Bafna	ISCB Fellow		Unicersity of California San Diego	United States
+2019	Eleazar Eskin	Eleazar	Eskin	ISCB Fellow		University of California Los Angeles	United States
+2019	Shirley Liu	Shirley	Liu	ISCB Fellow		Harvard University	United States
+2019	Marie-France Sagot	Marie-France	Sagot	ISCB Fellow		Universite Claude Bernard	France
+2002	Stephen Altschul	Stephen	Altschul	ISMB		NCBI	United States
+2002	Michael Ashburner	Michael	Ashburner	ISMB		EMBL-EBI	United Kingdom
+2002	Ford Doolittle	Ford	Doolittle	ISMB		Dalhousie University	Canada
+2002	Terry Gaasterland	Terry	Gaasterland	ISMB		Rockefeller University	United States
+2002	Barry Honig	Barry	Honig	ISMB		Columbia University	United States
+2002	David Baker	David	Baker	ISMB		University of Washington	United States
+2002	John Reinitz	John	Reinitz	ISMB		SUNY Stony Brook	United States
+2002	Isidore Rigoutsos	Isidore	Rigoutsos	ISMB		IBM	United States
+2003	Sydney Brenner	Sydney	Brenner	ISMB		Salk Institute	United States
+2003	David Haussler	David	Haussler	ISMB		University of California Santa Cruz	United States
+2003	Yoshihide Hayashizaki	Yoshihide	Hayashizaki	ISMB		RIKEN Genomic Sciences Center	Japan
+2003	W. James Kent	James	Kent	ISMB		University of California Santa Cruz	United States
+2003	John Mattick	John	Mattick	ISMB		University of Queensland	Australia
+2003	David Sankoff	David	Sankoff	ISMB		University of Ottawa	Canada
+2003	Ron Shamir	Ron	Shamir	ISMB		Tel Aviv University	Israel
+2003	Michael Waterman	Michael	Waterman	ISMB		University of Southern California	United States
+2004	Uri Alon	Uri	Alon	ISMB		Weizmann Institute of Science	Israel
+2004	Eric Green	Eric	Green	ISMB		NHGRI	United States
+2004	Leroy Hood	Leroy	Hood	ISMB		Institute for Systems Biology	United States
+2004	David Lipman	David	Lipman	ISMB		NCBI	United States
+2004	Matthias Mann	Matthias	Mann	ISMB		University of Southern Denmark	Denmark
+2004	Denis Noble	Denis	Noble	ISMB		University of Oxford	United Kingdom
+2004	Svante Paabo	Svante	Paabo	ISMB		MPI Evolutionary Anthropology	Germany
+2004	Anna Tramontano	Anna	Tramontano	ISMB		University of Rome	Italy
+2005	Ewan Birney	Ewan	Birney	ISMB		EMBL-EBI	United Kingdom
+2005	Janet Thornton	Janet	Thornton	ISMB		EMBL-EBI	United Kingdom
+2005	Howard Cash	Howard	Cash	ISMB		Gene Codes	United States
+2005	Peter J Hunter	Peter	Hunter	ISMB		University of Auckland	New Zealand
+2005	Jill Mesirov	Jill	Mesirov	ISMB		Broad Institute	United States
+2005	Satoru Miyano	Satoru	Miyano	ISMB		University of Tokyo	Japan
+2005	Pavel Pevzner	Pavel	Pevzner	ISMB		UCSD	United States
+2005	Gunnar von Heijne	Gunnar	Heijne	ISMB		Stockholm Bioinformatics Center	Sweden
+2006	Robert Huber	Robert	Huber	ISMB		MPI Biochemistry	Germany
+2006	Tom Blundell	Tom	Blundell	ISMB		University of Cambridge	United Kingdom
+2006	Kurt Wuthrich	Kurt	Wuthrich	ISMB		Institute of Molecular Biology and Biophysics ETH Hönggerberg CH-Zürich	Switzerland
+2006	Mathieu Blanchette	Mathieu	Blanchette	ISMB		McGill Center for Bioinformatics	Canada
+2006	Elana Conti	Elana	Conti	ISMB		EMBL-Heidelberg	Germany
+2006	Charles DeLisi	Charles	DeLisi	ISMB		Boston University	United States
+2006	Richard Roberts	Richard	Roberts	ISMB		New England Biolabs	United States
+2006	Michael Waterman	Michael	Waterman	ISMB		University of Southern California	United States
+2007	Eran Segal	Eran	Segal	ISMB		Weizmann Institute of Science	Israel
+2007	Temple Smith	Temple	Smith	ISMB		Boston University	United States
+2007	Soren Brunak	Soren	Brunak	ISMB		Technical University Denmark	Denmark
+2007	Stephen Burley	Stephen	Burley	ISMB		SGX Pharmaceuticals	United States
+2007	Michael Eisen	Michael	Eisen	ISMB		UC Berkeley	United States
+2007	Anne-Claude Gavin	Anne-Claude	Gavin	ISMB		EMBL-Heidelberg	Germany
+2007	John Mattick	John	Mattick	ISMB		University of Queensland	Australia
+2007	Erin O'Shea	Erin	O'Shea	ISMB		Harvard University	United States
+2007	Renee Schroeder	Renee	Schroeder	ISMB		University of Vienna	Austria
+2007	Terry Speed	Terry	Speed	ISMB		UC Berkeley	United States
+2008	Aviv Regev	Aviv	Regev	ISMB		Broad Institute	United States
+2008	David Haussler	David	Haussler	ISMB		University of California Santa Cruz	United States
+2008	Claire M. Fraser-Liggett	Claire	Fraser-Liggett	ISMB		University of Maryland	United States
+2008	David Jaffe	David	Jaffe	ISMB		Broad Institute	United States
+2008	Eugene W Myers	Eugene	Myers	ISMB		HHMI Janelia Farm	United States
+2008	Morag Park	Morag	Park	ISMB		McGill University	Canada
+2008	Bernhard O. Palsson	Bernhard	Palsson	ISMB		UCSD	United States
+2008	Hanah Margalit	Hanah	Margalit	ISMB		Hebrew University Jerusalem	Israel
+2009	Trey Ideker	Trey	Ideker	ISMB		UCSD	United States
+2009	Webb Miller	Webb	Miller	ISMB		Penn State University	United States
+2009	Pierre-Henri Gouyon	Pierre-Henri	Gouyon	ISMB		MNHN/CNRS Origine, Structure et Evolution de la Biodiversité	France
+2009	Daphne Koller	Daphne	Koller	ISMB		Stanford University	United States
+2009	Thomas Lengauer	Thomas	Lengauer	ISMB		MPI-Informatics	Germany
+2009	Eugenia Maria del Pino Veintimilla	Eugenia	Veintimilla	ISMB		Pontifical Catholic University of Ecuador	Ecuador
+2009	Thomaso Poggio	Thomaso	Poggio	ISMB		MIT	United States
+2009	Mathias Uhlen	Mathias	Uhlen	ISMB		Royal Institute of Technology	Sweden
+2010	Steven Brenner	Steven	Brenner	ISMB	https://www.iscb.org/archive/conferences/iscb/ismb2010-program/ismb2010-keynotes.html	UC Berkeley	United States
+2010	Susan Lindquist	Susan	Lindquist	ISMB		Whitehead Institute	United States
+2010	Svante Paabo	Svante	Paabo	ISMB		MPI-Evolutionary Anthropology	Germany
+2010	Chris Sander	Chris	Sander	ISMB		MSKCC	United States
+2010	David Altshuler	David	Altshuler	ISMB	https://www.broadinstitute.org/blog/ismb-meeting-david-altshuler	Harvard University	United States
+2010	George Church	George	Church	ISMB		Harvard University	United States
+2010	Robert Weinberg	Robert	Weinberg	ISMB		Whitehead Institute	United States
+2011	Bonnie Berger	Bonnie	Berger	ISMB		MIT	United States
+2011	Olga Troyanskaya	Olga	Troyanskaya	ISMB		Princeton University	United States
+2011	Janet Thornton	Janet	Thornton	ISMB		EMBL-EBI	United Kingdom
+2011	Alfonso Valencia	Alfonso	Valencia	ISMB		Spanish National Cancer Research Center	Spain
+2011	Luis Serrano	Luis	Serrano	ISMB		Centre for Genomic Regulation	Spain
+2011	Michael Ashburner	Michael	Ashburner	ISMB		University of Cambridge	United Kingdom
+2012	Richard Lathrop	Richard	Lathrop	ISMB		University of California Irvine	United States
+2012	Lawrence Hunter	Lawrence	Hunter	ISMB		University of Colorado	United States
+2012	Ziv Bar-Joseph	Ziv	Bar-Joseph	ISMB		Carnegie Mellon University	United States
+2012	Barbara Wold	Barbara	Wold	ISMB		Caltech	United States
+2012	Richard Durbin	Richard	Durbin	ISMB		Wellcome Trust Sanger Institute	United Kingdom
+2012	Andrej Sali	Andrej	Sali	ISMB		University of California San Francisco	United States
+2012	Gunnar von Heijne	Gunnar	Heijne	ISMB		Stockholm University	Sweden
+2013	Goncalo Abecasis	Goncalo	Abecasis	ISMB		University of Michigan	United States
+2013	Gil Ast	Gil	Ast	ISMB		Tel Aviv University	Israel
+2013	David Eisenberg	David	Eisenberg	ISMB		UCLA	United States
+2013	Carole Goble	Carole	Goble	ISMB		University of Manchester	United Kingdom
+2013	Lior Pachter	Lior	Pachter	ISMB		UC Berkeley	United States
+2013	Gary Stormo	Gary	Stormo	ISMB		Washington University	United States
+2014	Michal Linial	Michal	Linial	ISMB		Hebrew University Jerusalem	Israel
+2014	Eugene W Myers	Eugene	Myers	ISMB		MPI-Dresden	Germany
+2014	Isaac (Zak) Kohane	Isaac	Kohane	ISMB	https://www.iscb.org/ismb2014-program/ismb2014-keynotes/isaac-kohane	Harvard University	United States
+2014	Dana Pe'er	Dana	Pe'er	ISMB		Columbia University	United States
+2014	Robert Langer	Robert	Langer	ISMB		MIT	United States
+2014	Russ Altman	Russ	Altman	ISMB		Stanford University	United States
+2015	Michael Levitt	Michael	Levitt	ISMB		Stanford University	United States
+2015	Curtis Huttenhower	Curtis	Huttenhower	ISMB		Harvard University	United States
+2015	Eileen Furlong	Eileen	Furlong	ISMB		EMBL-Heidelberg	Germany
+2015	Kenneth Wolfe	Kenneth	Wolfe	ISMB		University College Dublin	Ireland
+2015	Cyrus Chothia	Cyrus	Chothia	ISMB		MRC Laboratory for Molecular Biology	United Kingdom
+2015	Amos Bairoch	Amos	Bairoch	ISMB		Swiss Institute of Bioinformatics	Switzerland
+2016	Ruth Nussinov	Ruth	Nussinov	ISMB		National Cancer Institute|Tel Aviv University	United States|Israel
+2016	Debora Marks	Debora	Marks	ISMB		Harvard University	United States
+2016	Sandrine Dudoit	Sandrine	Dudoit	ISMB		University of California Berkeley	United States
+2016	Sarah Teichmann	Sarah	Teichmann	ISMB		EMBL-EBI	United Kingdom
+2016	Serafim Batzoglou	Serafim	Batzoglou	ISMB		Stanford University	United States
+2016	Soren Brunak	Soren	Brunak	ISMB		Novo Nordisk Foundation	Denmark
+2017	Aviv Regev	Aviv	Regev	ISMB		Broad Institute	United States
+2017	James Sharpe	James	Sharpe	ISMB		EMBL-CRG	Spain
+2017	Christoph Bock	Christoph	Bock	ISMB		Austrian Academy of Sciences	Austria
+2017	Zhiping Weng	Zhiping	Weng	ISMB		UMass Med School	United States
+2017	Pavel Pevzner	Pavel	Pevzner	ISMB		UCSD	United States
+2018	Steven Salzberg	Steven	Salzberg	ISMB		Johns Hopkins University	United States
+2018	Cole Trapnell	Cole	Trapnell	ISMB		University of Washington	United States
+2018	Martha L. Bulyk	Martha	Bulyk	ISMB		Harvard University	United States
+2018	M. Madan Babu	Madan	Babu	ISMB		MRC Laboratory for Molecular Biology	United Kingdom
+2018	Ruth Nussinov	Ruth	Nussinov	ISMB		National Cancer Institute|Tel Aviv University	United States|Israel
+2019	Nikolaus Rajewsky	Nikolaus	Rajewsky	ISMB		Max-Delbrück-Centrum for Molecular Medicine in the Helmholtz Association	Germany
+2019	William Noble	William	Noble	ISMB		University of Washington	United States
+2019	Alexis Battle	Alexis	Battle	ISMB		Johns Hopkins University	United States
+2019	Christophe Dessimoz	Christophe	Dessimoz	ISMB		Swiss Institute of Bioinformatics	Switzerland
+2019	Bonnie Berger	Bonnie	Berger	ISMB		MIT	United States
+1996	Minoru Kanehisa	Minoru	Kanehisa	PSB	https://psb.stanford.edu/previous/psb96/sessions.html#keynote	Kyoto University	Japan
+1996	David Weininger	David	Weininger	PSB	https://psb.stanford.edu/previous/psb96/sessions.html#keynote	DAYLIGHT Chemical Information Systems	United States
+1998	Gregory Petsko	Gregory	Petsko	PSB	https://psb.stanford.edu/previous/psb98/	Brandeis University	United States
+1999	Steven Brenner	Steven	Brenner	PSB		University of Florida	United States
+2000	Wah Chiu	Wah	Chiu	PSB		Baylor College of Medicine	United States
+2001	David Haussler	David	Haussler	PSB		University of California, Santa Cruz	United States
+2002	David Botstein	David	Botstein	PSB		Stanford University	United States
+2002	Rebecca Eisenberg	Rebecca	Eisenberg	PSB		University of Michigan Law School	United States
+2003	Marvin Cassman	Marvin	Cassman	PSB		University of California	United States
+2003	Latanya Sweeney	Latanya	Sweeney	PSB		Carnegie Mellon University	United States
+2004	Henry Greely	Henry	Greely	PSB		Stanford University	United States
+2004	Deborah Nickerson	Deborah	Nickerson	PSB		University of Washington	United States
+2005	David Eisenberg	David	Eisenberg	PSB		University of California, Los Angeles	United States
+2005	Arti Rai	Arti	Rai	PSB		Duke University Law School	United States
+2006	Michael Ashburner	Michael	Ashburner	PSB		University of Cambridge & EMBL - EBI	United Kingdom
+2006	Eric Meslin	Eric	Meslin	PSB		Indiana University School of Medicine	United States
+2007	Elizabeth Blackburn	Elizabeth	Blackburn	PSB		University of California, San Francisco	United States
+2007	Marc Rotenberg	Marc	Rotenberg	PSB		Electronic Privacy Information Center	United States
+2008	John Dupre	John	Dupre	PSB		University of Exeter	United Kingdom
+2008	Andrew McCulloch	Andrew	McCulloch	PSB		University of California, San Diego	United States
+2009	Greg Hampikian	Greg	Hampikian	PSB		Boise State University	United States
+2009	Drew Endy	Drew	Endy	PSB		Stanford University	United States
+2010	Stanley Nelson	Stanley	Nelson	PSB		UCLA	United States
+2010	Isaac Kohane	Isaac	Kohane	PSB		Harvard Medical School	United States
+2011	Vijay Pande	Vijay	Pande	PSB		Stanford University	United States
+2011	Ellen Wright Clayton	Ellen	Clayton	PSB		Vanderbilt University	United States
+2012	Elaine Mardis	Elaine	Mardis	PSB		Washington University School of Medicine	United States
+2012	James Heywood	James	Heywood	PSB		PatientsLikeMe	United States
+2013	David Ewing Duncan	David	Duncan	PSB		Author and Journalist	United States
+2013	Dan Roden	Dan	Roden	PSB		Vanderbilt University	United States
+2014	Atul Butte	Atul	Butte	PSB		Stanford University	United States
+2014	Douglas Fridsma	Douglas	Fridsma	PSB		Office of the National Coordinator for HIT	United States
+2015	David Haussler	David	Haussler	PSB		University of California, Santa Cruz and California Institute for Quantitative Biosciences	United States
+2015	Lucila Ohno-Machado	Lucila	Ohno-Machado	PSB		University of California, San Diego	United States
+2016	Winter Mason	Winter	Mason	PSB		Facebook	United States
+2016	Nancy Cox	Nancy	Cox	PSB		Vanderbilt University	United States
+2017	David Magnus	David	Magnus	PSB		Stanford University	United States
+2017	Neil Risch	Neil	Risch	PSB		University of California, San Francisco and Kaiser Permanente Division of Research	United States
+2018	Carlos Bustamante	Carlos	Bustamante	PSB		Stanford University	United States
+2018	Jennifer Wagner	Jennifer	Wagner	PSB		Geisinger Health System	United States
+2019	Russ Altman	Russ	Altman	PSB		Stanford University	United States
+2019	Lawrence Hunter	Lawrence	Hunter	PSB		University of Colorado	United States
+2020	Carole Goble	Carole	Goble	PSB		University of Manchester	United Kingdom
+2020	Ifeoma Ajunwa	Ifeoma	Ajunwa	PSB		Cornell University	United States
+1997	David Botstein	David	Botstein	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Sam Karlin	Sam	Karlin	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Martin Karplus	Martin	Karplus	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Eric Lander	Eric	Lander	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Robert Lipshutz	Robert	Lipshutz	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Jonathan King	Jonathan	King	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Richard Roberts	Richard	Roberts	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Temple Smith	Temple	Smith	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1997	Terry Speed	Terry	Speed	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	Ruben Abagyan	Ruben	Abagyan	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	Charles Cantor	Charles	Cantor	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	David Cox	David	Cox	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	Ron Davis	Ron	Davis	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	Klaus Gubernator	Klaus	Gubernator	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	Joshua Lederberg	Joshua	Lederberg	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	Michael Levitt	Michael	Levitt	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	David Schwartz	David	Schwartz	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1998	John Yates	John	Yates	RECOMB	https://doi.org/10.1007/978-3-319-31957-5		
+1999	Peer Bork	Peer	Bork	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	EMBL Heidelberg	Germany
+1999	Cyrus Chothia	Cyrus	Chothia	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	University of Cambridge	United Kingdom
+1999	Eugene W Myers	Eugene	Myers	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	Celera Genomics	United States
+1999	John Moult	John	Moult	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	University of Maryland	United States
+1999	Pitor Slonimsky	Pitor	Slonimsky	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	CNRS	France
+1999	Ed Southern	Ed	Southern	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	University of Oxford	United Kingdom
+1999	Peter Willett	Peter	Willett	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	University of Sheffield	United Kingdom
+1999	John Wooley	John	Wooley	RECOMB	https://doi.org/10.1007/978-3-319-31957-5	Department of Energy	United States
+2000	Eric Davidson	Eric	Davidson	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	Caltech	United States
+2000	Walter Gilbert	Walter	Gilbert	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	Harvard University	United States
+2000	Takashi Gojobori	Takashi	Gojobori	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	National Institute of Genetics	Japan
+2000	Leroy Hood	Leroy	Hood	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	University of Washington	United States
+2000	Minoru Kanehisa	Minoru	Kanehisa	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	Kyoto University	Japan
+2000	Hans Lehrach	Hans	Lehrach	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	Max Planck Institute	Germany
+2000	Yvonne Martin	Yvonne	Martin	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	Abbots Laboratories	United States
+2000	Yusuke Nakamura	Yusuke	Nakamura	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	University of Tokyo	Japan
+2000	Svante Paabo	Svante	Paabo	RECOMB	http://recomb2000.hgc.jp/invitedspeaker.htm	Max Planck Institute for Evolutionary Anthropology	Germany
+2001	George Church	George	Church	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Harvard Medical School	United States
+2001	Phillip Sharp	Phillip	Sharp	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	MIT	United States
+2001	Mark Adams	Mark	Adams	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Celera	United States
+2001	Roger Brent	Roger	Brent	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Molecular Sciences Institute	United States
+2001	Franz Lang	Franz	Lang	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Universite de Montreal	Canada
+2001	Klaus Lindpaintner	Klaus	Lindpaintner	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Roche Genetics	Switzerland
+2001	Yvonne Martin	Yvonne	Martin	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Abbots Laboratories	United States
+2001	Mark Ptashne	Mark	Ptashne	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/speakers.html	Memorial Sloan Kettering Cancer Center	United States
+2001	Matthias Wilm	Matthias	Wilm	RECOMB	https://bioinf.mpi-inf.mpg.de/conferences/recomb2001/WWW/schedule.html	European Molecular Biology Laboratory	Germany
+2002	Ruben Abagyan	Ruben	Abagyan	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	The Scripps Research Institute	United States
+2002	Ali H. Brivanlou	Ali	Brivanlou	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	Rockefeller University	United States
+2002	Evan Eichler	Evan	Eichler	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	Case Western Reserve University	United States
+2002	"Harold ""Skip"" Garner"	Harold	Garner	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	University of Texas Southwestern Medical Center at Dallas	United States
+2002	David Ho	David	Ho	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	Rockefeller University	United States
+2002	Gerry Rubin	Gerry	Rubin	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	Howard Hughes Medical Institute	United States
+2002	J. Craig Venter	Craig 	Venter	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	Celera	United States
+2002	Marc Vidal	Marc 	Vidal	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/565196	Dana-Farber Cancer Institute	United States
+2003	Edward Trifonov	Edward	Trifonov	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	University of Haifa	Israel
+2003	Christiane Nüsslein-Volhard	Christiane	Nüsslein-Volhard	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	Max-Planck-Institut für Entwicklungsbiologie	Germany
+2003	Árpád Furka	Árpád	Furka	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	Eötvös Loránd University	Hungary
+2003	Andrew Clark	Andrew	Clark	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	Cornell University	United States
+2003	David Haussler	David 	Haussler	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	University of California, Santa Cruz	United States
+2003	Arthur Lesk	Arthur 	Lesk	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	University of Cambridge	United Kingdom
+2003	Dieter Oesterhelt	Dieter	Oesterhelt	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	Max Planck Institute for Biochemistry	Germany
+2003	Terry Speed	Terry	Speed	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	University of California at Berkeley	United States
+2003	Kari Stefansson	Kari	Stefansson	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/640075	deCode Genetics	Iceland
+2004	Carlos Bustamante	Carlos 	Bustamante	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/974614	UC Berkeley	United States
+2004	Russell Doolittle	Russell 	Doolittle	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/974614	UC San Diego	United States
+2004	Christine Orengo	Christine	Orengo	RECOMB	https://dl.acm.org/doi/proceedings/10.1145/974614	University College, London	United Kingdom
+2004	Deborah Nickerson	Deborah	Nickerson	RECOMB		University of Washington	United States
+2004	Richard Karp	Richard	Karplus	RECOMB		UC Berkeley	United States
+2004	Elizabeth Winzeler	Elizabeth	Winzeler	RECOMB		Scripps Research Institute	United States
+2004	William McGinnis	William	McGinnis	RECOMB		UC San Diego	United States
+2004	Martin Nowak	Martin	Nowak	RECOMB		Harvard University	United States
+2004	Andrew Fire	Andrew	Fire	RECOMB		Stanford University	United States
+2005	David Altshuler	David	Altshuler	RECOMB	https://doi.org/10.1007/b135594	Broad Institute of MIT and Harvard, Massachusetts General Hospital	United States
+2005	Wolfgang Baumeister	Wolfgang 	Baumeister	RECOMB	https://doi.org/10.1007/b135594	Max Planck Institute for Biochemistry	Germany
+2005	James Collins	James	Collins	RECOMB	https://doi.org/10.1007/b135594	Boston University	United States
+2005	Charles DeLisi	Charles 	DeLisi	RECOMB	https://doi.org/10.1007/b135594	Boston University	United States
+2005	Jonathan King	Jonathan	King	RECOMB	https://doi.org/10.1007/b135594	MIT	United States
+2005	Eric Lander	Eric	Lander	RECOMB	https://doi.org/10.1007/b135594	Broad Institute of Harvard and MIT	United States
+2005	Michael Levine	Michael	Levine	RECOMB	https://doi.org/10.1007/b135594	University of California, Berkeley	United States
+2005	Susan Lindquist	Susan	Lindquist	RECOMB	https://doi.org/10.1007/b135594	Whitehead Institute	United States
+2006	Anne-Claude Gavin	Anne-Claude	Gavin	RECOMB	https://doi.org/10.1007/11732990	EMBL	Germany
+2006	David Haussler	David	Haussler	RECOMB	https://doi.org/10.1007/11732990	University of California, Santa Cruz	United States
+2006	Ajay K. Royyuru	Ajay	Royyuru	RECOMB	https://doi.org/10.1007/11732990	IBM T.J. Watson Research Center	United States
+2006	David Sankoff	David	Sankoff	RECOMB	https://doi.org/10.1007/11732990	University of Ottawa	Canada
+2006	Michael Waterman	Michael	Waterman	RECOMB	https://doi.org/10.1007/11732990	University of Southern California	United States
+2006	Carl Zimmer	Carl	Zimmer	RECOMB	https://doi.org/10.1007/11732990	Science Writer	United States
+2006	Roman A. Zubarev	Roman	Zubarev	RECOMB	https://doi.org/10.1007/11732990	Uppsala University	Sweden
+2007	Elizabeth Blackburn	Elizabeth	Blackburn	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	University of California, San Francisco	United States
+2007	Patrick Brown	Patrick	Brown	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	Stanford University	United States
+2007	Abby Dernburg	Abby	Dernburg	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	University of California, Berkeley	United States
+2007	Jennifer Marshall Graves	Jennifer	Graves	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	Australian National University	Australia
+2007	Yishi Jin	Yishi	Jin	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	University of California, San Diego	United States
+2007	Jay Keasling	Jay	Keasling	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	University of California, Berkeley	United States
+2007	Harry Noller	Harry	Noller	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	University of California, Santa Cruz	United States
+2007	Aviv Regev	Aviv	Regev	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-71681-5.pdf	Broad Institute of Harvard and MIT	United States
+2008	Edison Liu	Edison	Liu	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	Genome Institute of Singapore	Singapore
+2008	Sang Yup Lee	Sang	Lee	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	Korea Advanced Institute of Science and Technology	Korea
+2008	Andrei Lupas	Andrei	Lupas	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	Max Planck Institute for Developmental Biology	Germany
+2008	Howard Cedar	Howard	Cedar	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	Hebrew University	Israel
+2008	Vivian Cheung	Vivian	Cheung	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	University of Pennsylvania	United States
+2008	Temple Smith	Temple	Smith	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	Boston University	United States
+2008	Suzanne Cory	Suzanne	Cory	RECOMB	https://link.springer.com/content/pdf/10.1007%2F978-3-540-78839-3.pdf	Walter and Eliza Hall Institute of Medical Research	Australia
+2009	Carlos Bustamante	Carlos	Bustamante	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Cornell University	United States
+2009	Rade Drmanac	Rade	Drmanac	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Complete Genomics	United States
+2009	Mark Gerstein	Mark 	Gerstein	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Yale University	United States
+2009	Eran Halperin	Eran	Halperin	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Navigenics	United States
+2009	Michael Hammer	Michael	Hammer	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	University of Arizona	United States
+2009	Joanna Mountain	Joanna	Mountain	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	23andMe	United States
+2009	Stephen Quake	Stephen	Quake	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Stanford University	United States
+2009	Mostafa Ronaghi	Mostafa	Ronaghi	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Illumina	United States
+2009	Pardis Sabeti	Pardis	Sabeti	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Harvard University	United States
+2009	Michael Snyder	Michael	Snyder	RECOMB	http://doi.org/10.1007/978-3-642-02008-7	Yale University	United States
+2010	Cecilia Arraiano	Cecilia	Arraiano	RECOMB		ITQB NOVA	Portugal
+2010	David Bartel	David	Bartel	RECOMB		MIT, Whitehead Institute and Howard Hughes Medical Institute	United States
+2010	Isaac Kohane	Isaac	Kohane	RECOMB		Harvard Medical School	United States
+2010	Phil Kapranov	Phil	Kapranov	RECOMB		Helicos BioSciences Corporation	United States
+2010	Norbert Perrimon	Norbert	Perrimon	RECOMB		Harvard Medical School and Howard Hughes Medical Institute	United States
+2010	Mona Singh	Mona	Singh	RECOMB		Princeton University	United States
+2011	Evan Eichler	Evan	Eichler	RECOMB		University of Washington	United States
+2011	Daphne Koller	Daphne	Koller	RECOMB		Stanford University	United States
+2011	Marco Marra	Marco	Marra	RECOMB		BC Genome Sciences Centre	Canada
+2011	Joe Nadeau	Joe	Nadeau	RECOMB		Institute for Systems Biology	United States
+2011	Karen Nelson	Karen	Nelson	RECOMB		J. Craig Venter Institute	United States
+2011	Jun Wang	Jun	Wang	RECOMB	https://doi.org/10.1007/978-3-642-20036-6	Beijing Genomics Institute	China
+2011	Elaine Mardis	Elaine	Mardis	RECOMB		Washington University	United States
+2012	Richard Durbin	Richard	Durbin	RECOMB		The Wellcome Trust Sanger Institute	United Kingdom
+2012	Eileen Furlong	Eileen	Furlong	RECOMB		Genome Biology Unit, EMBL	Germany
+2012	Thomas Gingeras	Thomas	Gingeras	RECOMB		Cold Spring Harbor Laboratory	United States
+2012	Alfonso Valencia	Alfonso	Valencia	RECOMB		National Cancer Research Centre	Spain
+2012	Ada Yonath	Ada	Yonath	RECOMB		Department of Structural Biology, Weizmann Institute of Science	Israel
+2013	Deborah Nickerson	Deborah	Nickerson	RECOMB		University of Washington	United States
+2013	Chung-I Wu	Chung-I	Wu	RECOMB		Beijing Institute of Genomics, Chinese Academy of Sciences	China
+2013	Takashi Gojobori	Takashi	Gojobori	RECOMB		National Institute of Genetics	Japan
+2013	Scott Fraser	Scott	Fraser	RECOMB		University of Southern California	United States
+2013	Nadia Rosenthal	Nadia	Rosenthal	RECOMB		Monash University in Melbourne	Australia
+2013	Xiaoliang Sunney Xie	Xiaoliang	Xie	RECOMB		Harvard University	United States
+2014	Ian Baldwin	Ian	Baldwin	RECOMB		Max Planck Institute for Chemical Ecology	Germany
+2014	Atul Butte	Atul	Butte	RECOMB		Stanford University	United States
+2014	James Collins	James	Collins	RECOMB		Harvard University	United States
+2014	Trey Ideker	Trey	Ideker	RECOMB		University of California, San Diego	United States
+2014	Tom Mitchell	Tom	Mitchell	RECOMB		Carnegie Mellon University	United States
+2014	Sarah Tishkoff	Sarah	Tishkoff	RECOMB		University of Pennsylvania	United States
+2015	M. Madan Babu	Madan	Babu	RECOMB		MRC Laboratory of Molecular Biology	United Kingdom
+2015	Bonnie Berger	Bonnie	Berger	RECOMB		Broad Institute of Harvard and MIT	United States
+2015	Magda Konarska	Magda	Konarska	RECOMB		Rockefeller University and University of Warsaw	United States
+2015	Michael Levitt	Michael	Levitt	RECOMB		Stanford University	United States
+2015	Bas van Steensel	Bas	van Steensel	RECOMB		Netherlands Cancer Institute	Netherlands
+2015	Waclaw Szybalski	Waclaw	Szybalski	RECOMB		University of Wisconsin-Madison	United States
+2016	Peter Kim	Peter	Kim	RECOMB		Stanford University	United States
+2016	Rob Knight	Rob	Knight	RECOMB		University of California, San Diego	United States
+2016	Leonid Kruglyak	Leonid	Kruglyak	RECOMB		University of California, Los Angeles	United States
+2016	Phil Bradley	Phil	Bradley	RECOMB		Fred Hutchinson Cancer Research Center	United States
+2016	Teresa Przytycka	Teresa	Prztycka	RECOMB		National Center for Biotechnology Information at the National Institutes of Health	United States
+2016	Karen Adelman	Karen	Adelman	RECOMB		National Institute of Environmental Health Sciences at the National Institutes of Health	United States
+2017	Colin Collins	Colin	Collins	RECOMB		Vancouver Prostate Centre	Canada
+2017	Joe Gray	Joe	Gray	RECOMB		Oregon Health Sciences University	United States
+2017	Laxmi Parida	Laxmi	Parida	RECOMB		IBM T.J. Watson Research Center	United States
+2017	Ben Raphael	Ben	Raphael	RECOMB		Princeton University	United States
+2017	Michael Schnall-Levin	Michael	Schnall-Levin	RECOMB		10X Genomics	United States
+2017	Jun Wang	Jun	Wang	RECOMB		iCarbonX	China
+2018	Peter Campbell	Peter	Campbell	RECOMB		Sanger Institute	United Kingdom
+2018	Nevan Krogan	Nevan	Krogan	RECOMB		University of California, San Francisco	United States
+2018	Ron Shamir	Ron	Shamir	RECOMB		Tel Aviv University	Israel
+2018	Francois Spitz	Francois	Spitz	RECOMB		Institut Pasteur	France
+2018	Sarah Teichmann	Sarah	Teichmann	RECOMB		Sanger Institute	United Kingdom
+2018	Tandy Warnow	Tandy	Warnow	RECOMB		University of Illinois, Urbana Champaign	United States
+2019	Carlos Bustamante	Carlos	Bustamante	RECOMB		Stanford University	United States
+2019	Rachel Kolodny	Rachel	Kolodny	RECOMB		University of Haifa	Israel
+2019	Mihai Pop	Mihai	Pop	RECOMB		University of Maryland	United States
+2019	Franziska Michor	Franziska	Michor	RECOMB		Harvard University and Dana Farber Cancer Institute	United States
+2019	Eytan Ruppin	Eytan	Ruppin	RECOMB		US National Cancer Institute	United States
+2019	Alfonso Valencia	Alfonso	Valencia	RECOMB		Spanish National Bioinformatics Institute and Barcelona Supercomputing Center	Spain
