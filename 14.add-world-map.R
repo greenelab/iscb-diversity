@@ -5,9 +5,9 @@ library(rgeos)
 library(tidyverse)
 theme_set(theme_bw())
 library("sf")
-
 library("rnaturalearth")
 library("rnaturalearthdata")
+source('utils/r-utils.R')
 
 world <- ne_countries(scale='medium',returnclass = 'sf')
 class(world)
@@ -31,7 +31,7 @@ my_world <- world %>%
           legend.title = element_blank(),
           panel.border = element_rect(fill = NA)))
 
-ggsave('figs/2020-01-31_groupings.png', gworld)
+ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 3)
 
 world %>% 
   select(iso_a2, iso_a3, name, name_long, region_wb) %>% 
