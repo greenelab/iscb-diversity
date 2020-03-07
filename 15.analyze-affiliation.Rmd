@@ -221,7 +221,7 @@ fig_5b <- iscb_pubmed_oth %>%
 
 fig_5 <- cowplot::plot_grid(fig_5a, fig_5b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
 fig_5
-ggsave('figs/geo_affliation_breakdown.png', fig_5, width = 6.5, height = 5.5)
+ggsave('figs/geo_affiliation_breakdown.png', fig_5, width = 6.5, height = 5.5)
 
 ```
 
