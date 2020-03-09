@@ -21,3 +21,4 @@ See the following rendered notebooks:
 - [09.visualize-gender](09.visualize-gender.html)
 - [10.predict-race](10.predict-race.html)
 - [11.visualize-nationality](11.visualize-nationality.html)
+- [15.analyze-affiliation](15.analyze-affiliation.html)
