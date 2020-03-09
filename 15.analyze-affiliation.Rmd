@@ -54,9 +54,9 @@ pubmed_aff_df <- pubmed_aff_pmids %>%
   mutate_at(region_levels, sum) %>% 
   ungroup() %>% 
   distinct(pmid, .keep_all = T) %>% 
-  mutate(OtherCategories = `South Asia` + `Latin America & Caribbean` + `Middle East & North Africa` + `Sub-Saharan Africa`) %>%
+  mutate(`Other Categories` = `South Asia` + `Latin America & Caribbean` + `Middle East & North Africa` + `Sub-Saharan Africa`) %>%
   select(-c(countries, country_name, num_affls)) %>% 
-  pivot_longer(c(region_levels, OtherCategories),
+  pivot_longer(c(region_levels, `Other Categories`),
                names_to = 'region',
                values_to = 'probabilities')
 
@@ -78,8 +78,8 @@ iscb_aff_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate_at(vars(`North America`:`East Asia & Pacific`), sum) %>% 
   ungroup() %>% 
   distinct(year, conference, full_name, .keep_all = T) %>% 
-  mutate(OtherCategories = `Latin America & Caribbean` + `Middle East & North Africa`) %>%
-  pivot_longer(c(`North America`:`East Asia & Pacific`, OtherCategories),
+  mutate(`Other Categories` = `Latin America & Caribbean` + `Middle East & North Africa`) %>%
+  pivot_longer(c(`North America`:`East Asia & Pacific`, `Other Categories`),
                names_to = 'region',
                values_to = 'probabilities')
 
@@ -93,11 +93,6 @@ n_confs <- length(my_confs)
 
 region_levels_let <- toupper(letters[1:8])
 ```
-
-```{r}
-table(pubmed_aff_df$`North America`)
-```
-
 
 ## Missing data
 
@@ -138,7 +133,7 @@ iscb_pubmed_oth <- iscb_aff_df %>%
   ungroup()
 
 iscb_pubmed <- iscb_pubmed_oth %>%
-  filter(region != 'OtherCategories')
+  filter(region != 'Other Categories')
 ```
 
 ## Prepare data frames for analysis
@@ -177,21 +172,6 @@ for (conf in my_confs){
 
 ## Figures for paper
 
-```{r}
-iscb_pubmed %>%
-  filter(year < '2020-01-01') %>%
-  group_by(year, type, region) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-  ungroup() %>%
-  affiliation_breakdown('main', fct_rev(type)) +
-  guides(fill = guide_legend(nrow = 2)) +
-  theme(legend.position = 'bottom',
-        legend.key.height = unit(3, 'mm'),
-        legend.key.width = unit(3, 'mm'),
-        legend.text = element_text(size = 8),
-        legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
-```
-
 ### Figure 4: Compared to the name collection of Pubmed authors, Celtic English honorees are overrepresented while East Asian honorees are underrepresented.
 
 ```{r fig.height=7, fig.width=9}
@@ -208,7 +188,7 @@ fig_5a <- iscb_pubmed %>%
         legend.text = element_text(size = 8),
         legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
 
-big_cat <- c('North America', 'Europe & Central Asia', 'East Asia & Pacific', 'OtherCategories')
+big_cat <- c('North America', 'Europe & Central Asia', 'East Asia & Pacific', 'Other Categories')
 ## Mean and standard deviation of predicted probabilities:
 fig_5b <- iscb_pubmed_oth %>%
   filter((region %in% big_cat)) %>%
@@ -245,6 +225,7 @@ fig_s6_1 <- bind_rows(pubmed_aff) %>%
   affiliation_breakdown(category = 'sub', journal)
 
 fig_s6 <- cowplot::plot_grid(fig_s6_1, fig_s6_2, labels = 'AUTO', ncol = 1, rel_widths = 2)
+fig_s6
 ggsave('figs/fig_s6.png', fig_s6, width = 6, height = 3.5)
 ```
 
@@ -253,12 +234,12 @@ It's difficult to come to a conclusion for other regions with so few data points
 There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field.
 However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
 
-```{r fig.height=6}
+```{r fig.height=7, fig.width=3.5}
 fig_s7 <- iscb_pubmed %>%
   loess_and_ci() +
   theme(legend.position = c(0.88, 0.25), legend.text = element_text(size = 7)) +
   facet_wrap(vars(fct_relevel(region, region_levels)), nrow = 2)
-# fig_s7
+fig_s7
 ggsave('figs/fig_s7.png', fig_s7, width = 7, height = 3.5)
 
 ```
