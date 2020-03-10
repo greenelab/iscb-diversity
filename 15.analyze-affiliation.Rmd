@@ -274,6 +274,7 @@ country_rep <- iscb_aff_country %>%
 obs_vs_exp_all <- pubmed_aff_country %>%
   group_by(countries) %>%
   summarise(num_authors = sum(probabilities)) %>%
+  ungroup() %>% 
   mutate(freq_affi = num_authors / sum(num_authors)) %>%
   arrange(desc(num_authors)) %>%
   mutate(Expected = round(freq_affi * sum(country_rep$Observed), 1)) %>%
