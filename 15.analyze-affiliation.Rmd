@@ -270,6 +270,14 @@ country_rep <- iscb_aff_country %>%
   arrange(desc(Observed))
 
 # check = pubmed_aff_pmids %>% filter(pmid == 30908487)
+num_papers <- pubmed_aff_pmids %>% 
+  filter(!is.na(countries)) %>% 
+  pull(pmid) %>% 
+  unique() %>% 
+  length()
+
+num_honorees <- iscb_aff_country$probabilities %>% 
+  sum()
 
 obs_vs_exp_all <- pubmed_aff_country %>%
   group_by(countries) %>%
@@ -281,87 +289,118 @@ obs_vs_exp_all <- pubmed_aff_country %>%
   left_join(country_rep, by = 'countries') %>%
   left_join(nat_to_reg, by = 'countries') %>%
   select(country_name, everything()) %>%
-  select(-c(region, num_authors, freq_affi, countries)) %>%
+  select(-c(region, freq_affi, countries)) %>%
   mutate(
     Observed = replace_na(Observed, 0),
     over_rep = Observed - Expected,
-    country_name = as.factor(country_name) %>% fct_reorder(over_rep),
+    other_honorees = num_honorees - Observed,
+    other_authors = num_papers - num_authors,
+    presentation = ifelse(over_rep > 0, "#377EB8", "#E41A1C")
   )
 print(obs_vs_exp_all)
 ```
 
-Presentation of countries that have discrepancies of at least 5 honorees (in either direction):
-
-```{r fig.width=7, fig.height=4}
-obs_vs_exp <- obs_vs_exp_all %>% 
-  mutate(presentation = ifelse(over_rep > 0, "#377EB8", "#E41A1C")) %>% 
-  filter(abs(over_rep) >= 5) %>%
-  arrange(over_rep)
-
-obs_vs_exp %>%
-  pivot_longer(c(Observed, Expected),
-               names_to = 'type',
-               values_to = 'num_honorees') %>% 
-  ggplot(aes(x = country_name, y = num_honorees, group = type, color = type)) +
-  geom_point() +
-  geom_line() +
-  scale_x_discrete(expand = c(-0.25, 2.2)) +
-  labs(x = NULL, y = 'Number of honorees') +
-  theme(legend.position = 'None',
-        panel.grid.minor = element_blank(),
-        axis.text.x = element_text(color = obs_vs_exp$presentation)) +
-  scale_color_brewer(type = 'qual', palette = 'Set1') +
-  ggrepel::geom_text_repel(data = . %>% filter(`country_name` == 'United States'),
-                              nudge_x = 0, segment.alpha = 0.5, #box.padding = 0.1,
-                              aes(label = type)) 
-# scales::show_col(RColorBrewer::brewer.pal(3, name="Set1"))
-```
 
 
-```{r}
-# obs_vs_exp_all %>% 
+### Fisher exact test
+Null hypothesis: For each country, the proportion of honorees affiliated with an institution/company from that country is similar to the proportion of authors affiliated with an institution/company from that country.
+
+```{r warning=FALSE, fig.width = 7, fig.height = 2.5}
+my_fish <- function(df) {
+  res <- df %>%
+    unlist() %>%
+    matrix(ncol = 2) %>%
+    fisher.test()
+  
+  data_frame(odds_ratio = res$estimate,
+             lower_bound = res$conf.int[1],
+             upper_bound = res$conf.int[2],
+             p_value = res$p.value)
+}
+
+nested_obs_exp <- obs_vs_exp_all %>%
+  filter(!is.na(country_name)) %>% 
+  select(country_name, Observed, other_honorees, num_authors, other_authors) %>% 
+  group_by(country_name) %>% 
+  nest() 
+
+fish_obs_exp <- nested_obs_exp %>% 
+  mutate(fish = map(data, my_fish)) %>% 
+  dplyr::select(-data) %>% 
+  unnest() %>% 
+  mutate(log_lower = log2(lower_bound))
+
 enrich_df <- world %>% 
-  left_join(obs_vs_exp_all, by = c('name' = 'country_name')) %>%
-  # filter(Expected > 0) %>% 
-  mutate(logfc = log2(Observed/Expected))
-enrich_df$Expected
-
-
-fisher.test(obs_vs_exp_all)
+  left_join(fish_obs_exp, by = c('name' = 'country_name'))
 
 enrich_df %>% 
   ggplot() +
-  geom_sf(aes(fill = logfc)) +
+  geom_sf(aes(fill = log_lower)) +
   scale_fill_gradientn(
     colours = c("#3CBC75FF","white","#440154FF"),
-    na.value = NA
+    na.value = NA,
+    values = scales::rescale(
+      c(min(enrich_df %>% filter(!is.infinite(log_lower)) %>% pull(log_lower), na.rm = T),
+        0,
+        max(enrich_df$log_lower, na.rm = T)))
   )
+```
 
-check = obs_vs_exp_all %>% 
-  filter(Expected > 0) %>% 
-  mutate(logfc = log2(Observed/Expected)) %>% 
-  arrange(desc(logfc))
+Presentation of countries that have discrepancies of at least 3 honorees (in either direction):
 
+```{r fig.width = 7, fig.height = 3.5}
+filtered_obs_exp <- obs_vs_exp_all %>% 
+  left_join(fish_obs_exp, by = 'country_name') %>% 
+  filter(abs(over_rep) >= 3) %>% 
+  mutate(distance_to_null = case_when(
+    lower_bound > 1 ~ lower_bound - 1,
+    TRUE ~ upper_bound - 1
+  ),
+    country_name = as.factor(country_name) %>% fct_reorder(distance_to_null)) %>% 
+  arrange(desc(distance_to_null))
 
-my_world %>%
-  as_tibble() %>%
-  select(Country, region) %>%
-  write_tsv('data/countries/2020-01-31_groupings.tsv')
+plot_obs_exp <- filtered_obs_exp %>%
+  mutate(nodds_ratio = - odds_ratio,
+         nlower_bound = - lower_bound, 
+         nupper_bound = - upper_bound) %>% 
+  select(country_name, Expected, Observed, nodds_ratio, nlower_bound, nupper_bound, presentation) %>% 
+  pivot_longer(- c(country_name, presentation), names_to = 'type') %>% 
+  mutate(subtype = ifelse(type == 'Expected' | type == 'Observed', 'Number of honorees', '_Odds ratio, 95% CI')) 
 
-ordered_region_wb <- c("North America","Europe & Central Asia",
-                       "East Asia & Pacific",
-                       "Latin America & Caribbean",
-                       "South Asia", "Middle East & North Africa",
-                       "Antarctica", "Sub-Saharan Africa")
-(gworld <- ggplot(data = world) +
-  geom_sf(aes(fill = fct_relevel(region_wb, ordered_region_wb))) +
-  # geom_rect(xmin = -102.15, xmax = -74.12, ymin = 7.65, ymax = 33.97,
-  #           fill = NA, colour = "black", size = 1.5) +
-  # scale_fill_viridis_d(option = "plasma") +
-  scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
-  theme(panel.background = element_rect(fill = "azure"),
-        panel.border = element_rect(fill = NA),
-        legend.title = element_blank()))    
+plot_obs_exp_right <- plot_obs_exp %>% filter(subtype == 'Number of honorees')
+plot_obs_exp_left <- plot_obs_exp %>% filter(subtype != 'Number of honorees')
+
+odds_plot <- plot_obs_exp_right %>%
+  ggplot(aes(x = country_name)) +
+  geom_point(aes(y = value, group = type, color = type, shape = type)) +
+  geom_line(aes(y = value, group = type, color = type)) +
+  ggpol::facet_share( ~ subtype,  scales = "free", reverse_num = T) +
+  coord_flip() +
+  labs(x = NULL, y = NULL) +
+  theme(
+    legend.position = 'None',
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(color = rev(filtered_obs_exp$presentation))
+  ) +
+  scale_color_brewer(type = 'qual', palette = 'Set1') +
+  geom_pointrange(
+    data = plot_obs_exp_left %>%
+      pivot_wider(names_from = type),
+    aes(y = nodds_ratio,
+        ymin = nlower_bound,
+        ymax = nupper_bound,
+        group = country_name),
+    color = filtered_obs_exp$presentation,
+    stroke = 0.3
+  ) +
+  geom_hline(data = plot_obs_exp_left, aes(yintercept = -1), linetype = 2) +
+  ggrepel::geom_text_repel(data = . %>% filter(country_name == 'United States'),
+                              nudge_y = 0, nudge_x = -1, segment.alpha = 0.5, #box.padding = 0.1,
+                              aes(y = value, label = type, color = type)) +
+  theme(plot.margin = margin(0.4,0.4,0.4, -1.5, "cm"))
+odds_plot
+ggsave('figs/odds-plot.png', odds_plot, width = 7, height = 3.5)
+
 ```
 
 
