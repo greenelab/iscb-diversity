@@ -219,7 +219,7 @@ fig_s6_1 <- bind_rows(pubmed_aff) %>%
         legend.margin = margin(0, -0.03, 0, -0.2, unit='cm')
         )
 
-  fig_s6_2 <- bind_rows(iscb_aff) %>%
+fig_s6_2 <- bind_rows(iscb_aff) %>%
   filter(year < '2020-01-01') %>%
   affiliation_breakdown(category = 'sub', journal)
 
@@ -297,7 +297,10 @@ obs_vs_exp_all <- pubmed_aff_country %>%
     other_authors = num_papers - num_authors,
     presentation = ifelse(over_rep > 0, "#377EB8", "#E41A1C")
   )
-print(obs_vs_exp_all)
+
+obs_vs_exp_all %>% 
+  select(country_name, Observed, Expected, over_rep) %>% 
+  DT::datatable()
 ```
 
 

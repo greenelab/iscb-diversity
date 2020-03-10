@@ -325,9 +325,11 @@ region_breakdown <- function(df, category = 'main', ...) {
 affiliation_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
-    ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
+    mutate(region = fct_expand(region, region_levels) %>% fct_relevel(region_levels)) %>% 
+    ggplot(aes(year, mean_prob, fill = region)) +
     geom_bar(stat = 'identity') +
-    scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+    scale_fill_manual(drop = FALSE,
+                      values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
     theme(legend.position = 'None',
           panel.grid.minor = element_blank()) +
     labs(x = NULL) 
