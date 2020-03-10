@@ -241,6 +241,129 @@ ggsave('figs/fig_s7.png', fig_s7, width = 7, height = 3.5)
 ```
 
 
+## Country level
+### Table of representations
+
+Observed vs. expected
+
+```{r}
+iscb_aff_country <- read_tsv('data/iscb/keynotes.tsv') %>%
+  separate_rows(afflcountries, sep = '\\|') %>% 
+  filter(!is.na(afflcountries)) %>% 
+  add_count(year, conference, full_name, name = 'num_affls') %>%
+  mutate(probabilities = 1 / num_affls,
+         publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>%
+  left_join(nat_to_reg, by = c('afflcountries' = 'country_name'))
+
+pubmed_aff_country <- pubmed_aff_pmids %>%
+  filter(!is.na(countries)) %>% 
+  add_count(pmid, name = 'num_corr_authors') %>% # number of corresponding authors per pmid
+  select(pmid, journal, publication_date, year, countries, fore_name_simple, last_name_simple, num_corr_authors) %>%
+  separate_rows(countries) %>%
+  add_count(pmid, fore_name_simple, last_name_simple, name = 'num_affls') %>% 
+  mutate(probabilities = 1 / num_corr_authors / num_affls) 
+
+country_rep <- iscb_aff_country %>% 
+  group_by(countries) %>% 
+  summarise(Observed = sum(probabilities)) %>% 
+  arrange(desc(Observed))
+
+# check = pubmed_aff_pmids %>% filter(pmid == 30908487)
+
+obs_vs_exp_all <- pubmed_aff_country %>%
+  group_by(countries) %>%
+  summarise(num_authors = sum(probabilities)) %>%
+  mutate(freq_affi = num_authors / sum(num_authors)) %>%
+  arrange(desc(num_authors)) %>%
+  mutate(Expected = round(freq_affi * sum(country_rep$Observed), 1)) %>%
+  left_join(country_rep, by = 'countries') %>%
+  left_join(nat_to_reg, by = 'countries') %>%
+  select(country_name, everything()) %>%
+  select(-c(region, num_authors, freq_affi, countries)) %>%
+  mutate(
+    Observed = replace_na(Observed, 0),
+    over_rep = Observed - Expected,
+    country_name = as.factor(country_name) %>% fct_reorder(over_rep),
+  )
+print(obs_vs_exp_all)
+```
+
+Presentation of countries that have discrepancies of at least 5 honorees (in either direction):
+
+```{r fig.width=7, fig.height=4}
+obs_vs_exp <- obs_vs_exp_all %>% 
+  mutate(presentation = ifelse(over_rep > 0, "#377EB8", "#E41A1C")) %>% 
+  filter(abs(over_rep) >= 5) %>%
+  arrange(over_rep)
+
+obs_vs_exp %>%
+  pivot_longer(c(Observed, Expected),
+               names_to = 'type',
+               values_to = 'num_honorees') %>% 
+  ggplot(aes(x = country_name, y = num_honorees, group = type, color = type)) +
+  geom_point() +
+  geom_line() +
+  scale_x_discrete(expand = c(-0.25, 2.2)) +
+  labs(x = NULL, y = 'Number of honorees') +
+  theme(legend.position = 'None',
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(color = obs_vs_exp$presentation)) +
+  scale_color_brewer(type = 'qual', palette = 'Set1') +
+  ggrepel::geom_text_repel(data = . %>% filter(`country_name` == 'United States'),
+                              nudge_x = 0, segment.alpha = 0.5, #box.padding = 0.1,
+                              aes(label = type)) 
+# scales::show_col(RColorBrewer::brewer.pal(3, name="Set1"))
+```
+
+
+```{r}
+# obs_vs_exp_all %>% 
+enrich_df <- world %>% 
+  left_join(obs_vs_exp_all, by = c('name' = 'country_name')) %>%
+  # filter(Expected > 0) %>% 
+  mutate(logfc = log2(Observed/Expected))
+enrich_df$Expected
+
+
+fisher.test(obs_vs_exp_all)
+
+enrich_df %>% 
+  ggplot() +
+  geom_sf(aes(fill = logfc)) +
+  scale_fill_gradientn(
+    colours = c("#3CBC75FF","white","#440154FF"),
+    na.value = NA
+  )
+
+check = obs_vs_exp_all %>% 
+  filter(Expected > 0) %>% 
+  mutate(logfc = log2(Observed/Expected)) %>% 
+  arrange(desc(logfc))
+
+
+my_world %>%
+  as_tibble() %>%
+  select(Country, region) %>%
+  write_tsv('data/countries/2020-01-31_groupings.tsv')
+
+ordered_region_wb <- c("North America","Europe & Central Asia",
+                       "East Asia & Pacific",
+                       "Latin America & Caribbean",
+                       "South Asia", "Middle East & North Africa",
+                       "Antarctica", "Sub-Saharan Africa")
+(gworld <- ggplot(data = world) +
+  geom_sf(aes(fill = fct_relevel(region_wb, ordered_region_wb))) +
+  # geom_rect(xmin = -102.15, xmax = -74.12, ymin = 7.65, ymax = 33.97,
+  #           fill = NA, colour = "black", size = 1.5) +
+  # scale_fill_viridis_d(option = "plasma") +
+  scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+  theme(panel.background = element_rect(fill = "azure"),
+        panel.border = element_rect(fill = NA),
+        legend.title = element_blank()))    
+```
+
+
 ```{r}
 sessionInfo()
 ```
