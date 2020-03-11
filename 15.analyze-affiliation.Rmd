@@ -8,6 +8,7 @@ library(tidyverse)
 library(lubridate)
 library(rnaturalearth)
 source('utils/r-utils.R')
+library(DT)
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
@@ -32,7 +33,7 @@ alpha_threshold <- qnorm(0.975)
 pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
-         publication_date = ymd(publication_date, truncated = 2)) 
+         publication_date = ymd(publication_date, truncated = 2))
 
 pubmed_aff_df <- pubmed_aff_pmids %>%
   filter(!is.na(countries)) %>% # a paper has two corresponding authors, one does not have affiliations. Should we remove this author and give the other the full weight (1) on the paper?
@@ -97,11 +98,7 @@ region_levels_let <- toupper(letters[1:8])
 ## Missing data
 
 ```{r}
-# iscb_aff_df %>% filter(is.na(countries))
-pubmed_aff_pmids %>% filter(is.na(countries))
 sum(is.na(pubmed_aff_pmids$countries))
-sum(is.na(pubmed_aff_df$countries))
-
 ```
 
 
@@ -269,15 +266,13 @@ country_rep <- iscb_aff_country %>%
   summarise(Observed = sum(probabilities)) %>% 
   arrange(desc(Observed))
 
-# check = pubmed_aff_pmids %>% filter(pmid == 30908487)
 num_papers <- pubmed_aff_pmids %>% 
   filter(!is.na(countries)) %>% 
   pull(pmid) %>% 
   unique() %>% 
   length()
 
-num_honorees <- iscb_aff_country$probabilities %>% 
-  sum()
+num_honorees <- sum(iscb_aff_country$probabilities)
 
 obs_vs_exp_all <- pubmed_aff_country %>%
   group_by(countries) %>%
@@ -285,22 +280,20 @@ obs_vs_exp_all <- pubmed_aff_country %>%
   ungroup() %>% 
   mutate(freq_affi = num_authors / sum(num_authors)) %>%
   arrange(desc(num_authors)) %>%
-  mutate(Expected = round(freq_affi * sum(country_rep$Observed), 1)) %>%
+  mutate(Expected = freq_affi * num_honorees) %>%
   left_join(country_rep, by = 'countries') %>%
   left_join(nat_to_reg, by = 'countries') %>%
   select(country_name, everything()) %>%
-  select(-c(region, freq_affi, countries)) %>%
+  select(-c(region, countries)) %>%
   mutate(
     Observed = replace_na(Observed, 0),
     over_rep = Observed - Expected,
+    # log2fc = log2(Observed/Expected),
     other_honorees = num_honorees - Observed,
-    other_authors = num_papers - num_authors,
-    presentation = ifelse(over_rep > 0, "#377EB8", "#E41A1C")
+    other_authors = num_papers - num_authors
   )
 
-obs_vs_exp_all %>% 
-  select(country_name, Observed, Expected, over_rep) %>% 
-  DT::datatable()
+
 ```
 
 
@@ -308,7 +301,7 @@ obs_vs_exp_all %>%
 ### Fisher exact test
 Null hypothesis: For each country, the proportion of honorees affiliated with an institution/company from that country is similar to the proportion of authors affiliated with an institution/company from that country.
 
-```{r warning=FALSE, fig.width = 7, fig.height = 2.5}
+```{r warning=FALSE, fig.width = 7*1.5, fig.height = 2.5*1.5}
 my_fish <- function(df) {
   res <- df %>%
     unlist() %>%
@@ -331,59 +324,96 @@ fish_obs_exp <- nested_obs_exp %>%
   mutate(fish = map(data, my_fish)) %>% 
   dplyr::select(-data) %>% 
   unnest() %>% 
-  mutate(log_lower = log2(lower_bound))
+  mutate(log_lower = case_when(
+    lower_bound > 1 ~ log2(lower_bound),
+    upper_bound < 1 ~ log2(upper_bound),
+    TRUE ~ 0)
+  )
 
+
+fish_obs_exp %>% 
+  mutate(ci = paste0('(', round(log2(lower_bound), 1), ', ', 
+                     round(log2(upper_bound), 1), ')'),
+         lodds_ratio = log2(odds_ratio)) %>% 
+  left_join(obs_vs_exp_all, by = 'country_name') %>% 
+  select(country_name, freq_affi, Observed, Expected, over_rep, 
+         # log2fc, 
+         lodds_ratio, ci) %>% 
+  rename('Country' = 'country_name',
+         'Author proportion' = 'freq_affi',
+         'Observed - Expected' = 'over_rep',
+         'Log2(odds ratio)' = 'lodds_ratio',
+         '95% Confidence interval' = 'ci') %>% 
+  datatable() %>% 
+  formatPercentage('Author proportion', 2) %>% 
+  formatRound(c('Observed', 'Expected', 'Observed - Expected', 'Log2(odds ratio)'), 1)
+```
+
+
+```{r, fig.width = 7*1.5, fig.height = 2.5*1.5}
 enrich_df <- world %>% 
   left_join(fish_obs_exp, by = c('name' = 'country_name'))
 
-enrich_df %>% 
+odds_map <- enrich_df %>% 
   ggplot() +
   geom_sf(aes(fill = log_lower)) +
   scale_fill_gradientn(
-    colours = c("#3CBC75FF","white","#440154FF"),
+    colours = c('#3CBC75FF','white','#440154FF'),
     na.value = NA,
     values = scales::rescale(
-      c(min(enrich_df %>% filter(!is.infinite(log_lower)) %>% pull(log_lower), na.rm = T),
+      c(min(enrich_df$log_lower, na.rm = T),
         0,
         max(enrich_df$log_lower, na.rm = T)))
-  )
+  ) +
+  coord_sf(crs = '+proj=eqearth +wktext')
+odds_map
+ggsave('figs/odds-map.png', odds_map, width = 7, height = 2.5)
+# equal earth map projection:
+# http://equal-earth.com/equal-earth-projection.html
 ```
 
-Presentation of countries that have discrepancies of at least 3 honorees (in either direction):
+Presentation of 20 countries that have the most publications 
 
 ```{r fig.width = 7, fig.height = 3.5}
 filtered_obs_exp <- obs_vs_exp_all %>% 
   left_join(fish_obs_exp, by = 'country_name') %>% 
-  filter(abs(over_rep) >= 3) %>% 
-  mutate(distance_to_null = case_when(
-    lower_bound > 1 ~ lower_bound - 1,
-    TRUE ~ upper_bound - 1
-  ),
-    country_name = as.factor(country_name) %>% fct_reorder(distance_to_null)) %>% 
-  arrange(desc(distance_to_null))
+  top_n(20, num_authors) %>% 
+  mutate(
+    # distance_to_null = case_when(
+    #   lower_bound > 1 ~ lower_bound - 1,
+    #   TRUE ~ upper_bound - 2
+    # ),
+    presentation = case_when(
+      lower_bound > 1 ~ '#377EB8', 
+      upper_bound < 1 ~ '#E41A1C',
+      TRUE ~ 'grey20'
+    ),
+    country_name =  as.factor(country_name) %>% fct_reorder(odds_ratio)) %>% 
+  arrange(desc(odds_ratio))
 
 plot_obs_exp <- filtered_obs_exp %>%
-  mutate(nodds_ratio = - odds_ratio,
-         nlower_bound = - lower_bound, 
-         nupper_bound = - upper_bound) %>% 
+  mutate(nodds_ratio = - log2(odds_ratio),
+         nlower_bound = - log2(lower_bound), 
+         nupper_bound = - log2(upper_bound)) %>% 
   select(country_name, Expected, Observed, nodds_ratio, nlower_bound, nupper_bound, presentation) %>% 
   pivot_longer(- c(country_name, presentation), names_to = 'type') %>% 
-  mutate(subtype = ifelse(type == 'Expected' | type == 'Observed', 'Number of honorees', '_Odds ratio, 95% CI')) 
+  mutate(subtype = ifelse(type == 'Expected' | type == 'Observed', 'Sqrt(number of honorees)', 'Log2 odds ratio, 95% CI')) 
 
-plot_obs_exp_right <- plot_obs_exp %>% filter(subtype == 'Number of honorees')
-plot_obs_exp_left <- plot_obs_exp %>% filter(subtype != 'Number of honorees')
+```
 
-odds_plot <- plot_obs_exp_right %>%
+
+```{r}
+plot_obs_exp_right <- plot_obs_exp %>% filter(subtype == 'Sqrt(number of honorees)')
+plot_obs_exp_left <- plot_obs_exp %>% filter(subtype != 'Sqrt(number of honorees)')
+
+odds_plot_left <- plot_obs_exp_left %>%
   ggplot(aes(x = country_name)) +
-  geom_point(aes(y = value, group = type, color = type, shape = type)) +
-  geom_line(aes(y = value, group = type, color = type)) +
-  ggpol::facet_share( ~ subtype,  scales = "free", reverse_num = T) +
   coord_flip() +
-  labs(x = NULL, y = NULL) +
+  labs(x = NULL, y = bquote(Log[2] ~ 'odds ratio, 95% CI')) +
   theme(
-    legend.position = 'None',
+    legend.position = c(0.9, 0.3),
     panel.grid.minor = element_blank(),
-    axis.text.y = element_text(color = rev(filtered_obs_exp$presentation))
+    axis.text.x = element_text(color = rev(plot_obs_exp_left$presentation))
   ) +
   scale_color_brewer(type = 'qual', palette = 'Set1') +
   geom_pointrange(
@@ -396,13 +426,34 @@ odds_plot <- plot_obs_exp_right %>%
     color = filtered_obs_exp$presentation,
     stroke = 0.3
   ) +
-  geom_hline(data = plot_obs_exp_left, aes(yintercept = -1), linetype = 2) +
-  ggrepel::geom_text_repel(data = . %>% filter(country_name == 'United States'),
-                              nudge_y = 0, nudge_x = -1, segment.alpha = 0.5, #box.padding = 0.1,
-                              aes(y = value, label = type, color = type)) +
-  theme(plot.margin = margin(0.4,0.4,0.4, -1.5, "cm"))
+  scale_x_discrete(position = 'top', labels = NULL) +
+  geom_hline(data = plot_obs_exp_left, aes(yintercept = 0), linetype = 2) +
+  theme(plot.margin = margin(5.5, 2, 5.5, 5.5, unit = 'pt'))
+
+odds_plot_right <- plot_obs_exp_right %>%
+  ggplot(aes(x = country_name, y = value)) +
+  geom_point(aes(shape = type), color = 'grey40') +
+  geom_line(aes(group = country_name),
+            color = rev(plot_obs_exp_right$presentation)) +
+  labs(x = NULL, y = 'Number of honorees') +
+  theme(
+    legend.position = c(0.75 , 0.3),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(
+      color = rev(filtered_obs_exp$presentation),
+      hjust = 0.5),
+    plot.margin = margin(5.5, 5.5, 8.5, 2, unit = 'pt')
+  ) +
+  scale_y_sqrt(breaks = c(0, 1, 4, 16, 50, 100, 200)) +
+  scale_color_brewer(type = 'qual', palette = 'Set1') +
+  coord_flip() 
+
+odds_plot <- cowplot::plot_grid(odds_plot_left, odds_plot_right,
+                                rel_widths = c(1, 1.3)
+                                # align = 'hv'
+                                )
 odds_plot
-ggsave('figs/odds-plot.png', odds_plot, width = 7, height = 3.5)
+ggsave('figs/odds-plot.png', odds_plot, width = 5.5, height = 3.5)
 
 ```
 
