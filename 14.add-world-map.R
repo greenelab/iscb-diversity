@@ -24,24 +24,22 @@ my_world <- world %>%
 
 (gworld <- ggplot(data = my_world) +
     geom_sf(aes(fill = fct_relevel(region, region_levels_let))) +
-    # geom_rect(xmin = -102.15, xmax = -74.12, ymin = 7.65, ymax = 33.97,
-    #           fill = NA, colour = "black", size = 1.5) +
-    # scale_fill_viridis_d(option = "plasma") +
+    coord_sf(crs = "+proj=eqearth +wktext") +
     scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
     theme(panel.background = element_rect(fill = "azure"),
           legend.title = element_blank(),
           panel.border = element_rect(fill = NA)))
 
-ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 3)
+ggsave('figs/2020-01-31_groupings.png', gworld, width = 6.5, height = 3)
 
 # world %>%
 #   select(iso_a2, iso_a3, name, name_long, region_wb) %>%
 #   write_tsv('data/countries/world-map.tsv')
 
-my_world %>%
-  as_tibble() %>%
-  select(Country, region) %>%
-  write_tsv('data/countries/2020-01-31_groupings.tsv')
+# my_world %>%
+#   as_tibble() %>%
+#   select(Country, region) %>%
+#   write_tsv('data/countries/2020-01-31_groupings.tsv')
 
 ordered_region_wb <- c("North America","Europe & Central Asia",
                        "East Asia & Pacific",
@@ -50,9 +48,7 @@ ordered_region_wb <- c("North America","Europe & Central Asia",
                        "Antarctica", "Sub-Saharan Africa")
 (gworld <- ggplot(data = world) +
   geom_sf(aes(fill = fct_relevel(region_wb, ordered_region_wb))) +
-  # geom_rect(xmin = -102.15, xmax = -74.12, ymin = 7.65, ymax = 33.97,
-  #           fill = NA, colour = "black", size = 1.5) +
-  # scale_fill_viridis_d(option = "plasma") +
+  coord_sf(crs = "+proj=eqearth +wktext") +
   scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
   theme(panel.background = element_rect(fill = "azure"),
         panel.border = element_rect(fill = NA),
