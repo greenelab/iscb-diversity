@@ -392,10 +392,10 @@ filtered_obs_exp <- obs_vs_exp_all %>%
   arrange(desc(odds_ratio))
 
 plot_obs_exp <- filtered_obs_exp %>%
-  mutate(nodds_ratio = - log2(odds_ratio),
-         nlower_bound = - log2(lower_bound), 
-         nupper_bound = - log2(upper_bound)) %>% 
-  select(country_name, Expected, Observed, nodds_ratio, nlower_bound, nupper_bound, presentation) %>% 
+  mutate(lodds_ratio = log2(odds_ratio),
+         llower_bound = log2(lower_bound), 
+         lupper_bound = log2(upper_bound)) %>% 
+  select(country_name, Expected, Observed, lodds_ratio, llower_bound, lupper_bound, presentation) %>% 
   pivot_longer(- c(country_name, presentation), names_to = 'type') %>% 
   mutate(subtype = ifelse(type == 'Expected' | type == 'Observed', 'Sqrt(number of honorees)', 'Log2 odds ratio, 95% CI')) 
 
@@ -419,14 +419,15 @@ odds_plot_left <- plot_obs_exp_left %>%
   geom_pointrange(
     data = plot_obs_exp_left %>%
       pivot_wider(names_from = type),
-    aes(y = nodds_ratio,
-        ymin = nlower_bound,
-        ymax = nupper_bound,
+    aes(y = lodds_ratio,
+        ymin = llower_bound,
+        ymax = lupper_bound,
         group = country_name),
     color = filtered_obs_exp$presentation,
     stroke = 0.3
   ) +
   scale_x_discrete(position = 'top', labels = NULL) +
+  scale_y_reverse() +
   geom_hline(data = plot_obs_exp_left, aes(yintercept = 0), linetype = 2) +
   theme(plot.margin = margin(5.5, 2, 5.5, 5.5, unit = 'pt'))
 
