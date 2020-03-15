@@ -1,5 +1,5 @@
 ---
-title: "Intersection analysis of race/ethnicity and gender"
+title: "Representation analysis of race/ethnicity in the US"
 output: html_document
 ---
 
