@@ -22,3 +22,4 @@ See the following rendered notebooks:
 - [10.predict-race](10.predict-race.html)
 - [11.visualize-nationality](11.visualize-nationality.html)
 - [15.analyze-affiliation](15.analyze-affiliation.html)
+- [16.us-race-analysis](16.us-race-analysis.html)
