@@ -237,7 +237,7 @@ gender_breakdown <- function(df, category = 'main', ...) {
     recode_gender() %>%
     ggplot(aes(year, mean_prob, fill = fct_relevel(gender, c('Male', 'Female')))) +
     geom_bar(stat = 'identity', alpha = 0.9) +
-    scale_fill_viridis_d(option = 'E', end = 0.8, direction = -1) +
+    scale_fill_viridis_d(drop = F, option = 'E', end = 0.8, direction = -1) +
     labs(x = NULL)
   
   if (category == 'main') {
@@ -287,7 +287,9 @@ region_breakdown <- function(df, category = 'main', ...) {
     geom_bar(stat = 'identity') +
     # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
     # scale_fill_brewer(palette = 'Set3') +
-    scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+    scale_fill_manual(
+      drop = FALSE,
+      values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
     theme(legend.position = 'None',
           panel.grid.minor = element_blank()) +
     labs(x = NULL) 
@@ -328,8 +330,9 @@ affiliation_breakdown <- function(df, category = 'main', ...) {
     mutate(region = fct_expand(region, region_levels) %>% fct_relevel(region_levels)) %>% 
     ggplot(aes(year, mean_prob, fill = region)) +
     geom_bar(stat = 'identity') +
-    scale_fill_manual(drop = FALSE,
-                      values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+    scale_fill_manual(
+      drop = FALSE,
+      values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
     theme(legend.position = 'None',
           panel.grid.minor = element_blank()) +
     labs(x = NULL) 
@@ -373,8 +376,10 @@ race_breakdown <- function(df, category = 'main', ...){
     geom_bar(stat = 'identity') +
     # scale_fill_viridis_d(direction = -1) +
     # scale_fill_brewer(palette = 'Set3') +
-    scale_fill_manual(values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada')) +
-    theme(legend.position = 'None') +
+    scale_fill_manual(
+      values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada'),
+      drop = FALSE) +
+    theme(legend.position = 'None', panel.grid.major.x = element_blank()) +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2)
   
