@@ -23,3 +23,4 @@ See the following rendered notebooks:
 - [11.visualize-nationality](11.visualize-nationality.html)
 - [15.analyze-affiliation](15.analyze-affiliation.html)
 - [16.us-race-analysis](16.us-race-analysis.html)
+- [18.us-name-origin](18.us-name-origin.html)
