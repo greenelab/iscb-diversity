@@ -39,7 +39,8 @@ iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
   left_join(simple_fore_names, by = 'fore_name') %>% 
-  left_join(gender_df, by = 'fore_name_simple')
+  left_join(gender_df, by = 'fore_name_simple') %>% 
+  filter(conference != 'PSB') # remove PSB
 
 start_year <- 1997
 end_year <- 2019
