@@ -48,7 +48,8 @@ iscb_aff_country <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(probabilities = 1 / num_affls,
          publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>%
-  left_join(nat_to_reg, by = c('afflcountries' = 'country_name'))
+  left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
+  filter(conference != 'PSB') # remove PSB
 
 pubmed_aff_country <- pubmed_aff_pmids %>%
   filter(!is.na(countries)) %>% 
@@ -228,9 +229,9 @@ odds_plot_left <- plot_obs_exp_left %>%
 
 odds_plot_right <- plot_obs_exp_right %>%
   ggplot(aes(x = country_name, y = value)) +
-  geom_point(aes(shape = type), color = 'grey40') +
   geom_line(aes(group = country_name),
             color = rev(plot_obs_exp_right$presentation)) +
+  geom_point(aes(shape = type), color = 'grey40') +
   labs(x = NULL, y = 'Number of honorees') +
   theme(
     legend.position = c(0.75 , 0.3),
@@ -240,7 +241,7 @@ odds_plot_right <- plot_obs_exp_right %>%
     plot.margin = margin(5.5, 5.5, 8.5, 2, unit = 'pt')
   ) +
   scale_y_sqrt(breaks = c(0, 1, 4, 16, 50, 120, 225)) +
-  scale_color_brewer(type = 'qual', palette = 'Set1') +
+  # scale_color_brewer(type = 'qual', palette = 'Set1') +
   coord_flip() +
   geom_text(
     data = . %>% 
