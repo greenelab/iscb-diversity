@@ -42,7 +42,7 @@ iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   left_join(gender_df, by = 'fore_name_simple') %>% 
   filter(conference != 'PSB') # remove PSB
 
-start_year <- 1997
+start_year <- 1993
 end_year <- 2019
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_gender_df$journal)
@@ -242,6 +242,18 @@ fig_1
 ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
 
 ```
+
+```{r}
+f_df <- iscb_pubmed %>% filter(gender == 'probability_female', !is.na(probabilities))
+f_pub <- f_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+f_iscb <- f_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(f_iscb, f_pub, alternative = 'greater') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+Taking all the years together, the Welch two-sample one-sided t-test does not reveal any difference in the mean probability of ISCB speakers predicted to be female compared to that of authors (p = 0.226).
 
 ### Supplementary Figure S1 {#sup_fig_s1}
 Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
