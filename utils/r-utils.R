@@ -378,7 +378,9 @@ race_breakdown <- function(df, category = 'main', ...){
     # scale_fill_brewer(palette = 'Set3') +
     scale_fill_manual(
       values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada')) +
-    theme(legend.position = 'None', panel.grid.major.x = element_blank()) +
+    theme(legend.position = 'None', 
+          panel.grid.major.x = element_blank(), 
+          panel.grid.minor.x = element_blank()) +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2)
   
@@ -387,7 +389,7 @@ race_breakdown <- function(df, category = 'main', ...){
       scale_x_date(
         labels = scales::date_format("%Y"),
         expand = c(0, 0),
-        limits = c(ymd(start_year - 1, truncated = 2L), ymd(end_year, truncated = 2L))
+        limits = c(ymd(start_year, truncated = 2L), ymd(end_year, truncated = 2L))
       ) +
       scale_y_continuous(
         labels = scales::percent_format(),
@@ -400,7 +402,7 @@ race_breakdown <- function(df, category = 'main', ...){
       scale_x_date(
         labels = scales::date_format("'%y"),
         expand = c(0, 0),
-        limits = c(ymd(start_year - 1, truncated = 2L), ymd(end_year, truncated = 2L))
+        limits = c(ymd(start_year, truncated = 2L), ymd(end_year, truncated = 2L))
       ) +
       scale_y_continuous(
         labels = scales::percent_format(),
