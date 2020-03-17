@@ -7,6 +7,7 @@ output: html_document
 library(tidyverse)
 library(lubridate)
 library(rnaturalearth)
+library(epitools)
 source('utils/r-utils.R')
 library(DT)
 theme_set(
@@ -100,17 +101,20 @@ my_fish <- function(df) {
   res <- df %>%
     unlist() %>%
     matrix(ncol = 2) %>%
-    fisher.test()
+    my_riskratio(correction = TRUE)
   
-  data_frame(odds_ratio = res$estimate,
-             lower_bound = res$conf.int[1],
-             upper_bound = res$conf.int[2],
-             p_value = res$p.value)
+  res$measure[2, 1:3] %>% 
+    c(p_value = res$p.value[2,2]) %>% 
+    as.matrix() %>% t() %>% data.frame()
+  # data_frame(estimate = res$estimate,
+  #            lower = res$conf.int[1],
+  #            upper = res$conf.int[2],
+  #            p_value = res$p.value)
 }
 
 nested_obs_exp <- obs_vs_exp_all %>%
   filter(!is.na(country_name)) %>% 
-  select(country_name, Observed, other_honorees, num_authors, other_authors) %>% 
+  select(country_name, other_authors, num_authors, other_honorees, Observed) %>% 
   group_by(country_name) %>% 
   nest() 
 
@@ -118,24 +122,28 @@ fish_obs_exp <- nested_obs_exp %>%
   mutate(fish = map(data, my_fish)) %>% 
   dplyr::select(-data) %>% 
   unnest()
+```
 
-
+### Country enrichment table {#enrichment_tab}
+```{r}
 fish_obs_exp %>% 
-  mutate(ci = paste0('(', round(log2(lower_bound), 1), ', ', 
-                     round(log2(upper_bound), 1), ')'),
-         lodds_ratio = log2(odds_ratio)) %>% 
+  mutate(ci = paste0('(', round(log2(lower), 1), ', ', 
+                     round(log2(upper), 1), ')'),
+         lestimate = log2(estimate)) %>% 
   left_join(obs_vs_exp_all, by = 'country_name') %>% 
   select(country_name, freq_affi, Observed, Expected, over_rep, 
          # log2fc, 
-         lodds_ratio, ci) %>% 
+         estimate, lestimate, ci) %>% 
   rename('Country' = 'country_name',
          'Author proportion' = 'freq_affi',
          'Observed - Expected' = 'over_rep',
-         'Log2(odds ratio)' = 'lodds_ratio',
+         'Enrichment' = 'estimate',
+         'Log2(enrichment)' = 'lestimate',
          '95% Confidence interval' = 'ci') %>% 
   datatable() %>% 
   formatPercentage('Author proportion', 2) %>% 
-  formatRound(c('Observed', 'Expected', 'Observed - Expected', 'Log2(odds ratio)'), 1)
+  formatRound(c('Observed', 'Expected', 'Observed - Expected', 
+                'Enrichment', 'Log2(enrichment)'), 1)
 ```
 
 
@@ -145,12 +153,12 @@ enrich_df <- world %>%
   left_join(
     fish_obs_exp  %>% 
       mutate(log_lower = case_when(
-        lower_bound > 1 ~ log2(lower_bound),
-        upper_bound < 1 ~ log2(upper_bound),
+        lower > 1 ~ log2(lower),
+        upper < 1 ~ log2(upper),
         TRUE ~ 0)
       ), by = c('name' = 'country_name'))
 
-odds_map <- enrich_df %>% 
+enrichment_map <- enrich_df %>% 
   ggplot() +
   geom_sf(aes(fill = log_lower)) +
   scale_fill_gradientn(
@@ -162,14 +170,16 @@ odds_map <- enrich_df %>%
         max(enrich_df$log_lower, na.rm = T)))
   ) +
   coord_sf(crs = '+proj=eqearth +wktext')
-odds_map
-ggsave('figs/odds-map.png', odds_map, width = 7, height = 2.5)
+enrichment_map
+ggsave('figs/enrichment-map.png', enrichment_map, width = 7, height = 2.5)
 # equal earth map projection:
 # http://equal-earth.com/equal-earth-projection.html
 ```
 
-#### Figure of representations
-Presentation of 20 countries that have the most publications.
+#### Compute enrichment from proportion comparisons
+Adapted from `epitools::riskratio()`.
+
+Presentation enrichment/depletion of 20 countries that have the most publications.
 
 ```{r fig.width = 7, fig.height = 3.5}
 filtered_obs_exp <- obs_vs_exp_all %>% 
@@ -177,48 +187,48 @@ filtered_obs_exp <- obs_vs_exp_all %>%
   top_n(20, num_authors) %>% 
   mutate(
     distance_to_null = case_when(
-      lower_bound > 1 ~ lower_bound - 1,
-      TRUE ~ upper_bound - 2
+      lower > 1 ~ lower - 1,
+      TRUE ~ upper - 2
     ),
     presentation = case_when(
-      lower_bound > 1 ~ '#377EB8', 
-      upper_bound < 1 ~ '#E41A1C',
+      lower > 1 ~ '#377EB8', 
+      upper < 1 ~ '#E41A1C',
       TRUE ~ 'grey20'
     ),
     country_name =  as.factor(country_name) %>% fct_reorder(num_authors)) %>% 
   arrange(desc(num_authors))
 
 plot_obs_exp <- filtered_obs_exp %>%
-  mutate(lodds_ratio = log2(odds_ratio),
-         llower_bound = log2(lower_bound), 
-         lupper_bound = log2(upper_bound)) %>% 
-  select(country_name, Expected, Observed, lodds_ratio, llower_bound, lupper_bound, presentation, over_rep) %>% 
+  mutate(lestimate = log2(estimate),
+         llower = log2(lower), 
+         lupper = log2(upper)) %>% 
+  select(country_name, Expected, Observed, lestimate, llower, lupper, presentation, over_rep) %>% 
   pivot_longer(- c(country_name, presentation, over_rep), names_to = 'type') %>% 
-  mutate(subtype = ifelse(type == 'Expected' | type == 'Observed', 'Sqrt(number of honorees)', 'Log2 odds ratio, 95% CI')) 
+  mutate(subtype = ifelse(type == 'Expected' | type == 'Observed', 'Sqrt(number of honorees)', 'Log2 enrichment, 95% CI')) 
 
 ```
 
-
+### Log enrichment figure {#enrichment_plot}
 ```{r}
 plot_obs_exp_right <- plot_obs_exp %>% filter(subtype == 'Sqrt(number of honorees)')
 plot_obs_exp_left <- plot_obs_exp %>% filter(subtype != 'Sqrt(number of honorees)')
 
-odds_plot_left <- plot_obs_exp_left %>%
+enrichment_plot_left <- plot_obs_exp_left %>%
   ggplot(aes(x = country_name)) +
   coord_flip() +
-  labs(x = NULL, y = bquote(Log[2] ~ 'odds ratio, 95% CI')) +
+  labs(x = NULL, y = bquote(Log[2] ~ 'enrichment, 95% CI')) +
   theme(
     legend.position = c(0.9, 0.3),
-    axis.text.x = element_text(color = rev(plot_obs_exp_left$presentation)),
+    # axis.text.x = element_text(color = rev(plot_obs_exp_left$presentation)),
     plot.margin = margin(5.5, 2, 5.5, 5.5, unit = 'pt')
   ) +
   scale_color_brewer(type = 'qual', palette = 'Set1') +
   geom_pointrange(
     data = plot_obs_exp_left %>%
       pivot_wider(names_from = type),
-    aes(y = lodds_ratio,
-        ymin = llower_bound,
-        ymax = lupper_bound,
+    aes(y = lestimate,
+        ymin = llower,
+        ymax = lupper,
         group = country_name),
     color = filtered_obs_exp$presentation,
     stroke = 0.3
@@ -227,11 +237,11 @@ odds_plot_left <- plot_obs_exp_left %>%
   scale_y_reverse() +
   geom_hline(data = plot_obs_exp_left, aes(yintercept = 0), linetype = 2)
 
-odds_plot_right <- plot_obs_exp_right %>%
+enrichment_plot_right <- plot_obs_exp_right %>%
   ggplot(aes(x = country_name, y = value)) +
   geom_line(aes(group = country_name),
             color = rev(plot_obs_exp_right$presentation)) +
-  geom_point(aes(shape = type), color = 'grey40') +
+  geom_point(aes(shape = type), color = 'grey20') +
   labs(x = NULL, y = 'Number of honorees') +
   theme(
     legend.position = c(0.75 , 0.3),
@@ -246,16 +256,16 @@ odds_plot_right <- plot_obs_exp_right %>%
   geom_text(
     data = . %>% 
       filter(type == 'Expected' & !(country_name %in% c('Israel', 'United States'))),
-    nudge_y = 1.2, aes(label = round(over_rep, 1)), color = 'grey20', size = 2.5) +
+    nudge_y = 1.2, aes(label = round(over_rep, 1)), size = 2.5) +
   geom_text(
     data = . %>% 
       filter(type == 'Expected' & country_name %in% c('Israel', 'United States')), 
-    nudge_y = -1.2, aes(label = round(over_rep, 1)), color = 'grey20', size = 2.5)
+    nudge_y = -1.2, aes(label = round(over_rep, 1)), size = 2.5)
 
-odds_plot <- cowplot::plot_grid(odds_plot_left, odds_plot_right,
+enrichment_plot <- cowplot::plot_grid(enrichment_plot_left, enrichment_plot_right,
                                 rel_widths = c(1, 1.3))
-odds_plot
-ggsave('figs/odds-plot.png', odds_plot, width = 5.5, height = 3.5)
+enrichment_plot
+ggsave('figs/enrichment-plot.png', enrichment_plot, width = 5.5, height = 3.5)
 
 ```
 
