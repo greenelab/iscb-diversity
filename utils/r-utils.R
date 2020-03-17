@@ -377,8 +377,7 @@ race_breakdown <- function(df, category = 'main', ...){
     # scale_fill_viridis_d(direction = -1) +
     # scale_fill_brewer(palette = 'Set3') +
     scale_fill_manual(
-      values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada'),
-      drop = FALSE) +
+      values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada')) +
     theme(legend.position = 'None', panel.grid.major.x = element_blank()) +
     labs(x = NULL) +
     facet_wrap(vars(...), ncol = 2)
