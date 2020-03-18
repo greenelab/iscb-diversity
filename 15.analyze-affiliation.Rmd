@@ -21,8 +21,6 @@ theme_set(
 
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz')
-
 pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
