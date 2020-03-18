@@ -22,7 +22,7 @@ theme_set(
 and use the `wru` package to predict race based on last_names only
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz')
+all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 articles <- read_tsv('data/pubmed/articles.tsv.xz')
 
 pubmed_race_pmids <- 
