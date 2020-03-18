@@ -477,6 +477,21 @@ my_riskratio <- function (x, y = NULL, conf.level = 0.95, rev = c("neither",
     n0 <- a0 + b0
     m0 <- b0 + b1
     m1 <- a0 + a1
+    # for US:
+    # nested_obs_exp %>% 
+    #   filter(country_name == 'United States') %>% 
+    #   ungroup() %>% 
+    #   select(-country_name) %>% 
+    #   unlist() %>%
+    #   matrix(ncol = 2, byrow = TRUE) %>%
+    #   my_riskratio(correction = TRUE)
+    # 237.5/(8804.316/22714*394)
+    # print('a1 should be 237.5, n1 should be 394')
+    # print('a0 should be 8804.316, n0 should be 22714')
+    # cat('a1 = ', a1)
+    # cat('n1 = ', n1)
+    # cat('a0 = ', a0)
+    # cat('n0 = ', n0)
     est <- (a1/n1)/((a0)/(n0))
     logRR <- log(est)
     # choose delta = 0.1 for only a slight correction, avoid divide by 0
