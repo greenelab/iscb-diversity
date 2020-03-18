@@ -15,7 +15,7 @@ theme_set(
           legend.title = element_blank()))
 
 alpha_threshold <- qnorm(0.975)
-start_year <- 1997
+start_year <- 1993
 end_year <- 2019
 n_years <- end_year - start_year
 
@@ -24,7 +24,7 @@ race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Other', 'Other categori
 
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz')
+all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 world <- rnaturalearth::ne_countries(scale='medium',returnclass = 'sf') 
 nat_to_reg <- world %>% 
   as_tibble() %>% 
@@ -58,9 +58,8 @@ iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>%
          year = ymd(year, truncated = 2)) %>% 
   separate_rows(afflcountries, sep = '\\|') %>% 
   filter(afflcountries == 'United States') %>% 
-  # left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
-  rename('surname' = last_name) %>% 
-  # rename('surname' = last_name) %>%
+  left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
+  rename('surname' = last_name_simple) %>%
   predict_race(surname.only = T, impute.missing = F) %>% 
   filter(conference != 'PSB') # remove PSB
 
@@ -170,3 +169,41 @@ fig_2
 
 ggsave('figs/us_racial_makeup.png', fig_2, width = 7, height = 7)
 ```
+
+### What about p-values?
+
+```{r}
+w_df <- iscb_pubmed %>% filter(Race == 'White', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'greater') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be white is higher than that of authors.
+
+```{r}
+w_df <- iscb_pubmed %>% filter(Race == 'Asian', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'less') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be Asian is lower than that of authors.
+
+```{r}
+w_df <- iscb_pubmed %>% filter(Race == 'Other categories', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub) %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+A Welch two-sample t-test also does not reveal any difference between the mean probability of ISCB speakers predicted to be in Other categories compared to authors.
