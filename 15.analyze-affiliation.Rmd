@@ -139,7 +139,7 @@ fish_obs_exp %>%
          'Enrichment' = 'estimate',
          'Log2(enrichment)' = 'lestimate',
          '95% Confidence interval' = 'ci') %>% 
-  datatable() %>% 
+  datatable(rownames = FALSE) %>% 
   formatPercentage('Author proportion', 2) %>% 
   formatRound(c('Observed', 'Expected', 'Observed - Expected', 
                 'Enrichment', 'Log2(enrichment)'), 1)
@@ -230,7 +230,7 @@ enrichment_plot_left <- plot_obs_exp_left %>%
         ymax = lupper,
         group = country_name),
     color = filtered_obs_exp$presentation,
-    stroke = 0.3
+    stroke = 0.3, fatten = 2
   ) +
   scale_x_discrete(position = 'top', labels = NULL) +
   scale_y_reverse() +
