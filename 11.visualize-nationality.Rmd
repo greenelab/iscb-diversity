@@ -11,7 +11,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz')
+all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 
 nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>%
   rename('full_name' = X1) %>%
@@ -34,7 +34,8 @@ pubmed_nat_df <- pubmed_nat_pmids %>%
 iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>%
-  left_join(nationalize_df, by = c('fore_name', 'last_name'))
+  left_join(nationalize_df, by = c('fore_name', 'last_name')) %>% 
+  filter(conference != 'PSB') # remove PSB
 
 start_year <- 1997
 end_year <- 2019
@@ -202,6 +203,59 @@ fig_4
 ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
 
 ```
+
+
+### What about p-values?
+
+```{r}
+w_df <- iscb_pubmed %>% filter(region == 'CelticEnglish', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'greater') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be in group A is higher than that of authors.
+
+```{r}
+w_df <- iscb_pubmed %>% filter(region == 'European', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub) %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+
+A Welch two-sample t-test also shows a lower mean probability of ISCB speakers predicted to be in group B compared to authors.
+
+```{r}
+w_df <- iscb_pubmed %>% filter(region == 'EastAsian', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'less') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be in group C is lower than that of authors.
+
+```{r}
+w_df <- iscb_pubmed_oth %>% filter(region == 'OtherCategories', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub) %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+
+A Welch two-sample t-test does not reveal any difference in mean probability of ISCB speakers predicted to be in other groups compared to authors.
 
 ### Supplementary Figure S4 {#sup_fig_s4}
 
