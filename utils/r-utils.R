@@ -447,7 +447,11 @@ loess_and_ci <- function(df){
 
 my_riskratio <- function (x, y = NULL, conf.level = 0.95, rev = c("neither", 
                                                                   "rows", "columns", "both"), correction = FALSE, verbose = FALSE) 
-{
+  # with continuity correction:
+  # https://stats.stackexchange.com/questions/21298/confidence-interval-around-the-ratio-of-two-proportions
+  # http://www.zen103156.zen.co.uk/rr.pdf
+  # https://stats.stackexchange.com/questions/3112/calculation-of-relative-risk-confidence-interval
+  {
   if (is.matrix(x) && !is.null(y)) {
     stop("y argument should be NULL")
   }
@@ -475,6 +479,7 @@ my_riskratio <- function (x, y = NULL, conf.level = 0.95, rev = c("neither",
     m1 <- a0 + a1
     est <- (a1/n1)/((a0)/(n0))
     logRR <- log(est)
+    # choose delta = 0.1 for only a slight correction, avoid divide by 0
     SElogRR <- sqrt(1/(a1+0.1) - 1/(n1) + 1/(a0+0.1) - 1/(n0))
     ci <- exp(logRR + c(-1, 1) * Z * SElogRR)
     small[i, ] <- c(est, ci)
