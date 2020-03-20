@@ -409,7 +409,10 @@ race_breakdown <- function(df, category = 'main', ...){
         expand = c(0, 0),
         breaks = seq(0, 1, 0.5)
       ) +
-      labs(y = NULL)
+      labs(y = NULL) +
+      theme(legend.position = c(0.75, 0.25),
+            legend.key.height = unit(4, 'mm'),
+            legend.background = element_rect(fill = "transparent", colour = "transparent"))
   }
   
 }
