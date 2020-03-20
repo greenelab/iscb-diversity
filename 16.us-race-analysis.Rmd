@@ -15,7 +15,7 @@ theme_set(
           legend.title = element_blank()))
 
 alpha_threshold <- qnorm(0.975)
-start_year <- 1993
+start_year <- 1992
 end_year <- 2019
 n_years <- end_year - start_year
 
@@ -42,13 +42,10 @@ pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
   filter(countries == 'US')
   
 pubmed_race_pmids <- pubmed_aff_pmids %>%
-  # rename('surname' = last_name) %>% 
-  # left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
   rename('surname' = last_name_simple) %>% 
   predict_race(surname.only = T, impute.missing = F) 
 
 pubmed_us_race <- pubmed_race_pmids %>% 
-  # filter(!is.na(pred.whi)) %>% 
   group_by(pmid, journal, publication_date, year) %>% 
   summarise_at(vars(contains('pred.')), mean, na.rm = T) %>% 
   ungroup()
@@ -72,10 +69,10 @@ n_confs <- length(my_confs)
 Missing data:
 ```{r}
 iscb_us_race %>% filter(is.na(pred.whi)) %>% nrow()
-iscb_us_race %>% filter(is.na(surname)) %>% nrow()
 iscb_us_race %>% nrow()
 # pubmed_us_race %>% filter(is.na(simple_last_name)) %>% nrow()
 pubmed_race_pmids %>% filter(is.na(pred.whi)) %>% nrow()
+pubmed_race_pmids %>% filter(is.na(surname)) %>% nrow()
 ```
 
 
@@ -155,19 +152,16 @@ fig_2c <- iscb_pubmed %>%
   race_breakdown(category = 'main', type)
 
 fig_2b <- bind_rows(pubmed_race) %>%
-  race_breakdown(category = 'sub', journal) +
-  theme(legend.position = c(0.8, 0.25),
-        legend.key.height = unit(4, 'mm'),
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
+  race_breakdown(category = 'sub', journal)
 
 fig_2d <- bind_rows(iscb_race) %>%
   race_breakdown(category = 'sub', journal)
 
 fig_2_a_d <- cowplot::plot_grid(fig_2a, fig_2b, fig_2c, fig_2d, labels = 'AUTO')
-fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2.2,1))
+fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
 fig_2
 
-ggsave('figs/us_racial_makeup.png', fig_2, width = 7, height = 7)
+ggsave('figs/us_racial_makeup.png', fig_2, width = 7, height = 7.5)
 ```
 
 ### What about p-values?
@@ -206,4 +200,4 @@ t.test(w_iscb, w_pub) %>%
   select(-contains('estimate')) %>% 
   print()
 ```
-A Welch two-sample t-test also does not reveal any difference between the mean probability of ISCB speakers predicted to be in Other categories compared to authors.
+A Welch two-sample t-test also does not reveal any statistically significant difference between the mean probability of ISCB speakers predicted to be in Other categories compared to authors.
