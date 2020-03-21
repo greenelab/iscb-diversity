@@ -101,8 +101,25 @@ my_fish <- function(df) {
     matrix(ncol = 2, byrow = TRUE) %>%
     my_riskratio(correction = TRUE)
   
+  res_fish <- df %>%
+    unlist() %>%
+    matrix(ncol = 2) %>%
+    fisher.test()
+  
+  or <- res_fish$estimate
+  l_or <- res_fish$conf.int[1]
+  u_or <- res_fish$conf.int[2]
+  p0 <- df[2]/(df[2] + df[1])
+  fish_rr <- or/(1 - p0 + p0*or)
+  fish_rr_lower <- l_or/(1 - p0 + p0*l_or)
+  fish_rr_upper <- u_or/(1 - p0 + p0*u_or)
+  
   res$measure[2, 1:3] %>% 
-    c(p_value = res$p.value[2,2]) %>% 
+    c(p_value = res$p.value[2,2]
+      # fish_rr = fish_rr,
+      # fish_rr_lower = fish_rr_lower,
+      # fish_rr_upper = fish_rr_upper
+      ) %>% 
     as.matrix() %>% t() %>% data.frame()
   # data_frame(estimate = res$estimate,
   #            lower = res$conf.int[1],
@@ -130,7 +147,7 @@ fish_obs_exp %>%
                      round(log2(upper), 1), ')'),
          lestimate = log2(estimate)) %>% 
   left_join(obs_vs_exp_all, by = 'country_name') %>% 
-  select(country_name, freq_affi, Observed, Expected, over_rep, 
+  select(country_name, freq_affi, Observed, Expected, over_rep,
          # log2fc, 
          estimate, lestimate, ci) %>% 
   rename('Country' = 'country_name',
@@ -218,7 +235,7 @@ enrichment_plot_left <- plot_obs_exp_left %>%
   labs(x = NULL, y = bquote(Log[2] ~ 'enrichment, 95% CI')) +
   theme(
     legend.position = c(0.9, 0.3),
-    # axis.text.x = element_text(color = rev(plot_obs_exp_left$presentation)),
+    axis.title = element_text(size = 9),
     plot.margin = margin(5.5, 2, 5.5, 5.5, unit = 'pt')
   ) +
   scale_color_brewer(type = 'qual', palette = 'Set1') +
@@ -243,6 +260,7 @@ enrichment_plot_right <- plot_obs_exp_right %>%
   geom_point(aes(shape = type), color = 'grey20') +
   labs(x = NULL, y = 'Number of honorees') +
   theme(
+    axis.title = element_text(size = 9),
     legend.position = c(0.75 , 0.3),
     axis.text.y = element_text(
       color = rev(filtered_obs_exp$presentation),
