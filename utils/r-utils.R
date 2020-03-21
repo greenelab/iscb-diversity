@@ -290,7 +290,7 @@ region_breakdown <- function(df, category = 'main', ...) {
     scale_fill_manual(
       drop = FALSE,
       values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
-    theme(legend.position = 'None',
+    theme(legend.key.height = unit(3.5, 'mm'),
           panel.grid.minor = element_blank()) +
     labs(x = NULL) 
   

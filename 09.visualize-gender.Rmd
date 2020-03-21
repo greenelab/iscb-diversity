@@ -8,6 +8,7 @@ output: html_document
 ```{r message = F, warning=F}
 library(tidyverse)
 library(lubridate)
+library(wru)
 source('utils/r-utils.R')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
@@ -52,16 +53,15 @@ n_confs <- length(my_confs)
 iscb_gender_df %>% 
   distinct(fore_name, last_name) %>% 
   nrow()
-
-set.seed(0)
-iscb_gender_df %>% 
-  count(fore_name, last_name) %>% 
-  filter(n > 1)
-
 ```
 
 
 ```{r include = F, eval = F}
+# How much are honorees duplicates?
+iscb_gender_df %>% 
+  count(fore_name, last_name) %>% 
+  filter(n > 1)
+
 # How much did ISCB honorees publish in these journals?
 world <- ne_countries(scale='medium',returnclass = 'sf') 
 nat_to_reg <- world %>% 
@@ -81,7 +81,9 @@ n_pubs <- iscb_pub %>%
   summarise(num_pubs = sum(!is.na(pmid)))
 
 n_tab <- table(n_pubs$num_pubs)
-table(cut(n_pubs$num_pubs, breaks=c(-1, 0, 1,5,10, 20, 30))) %>% t() %>% t()
+n_pubs$num_pubs %>% 
+  cut(breaks=c(-1, 0, 1,5,10, 20, 30)) %>% 
+  table() %>% t() %>% t()
 
 iscb_gender_df %>% 
   left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
@@ -141,25 +143,24 @@ pubmed_gender_pmids %>%
   nrow()
 
 # 1578 corresponding authors with fore name but no predictions
+# 52% has a dash
 pubmed_gender_pmids %>% 
   filter(is.na(probability_male) & !is.na(fore_name_simple)) %>% 
-  nrow()
+  mutate(dashed_name = grepl('-', fore_name_simple)) %>% 
+  count(dashed_name)
 
 # 30961 predicted names
 pubmed_gender_pmids %>% 
   filter(!is.na(probability_male)) %>% 
   nrow()
 
+# mean probability of selecting Asian among these names: 80%
 pubmed_gender_pmids %>% 
-  filter(is.na(probability_male) & !is.na(fore_name_simple),
-         grepl('-', fore_name_simple)) %>% 
-  nrow()
-
-pubmed_gender_pmids %>% 
-  filter(is.na(probability_male) & !is.na(fore_name_simple),
-         grepl('-', fore_name_simple)) %>% 
-  nrow()/1578
-
+  filter(is.na(probability_male) & !is.na(fore_name_simple)) %>% 
+  rename('surname' = last_name_simple) %>% 
+  predict_race(surname.only = T, impute.missing = F) %>% 
+  pull(pred.asi) %>% 
+  mean(na.rm = T)
 ```
 
 3 iscb forenames not genderized (Marcie, Árpád and Chung-I).
@@ -285,7 +286,7 @@ fig_1c <- bind_rows(pubmed_gender) %>%
 # By conference:
 fig_1d <- bind_rows(iscb_gender) %>%
   gender_breakdown(category = 'sub', journal) +
-  theme(legend.position = c(0.1, 0.3)) 
+  theme(legend.position = c(0.09, 0.4)) 
 
 fig_s1 <- cowplot::plot_grid(fig_1c, fig_1d, labels = 'AUTO', ncol = 1)
 fig_s1
