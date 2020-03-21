@@ -17,9 +17,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```{r}
 alpha_threshold <- qnorm(0.975)
 
-simple_fore_names <- read_tsv('data/names/fore-names.tsv.xz') %>% 
-  select(- n_authors) %>% 
-  distinct()
+all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 gender_df <- read_tsv('data/gender/genderize.tsv')
 
 pubmed_gender_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
@@ -38,7 +36,7 @@ pubmed_gender_pmids %>% filter(year < '2002-01-01', !is.na(fore_name_simple))
 iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
-  left_join(simple_fore_names, by = 'fore_name') %>% 
+  left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
   left_join(gender_df, by = 'fore_name_simple') %>% 
   filter(conference != 'PSB') # remove PSB
 
@@ -50,17 +48,57 @@ my_confs <- unique(iscb_gender_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
 
-# 294 unique names in iscb dataset:
+# unique names in iscb dataset:
 iscb_gender_df %>% 
-  distinct(full_name) %>% 
+  distinct(fore_name, last_name) %>% 
   nrow()
 
 set.seed(0)
 iscb_gender_df %>% 
-  count(full_name) %>% 
-  filter(n > 1) %>% 
-  sample_n(1)
+  count(fore_name, last_name) %>% 
+  filter(n > 1)
 
+```
+
+
+```{r include = F, eval = F}
+# How much did ISCB honorees publish in these journals?
+world <- ne_countries(scale='medium',returnclass = 'sf') 
+nat_to_reg <- world %>% 
+  as_tibble() %>% 
+  select(iso_a2, name, region_wb) %>% 
+  rename('countries' = iso_a2,
+         'country_name' = name,
+         'region' = region_wb)
+
+iscb_pub <- iscb_gender_df %>% 
+  distinct(fore_name_simple, last_name_simple, afflcountries) %>% 
+  left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
+  left_join(pubmed_gender_pmids, by = c('fore_name_simple', 'last_name_simple', 'countries')) 
+
+n_pubs <- iscb_pub %>% 
+  group_by(fore_name_simple, last_name_simple) %>% 
+  summarise(num_pubs = sum(!is.na(pmid)))
+
+n_tab <- table(n_pubs$num_pubs)
+table(cut(n_pubs$num_pubs, breaks=c(-1, 0, 1,5,10, 20, 30))) %>% t() %>% t()
+
+iscb_gender_df %>% 
+  left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
+  distinct(fore_name_simple, last_name_simple, afflcountries) %>% 
+  nrow()
+# 290 iscb
+
+# number of characters in fore names field
+# counts <- pubmed_gender_pmids %>% 
+#   filter(is.na(probability_male)) %>% 
+#   pull(fore_name) %>% 
+#   nchar() %>% 
+#   table()
+# 
+# counts
+# sum(counts)
+# sum(counts[1:3])/sum(counts)
 ```
 
 34050 *PMC plus fall back* corresponding author names.
@@ -68,7 +106,6 @@ iscb_gender_df %>%
 77 names were honored 194 times.
 
 Between 2000-2001, 11 corresponding author names from 10 BMC Bioinformatics articles were retrieved from PMC.
-
 
 Number of speakers/fellows in compbio conferences across years:
 
@@ -80,7 +117,7 @@ iscb_gender_df %>%
   geom_point() +
   geom_line(alpha = 0.5) +
   coord_cartesian(ylim = c(0, 13)) +
-  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
+  scale_x_continuous(breaks = seq(1995, 2019, 5)) +
   scale_y_continuous(breaks = seq(0, 14, 2)) +
   scale_color_viridis_d() +
   labs(x = 'Year', y = 'Number of keynote speakers/fellows')
@@ -92,11 +129,6 @@ iscb_gender_df %>%
 iscb_gender_df %>% filter(is.na(probability_male))
 pubmed_gender_pmids %>% filter(is.na(probability_male)) %>% sample_n(10)
 sum(is.na(pubmed_gender_pmids$probability_male))
-pubmed_gender_pmids %>% 
-  filter(is.na(probability_male)) %>% 
-  # pull(fore_name) %>% 
-  # unique() %>% 
-  nrow()
 
 # 45 corresponding authors with empty fore name field (i.e., missing metadata)
 pubmed_gender_pmids %>% 
@@ -118,19 +150,6 @@ pubmed_gender_pmids %>%
   filter(!is.na(probability_male)) %>% 
   nrow()
 
-# number of characters in fore names field
-# counts <- pubmed_gender_pmids %>% 
-#   filter(is.na(probability_male)) %>% 
-#   pull(fore_name) %>% 
-#   nchar() %>% 
-#   table()
-# 
-# counts
-# sum(counts)
-# sum(counts[1:3])/sum(counts)
-
-
-
 pubmed_gender_pmids %>% 
   filter(is.na(probability_male) & !is.na(fore_name_simple),
          grepl('-', fore_name_simple)) %>% 
@@ -143,7 +162,7 @@ pubmed_gender_pmids %>%
 
 ```
 
-2 iscb forenames not genderized (Árpád and Chung-I).
+3 iscb forenames not genderized (Marcie, Árpád and Chung-I).
 These NA predictions mostly include initials only, hyphenated names and perhaps names with accent marks.
 
 ```{r}
@@ -231,7 +250,7 @@ for (conf in my_confs){
 
 ### Figure 1: ISCB Fellows and keynote speakers appear more evenly split between men and women than PubMed authors, but the proportion has not reached parity.
 
-```{r fig.height=5, fig.width=9}
+```{r fig.height=3}
 fig_1 <- iscb_pubmed %>%
   filter(year < '2020-01-01') %>%
   group_by(year, type, gender) %>%
@@ -248,27 +267,25 @@ f_df <- iscb_pubmed %>% filter(gender == 'probability_female', !is.na(probabilit
 f_pub <- f_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
 f_iscb <- f_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
 
-t.test(f_iscb, f_pub, alternative = 'greater') %>% 
+t.test(f_iscb, f_pub) %>% 
   broom::tidy() %>% 
   select(-contains('estimate')) %>% 
   print()
 ```
-Taking all the years together, the Welch two-sample one-sided t-test does not reveal any difference in the mean probability of ISCB speakers predicted to be female compared to that of authors (p = 0.226).
+Taking all the years together, the Welch two-sample one-sided t-test does not reveal any difference in the mean probability of ISCB speakers predicted to be female compared to that of authors (p = 0.452).
 
 ### Supplementary Figure S1 {#sup_fig_s1}
 Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
 
-```{r fig.width=6, fig.height=3.5, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 # By journal:
 fig_1c <- bind_rows(pubmed_gender) %>%
-  gender_breakdown(category = 'sub', journal) +
-  theme(legend.position = 'right',
-        legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(1.3,0.7,0, 0.6, unit='cm'))
+  gender_breakdown(category = 'sub', journal)
 
 # By conference:
 fig_1d <- bind_rows(iscb_gender) %>%
-  gender_breakdown(category = 'sub', journal) 
+  gender_breakdown(category = 'sub', journal) +
+  theme(legend.position = c(0.1, 0.3)) 
 
 fig_s1 <- cowplot::plot_grid(fig_1c, fig_1d, labels = 'AUTO', ncol = 1)
 fig_s1
@@ -285,7 +302,8 @@ iscb_pubmed %>%
   geom_histogram(position = 'dodge') +
   scale_fill_viridis_d(option = 'D', end = 0.8) +
   guides(label = F) +
-  labs(x = 'probability_male')
+  labs(x = 'probability_male') +
+  theme(legend.position = c(0.2, 0.8))
 ```
 
 ## Mean and standard deviation of predicted probabilities
