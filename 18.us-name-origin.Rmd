@@ -11,7 +11,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz')
+all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 
 nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>%
   rename('full_name' = X1) %>%
@@ -41,7 +41,7 @@ iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   left_join(nationalize_df, by = c('fore_name', 'last_name')) %>% 
   filter(conference != 'PSB') # remove PSB
 
-start_year <- 1997
+start_year <- 1993
 end_year <- 2019
 n_years <- end_year - start_year
 my_jours <- unique(pubmed_nat_df$journal)

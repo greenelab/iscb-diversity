@@ -6,14 +6,16 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(lubridate)
+library(rnaturalearth)
 source('utils/r-utils.R')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
+
 ```{r}
 all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/LSTM_results_authors.tsv') %>%
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/0c85554d00aea7b0f75146b32fea4509d0077035/data/NamePrism_results_authors.tsv') %>%
   rename('full_name' = X1) %>%
   distinct(full_name, .keep_all = T) %>%
   left_join(all_full_names, by = 'full_name')
@@ -44,8 +46,32 @@ my_jours <- unique(pubmed_nat_df$journal)
 my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-region_levels <- c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Muslim', 'Israeli', 'African')
+region_levels <- paste(c('Celtic English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 'African', 'Nordic', 'Greek'), 'names')
+	# European	Finland	Greek	Hispanic	Jewish	Muslim	Nordic	SouthAsian
 region_levels_let <- toupper(letters[1:8])
+```
+
+Names grouping:
+```{r fig.height = 3}
+world <- ne_countries(scale='medium',returnclass = 'sf')
+
+our_country_map <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/a92a37284ef5a097c3f499fef782fd20f40e050c/data/country_to_region.tsv') %>%
+  rename('region' = Region) %>%
+  recode_region_letter()
+
+my_world <- world %>%
+  rename(Country = 'name') %>%
+  left_join(our_country_map, by = 'Country')
+
+(gworld <- ggplot(data = my_world) +
+    geom_sf(aes(fill = fct_relevel(region, region_levels_let))) +
+    coord_sf(crs = "+proj=eqearth +wktext") +
+    scale_fill_manual(values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+    theme(panel.background = element_rect(fill = "azure"),
+          legend.title = element_blank(),
+          panel.border = element_rect(fill = NA)))
+
+ggsave('figs/2020-01-31_groupings.png', gworld, width = 6.5, height = 3)
 ```
 
 ```{r}
@@ -84,15 +110,8 @@ pubmed_nat_df %>% filter(is.na(African)) %>%
   ylab('Number of full names NOT nationalized')
 ```
 
-
-```{r}
-pubmed_nat_df %>%
-  filter(year == '2002-01-01', !is.na(African))
-```
-
 In 2000, there is only one article that has nationality prediction.
 (9 articles in 2001).
-Should we drop?
 
 ## Descriptive statistics
 Prepare data frames for later analyses:
@@ -171,7 +190,7 @@ iscb_nat_df %>% filter(year == '2020-01-01' & conference == 'PSB')
 
 ## Figures for paper
 
-### Figure 4: Compared to the name collection of Pubmed authors, Celtic English honorees are overrepresented while East Asian honorees are underrepresented.
+### Figure 4: Compared to the name collection of Pubmed authors, honorees with Celtic/English names are overrepresented while honorees with East Asian names are underrepresented.
 
 ```{r fig.height=7, fig.width=9}
 fig_4a <- iscb_pubmed %>%
@@ -260,15 +279,11 @@ A Welch two-sample t-test does not reveal any difference in mean probability of 
 ### Supplementary Figure S4 {#sup_fig_s4}
 
 Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
-ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries
+ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries.
 
 ```{r fig.width=6, fig.height=3.5}
 fig_s4_1 <- bind_rows(pubmed_nat) %>%
-  region_breakdown(category = 'sub', journal) +
-  theme(legend.position = 'right',
-        legend.key.height = unit(3.5, 'mm'),
-        legend.margin = margin(0, 1, 0, 1.1, unit='cm')
-        )
+  region_breakdown(category = 'sub', journal)
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
   filter(year < '2020-01-01') %>%
