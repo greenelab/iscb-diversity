@@ -203,12 +203,16 @@ recode_region <- function(df){
     mutate(
       region = fct_recode(
         region, 
-        'Celtic English' = 'CelticEnglish',
-        'East Asian' = 'EastAsian',
-        'South Asian' = 'SouthAsian',
-        'Israeli' = 'Israel',
-        'Arabic' = 'Muslim',
-        'African' = 'Africa',
+        'Celtic/English names' = 'CelticEnglish',
+        'European names' = 'European',
+        'East Asian names' = 'EastAsian',
+        'South Asian names' = 'SouthAsian',
+        'Hebrew names' = 'Jewish',
+        'Arabic names' = 'Muslim',
+        'African names' = 'African',
+        'Hispanic names' = 'Hispanic',
+        'Nordic names' = 'Nordic',
+        'Greek names' = 'Greek',
         'Other categories' = 'OtherCategories')
     )
 }
@@ -282,16 +286,19 @@ gender_breakdown <- function(df, category = 'main', ...) {
 region_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
-    recode_region_letter() %>% 
-    ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels_let))) +
+    # recode_region_letter() %>% 
+    recode_region() %>%
+    ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
     geom_bar(stat = 'identity') +
     # paletteer::scale_fill_paletteer_d('colorblindr::OkabeIto', direction = -1) +
     # scale_fill_brewer(palette = 'Set3') +
     scale_fill_manual(
       drop = FALSE,
-      values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072')) +
+      values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072', '#bc80bd', '#ccebc5')) +
     theme(legend.key.height = unit(3.5, 'mm'),
-          panel.grid.minor = element_blank()) +
+          legend.margin = margin(-0.5, 0, 0, 0, unit='cm'),
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank()) +
     labs(x = NULL) 
   
   if (category == 'main') {
