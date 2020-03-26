@@ -455,8 +455,8 @@ my_confs &lt;- unique(iscb_nat_df$conference)
 n_jours &lt;- length(my_jours)
 n_confs &lt;- length(my_confs)
 region_levels &lt;- paste(c(&#39;Celtic/English&#39;, &#39;European&#39;, &#39;East Asian&#39;, &#39;Hispanic&#39;, &#39;South Asian&#39;, &#39;Arabic&#39;, &#39;Hebrew&#39;, &#39;African&#39;, &#39;Nordic&#39;, &#39;Greek&#39;), &#39;names&#39;)
-    # European  Finland Greek   Hispanic    Jewish  Muslim  Nordic  SouthAsian
-region_levels_let &lt;- toupper(letters[1:8])</code></pre>
+region_levels_let &lt;- toupper(letters[1:8])
+region_cols &lt;- c(&#39;#ffffb3&#39;, &#39;#fccde5&#39;, &#39;#b3de69&#39;, &#39;#fdb462&#39;, &#39;#80b1d3&#39;, &#39;#8dd3c7&#39;, &#39;#bebada&#39;, &#39;#fb8072&#39;, &#39;#bc80bd&#39;, &#39;#ccebc5&#39;)</code></pre>
 <p>Names grouping:</p>
 <pre class="r"><code>our_country_map &lt;- read_tsv(&#39;https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/7c22d0a5f661ce5aeb785215095deda40973ff17/data/country_to_region_NamePrism.tsv&#39;) %&gt;%
   rename(&#39;region&#39; = Region) %&gt;%
@@ -475,7 +475,7 @@ region_levels_let &lt;- toupper(letters[1:8])</code></pre>
 (gworld &lt;- ggplot(data = my_world) +
     geom_sf(aes(fill = fct_relevel(region, region_levels))) +
     coord_sf(crs = &quot;+proj=eqearth +wktext&quot;) +
-    scale_fill_manual(values = c(&#39;#ffffb3&#39;, &#39;#fccde5&#39;, &#39;#b3de69&#39;, &#39;#fdb462&#39;, &#39;#80b1d3&#39;, &#39;#8dd3c7&#39;, &#39;#bebada&#39;, &#39;#fb8072&#39;, &#39;#bc80bd&#39;, &#39;#ccebc5&#39;),
+    scale_fill_manual(values = region_cols,
                       na.translate = FALSE) +
     theme(panel.background = element_rect(fill = &quot;azure&quot;),
           legend.title = element_blank(),
@@ -612,29 +612,6 @@ for (conf in my_confs){
     summarise(mean_prob = mean(probabilities, na.rm = T)) %&gt;%
     ungroup()
 }</code></pre>
-<pre class="r"><code>iscb_pubmed %&gt;%
-    filter(type != &#39;Pubmed authors&#39; &amp; year == &#39;2011-01-01&#39; &amp; journal == &#39;PSB&#39;)</code></pre>
-<pre><code>## # A tibble: 0 x 10
-## # … with 10 variables: year &lt;date&gt;, journal &lt;chr&gt;,
-## #   publication_date &lt;date&gt;, type &lt;chr&gt;, region &lt;chr&gt;,
-## #   probabilities &lt;dbl&gt;, n &lt;dbl&gt;, mean_prob &lt;dbl&gt;, sd_prob &lt;dbl&gt;,
-## #   me_prob &lt;dbl&gt;</code></pre>
-<pre class="r"><code>iscb_nat_df %&gt;% filter(year == &#39;2011-01-01&#39; &amp; conference == &#39;PSB&#39;)</code></pre>
-<pre><code>## # A tibble: 0 x 22
-## # … with 22 variables: year &lt;date&gt;, full_name.x &lt;chr&gt;, fore_name &lt;chr&gt;,
-## #   last_name &lt;chr&gt;, conference &lt;chr&gt;, source &lt;chr&gt;, affiliations &lt;chr&gt;,
-## #   afflcountries &lt;chr&gt;, publication_date &lt;date&gt;, full_name.y &lt;chr&gt;,
-## #   African &lt;dbl&gt;, CelticEnglish &lt;dbl&gt;, EastAsian &lt;dbl&gt;, European &lt;dbl&gt;,
-## #   Greek &lt;dbl&gt;, Hispanic &lt;dbl&gt;, Jewish &lt;dbl&gt;, Muslim &lt;dbl&gt;, Nordic &lt;dbl&gt;,
-## #   SouthAsian &lt;dbl&gt;, fore_name_simple &lt;chr&gt;, last_name_simple &lt;chr&gt;</code></pre>
-<pre class="r"><code>iscb_nat_df %&gt;% filter(year == &#39;2020-01-01&#39; &amp; conference == &#39;PSB&#39;)</code></pre>
-<pre><code>## # A tibble: 0 x 22
-## # … with 22 variables: year &lt;date&gt;, full_name.x &lt;chr&gt;, fore_name &lt;chr&gt;,
-## #   last_name &lt;chr&gt;, conference &lt;chr&gt;, source &lt;chr&gt;, affiliations &lt;chr&gt;,
-## #   afflcountries &lt;chr&gt;, publication_date &lt;date&gt;, full_name.y &lt;chr&gt;,
-## #   African &lt;dbl&gt;, CelticEnglish &lt;dbl&gt;, EastAsian &lt;dbl&gt;, European &lt;dbl&gt;,
-## #   Greek &lt;dbl&gt;, Hispanic &lt;dbl&gt;, Jewish &lt;dbl&gt;, Muslim &lt;dbl&gt;, Nordic &lt;dbl&gt;,
-## #   SouthAsian &lt;dbl&gt;, fore_name_simple &lt;chr&gt;, last_name_simple &lt;chr&gt;</code></pre>
 </div>
 </div>
 <div id="figures-for-paper" class="section level2">
@@ -747,7 +724,7 @@ t.test(w_iscb, w_pub) %&gt;%
 </div>
 <div id="sup_fig_s4" class="section level3">
 <h3>Supplementary Figure S4</h3>
-<p>Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics. ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries.</p>
+<p>Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics. ISMB keynotes had more probability attributable to Hebrew names, while RECOMB had more attributable to East Asian names.</p>
 <pre class="r"><code>fig_s4_1 &lt;- bind_rows(pubmed_nat) %&gt;%
   region_breakdown(category = &#39;sub&#39;, journal)</code></pre>
 <pre><code>## Warning: Unknown levels in `f`: OtherCategories</code></pre>
@@ -763,7 +740,7 @@ t.test(w_iscb, w_pub) %&gt;%
 </div>
 <div id="sup_fig_s5" class="section level3">
 <h3>Supplementary Figure S5</h3>
-<p>It’s difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction. There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field. However, just because a nationality isn’t underrepresented against the field doesn’t mean scientists from that nationality are appropriately represented.</p>
+<p>It’s difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction. There seems to be little difference between the proportion of keynote speakers of African, Arabic, South Asian and Hispanic origin than those in the field. However, just because a nationality isn’t underrepresented against the field doesn’t mean scientists from that nationality are appropriately represented.</p>
 <pre class="r"><code>fig_s5 &lt;- iscb_pubmed %&gt;%
   recode_region() %&gt;%
   loess_and_ci() +

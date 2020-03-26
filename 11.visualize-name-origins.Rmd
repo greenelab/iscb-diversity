@@ -47,7 +47,6 @@ my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
 region_levels <- paste(c('Celtic/English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 'African', 'Nordic', 'Greek'), 'names')
-	# European	Finland	Greek	Hispanic	Jewish	Muslim	Nordic	SouthAsian
 region_levels_let <- toupper(letters[1:8])
 region_cols <- c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072', '#bc80bd', '#ccebc5')
 ```
@@ -86,7 +85,7 @@ top_names <- map_dfc(colnames(nationalize_df)[-1], function(x) {
     rename(!!x := full_name)
   })
 
-top_names %>% write_tsv('data/names/example_nationalities.tsv')
+top_names %>% write_tsv('data/names/example_name_origin.tsv')
 ```
 
 
@@ -182,14 +181,6 @@ for (conf in my_confs){
 }
 ```
 
-
-```{r}
-iscb_pubmed %>%
-    filter(type != 'Pubmed authors' & year == '2011-01-01' & journal == 'PSB')
-iscb_nat_df %>% filter(year == '2011-01-01' & conference == 'PSB')
-iscb_nat_df %>% filter(year == '2020-01-01' & conference == 'PSB')
-```
-
 ## Figures for paper
 
 ### Figure 4: Compared to the name collection of Pubmed authors, honorees with Celtic/English names are overrepresented while honorees with East Asian names are underrepresented.
@@ -283,7 +274,7 @@ A Welch two-sample t-test does not reveal any difference in mean probability of 
 ### Supplementary Figure S4 {#sup_fig_s4}
 
 Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
-ISMB keynotes had more probability attributable to Israel, while RECOMB had more attributable to East Asian countries.
+ISMB keynotes had more probability attributable to Hebrew names, while RECOMB had more attributable to East Asian names.
 
 ```{r}
 fig_s4_1 <- bind_rows(pubmed_nat) %>%
@@ -300,7 +291,7 @@ ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
 
 ### Supplementary Figure S5 {#sup_fig_s5}
 It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
-There seems to be little difference between the proportion of keynote speakers of African, Muslim, South Asian and Hispanic origin than those in the field.
+There seems to be little difference between the proportion of keynote speakers of African, Arabic, South Asian and Hispanic origin than those in the field.
 However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
 
 ```{r fig.height=6}
