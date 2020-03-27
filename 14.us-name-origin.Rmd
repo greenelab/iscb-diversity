@@ -189,6 +189,58 @@ ggsave('figs/us_name_origin.png', fig_us_name_origin, width = 6.5, height = 5.5)
 
 ```
 
+### What about p-values?
+
+```{r}
+w_df <- iscb_pubmed %>% filter(region == 'CelticEnglish', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'greater') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be have Celtic/English names is higher than that of authors.
+
+```{r}
+w_df <- iscb_pubmed %>% filter(region == 'European', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'greater') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be have European names is higher than that of authors.
+
+```{r}
+w_df <- iscb_pubmed %>% filter(region == 'EastAsian', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub, alternative = 'less') %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to have East Asian names is lower than that of authors.
+
+```{r}
+w_df <- iscb_pubmed_oth %>% filter(region == 'OtherCategories', !is.na(probabilities))
+w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
+w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+
+t.test(w_iscb, w_pub) %>% 
+  broom::tidy() %>% 
+  select(-contains('estimate')) %>% 
+  print()
+```
+
+A Welch two-sample t-test does not reveal any difference in mean probability of ISCB speakers predicted to be in other groups compared to authors.
+
 
 ```{r}
 sessionInfo()
