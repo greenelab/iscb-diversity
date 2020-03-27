@@ -238,7 +238,7 @@ w_df <- iscb_pubmed %>% filter(region == 'European', !is.na(probabilities))
 w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
 w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
 
-t.test(w_iscb, w_pub) %>% 
+t.test(w_iscb, w_pub, alternative = 'greater') %>% 
   broom::tidy() %>% 
   select(-contains('estimate')) %>% 
   print()

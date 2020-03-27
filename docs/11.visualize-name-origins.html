@@ -686,14 +686,14 @@ t.test(w_iscb, w_pub, alternative = &#39;greater&#39;) %&gt;%
 w_pub &lt;- w_df %&gt;% filter(type == &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
 w_iscb &lt;- w_df %&gt;% filter(type != &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
 
-t.test(w_iscb, w_pub) %&gt;% 
+t.test(w_iscb, w_pub, alternative = &#39;greater&#39;) %&gt;% 
   broom::tidy() %&gt;% 
   select(-contains(&#39;estimate&#39;)) %&gt;% 
   print()</code></pre>
 <pre><code>## # A tibble: 1 x 7
 ##   statistic p.value parameter conf.low conf.high method         alternative
 ##       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;      
-## 1    0.0282   0.978      425.  -0.0355    0.0366 Welch Two Sam… two.sided</code></pre>
+## 1    0.0282   0.489      425.  -0.0297       Inf Welch Two Sam… greater</code></pre>
 <p>A Welch two-sample t-test does not reveal a statistically significant difference between the mean probability of ISCB honorees predicted to be have European names and authors.</p>
 <pre class="r"><code>w_df &lt;- iscb_pubmed %&gt;% filter(region == &#39;EastAsian&#39;, !is.na(probabilities))
 w_pub &lt;- w_df %&gt;% filter(type == &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
