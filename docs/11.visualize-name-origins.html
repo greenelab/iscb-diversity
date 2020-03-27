@@ -492,7 +492,7 @@ top_names &lt;- map_dfc(colnames(nationalize_df)[-1], function(x) {
     rename(!!x := full_name)
   })
 
-top_names %&gt;% write_tsv(&#39;data/names/example_nationalities.tsv&#39;)</code></pre>
+top_names %&gt;% write_tsv(&#39;data/names/example_name_origin.tsv&#39;)</code></pre>
 <div id="missing-data" class="section level2">
 <h2>Missing data</h2>
 <pre class="r"><code>iscb_nat_df %&gt;% filter(is.na(African))</code></pre>
@@ -681,7 +681,7 @@ t.test(w_iscb, w_pub, alternative = &#39;greater&#39;) %&gt;%
 ##   statistic  p.value parameter conf.low conf.high method        alternative
 ##       &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;         &lt;chr&gt;      
 ## 1      9.01 3.76e-18      418.    0.143       Inf Welch Two Sa… greater</code></pre>
-<p>The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be in group A is higher than that of authors.</p>
+<p>The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be have Celtic/English names is higher than that of authors.</p>
 <pre class="r"><code>w_df &lt;- iscb_pubmed %&gt;% filter(region == &#39;European&#39;, !is.na(probabilities))
 w_pub &lt;- w_df %&gt;% filter(type == &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
 w_iscb &lt;- w_df %&gt;% filter(type != &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
@@ -694,7 +694,7 @@ t.test(w_iscb, w_pub) %&gt;%
 ##   statistic p.value parameter conf.low conf.high method         alternative
 ##       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;      
 ## 1    0.0282   0.978      425.  -0.0355    0.0366 Welch Two Sam… two.sided</code></pre>
-<p>A Welch two-sample t-test also shows a lower mean probability of ISCB speakers predicted to be in group B compared to authors.</p>
+<p>A Welch two-sample t-test does not reveal a statistically significant difference between the mean probability of ISCB honorees predicted to be have European names and authors.</p>
 <pre class="r"><code>w_df &lt;- iscb_pubmed %&gt;% filter(region == &#39;EastAsian&#39;, !is.na(probabilities))
 w_pub &lt;- w_df %&gt;% filter(type == &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
 w_iscb &lt;- w_df %&gt;% filter(type != &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
@@ -707,7 +707,7 @@ t.test(w_iscb, w_pub, alternative = &#39;less&#39;) %&gt;%
 ##   statistic  p.value parameter conf.low conf.high method        alternative
 ##       &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;         &lt;chr&gt;      
 ## 1     -15.8 1.32e-45      454.     -Inf    -0.155 Welch Two Sa… less</code></pre>
-<p>The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be in group C is lower than that of authors.</p>
+<p>The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to have East Asian names is lower than that of authors.</p>
 <pre class="r"><code>w_df &lt;- iscb_pubmed_oth %&gt;% filter(region == &#39;OtherCategories&#39;, !is.na(probabilities))
 w_pub &lt;- w_df %&gt;% filter(type == &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
 w_iscb &lt;- w_df %&gt;% filter(type != &#39;Pubmed authors&#39;) %&gt;% pull(probabilities)
