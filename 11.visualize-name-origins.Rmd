@@ -298,8 +298,8 @@ However, just because a nationality isn't underrepresented against the field doe
 fig_s5 <- iscb_pubmed %>%
   recode_region() %>%
   loess_and_ci() +
-  theme(legend.position = c(0.8, 0.15)) +
-  facet_wrap(vars(fct_relevel(region, region_levels_let)), ncol = 3)
+  theme(legend.position = c(0.8, 0.1)) +
+  facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
 fig_s5
 ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
 
