@@ -241,6 +241,40 @@ t.test(w_iscb, w_pub) %>%
 
 A Welch two-sample t-test does not reveal any difference in mean probability of ISCB speakers predicted to be in other groups compared to authors.
 
+### Supplementary Figure S6 {#sup_fig_s6}
+
+Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
+ISMB keynotes had more probability attributable to Hebrew names, while RECOMB had more attributable to East Asian names.
+
+```{r}
+fig_s6_1 <- bind_rows(pubmed_nat) %>%
+  region_breakdown(category = 'sub', journal)
+
+fig_s6_2 <- bind_rows(iscb_nat) %>%
+  filter(year < '2020-01-01') %>%
+  region_breakdown(category = 'sub', journal)
+
+fig_s6 <- cowplot::plot_grid(fig_s6_1, fig_s6_2, labels = 'AUTO', ncol = 1)
+fig_s6
+ggsave('figs/fig_s6.png', fig_s6, width = 6, height = 3.5)
+```
+
+### Supplementary Figure S7 {#sup_fig_s7}
+It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
+There seems to be little difference between the proportion of keynote speakers of African, Arabic, South Asian and Hispanic origin than those in the field.
+However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
+
+```{r fig.height=6}
+fig_s7 <- iscb_pubmed %>%
+  recode_region() %>%
+  loess_and_ci() +
+  theme(legend.position = c(0.8, 0.1)) +
+  facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
+fig_s7
+ggsave('figs/fig_s7.png', fig_s7, width = 6, height = 6)
+
+```
+
 
 ```{r}
 sessionInfo()
