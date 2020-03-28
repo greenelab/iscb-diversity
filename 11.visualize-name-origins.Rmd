@@ -77,15 +77,25 @@ ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 4)
 
 ```{r}
 set.seed(0)
-top_names <- map_dfc(colnames(nationalize_df)[-1], function(x) {
+
+top_names <- map_dfc(nationalize_df %>% 
+  select(African:SouthAsian) %>% 
+  colnames(), 
+  function(x) {
   nationalize_df %>%
     filter((!!sym(x)) > 0.9) %>%
-    sample_n(10) %>%
+    sample_n(6) %>%
     select(full_name) %>%
     rename(!!x := full_name)
   })
 
-top_names %>% write_tsv('data/names/example_name_origin.tsv')
+top_names %>% 
+  pivot_longer(everything(), names_to = 'region', values_to = 'names') %>% 
+  recode_region() %>% 
+  group_by(region) %>% 
+  summarise(names = paste(names, collapse = ', ')) %>% 
+  arrange(factor(region, levels = region_levels)) %>%
+  write_tsv('data/names/example_name_origin.tsv')
 ```
 
 
