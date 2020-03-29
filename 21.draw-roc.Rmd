@@ -105,16 +105,16 @@ heat_dat <- predictions_df %>%
   ungroup() %>%
   pivot_longer(- y_true, names_to = 'region', values_to = 'pred_prob') %>%
   recode_region() %>%
-  rename('reg_hat' = region,
-    'region' = y_true) %>% 
+  rename('reg_hat' = region, 'region' = y_true) %>% 
   recode_region() %>%
+  rename('y_true' = region, 'region' = reg_hat) %>% 
   left_join(auc_df, by = 'region') %>%
   mutate(scale_pred_prob = log2((pred_prob)/(n/n_obs)),
          region = region %>% gsub(' names', '', .) %>% fct_relevel(short_regs),
-         reg_hat = reg_hat %>% gsub(' names', '', .) %>% fct_relevel(short_regs))
+         y_true = y_true %>% gsub(' names', '', .) %>% fct_relevel(short_regs))
 
 
-fig_3c <- ggplot(heat_dat, aes(region, reg_hat,
+fig_3c <- ggplot(heat_dat, aes(y_true, region,
                                fill = scale_pred_prob)) +
   geom_tile() +
   scale_fill_gradientn(
