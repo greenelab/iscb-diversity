@@ -72,7 +72,7 @@ my_world <- ne_countries(scale='medium', returnclass = 'sf') %>%
           legend.position = 'bottom',
           panel.border = element_rect(fill = NA)))
 
-ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 4)
+ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 4.3)
 ```
 
 ```{r}
