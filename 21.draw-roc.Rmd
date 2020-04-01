@@ -133,6 +133,10 @@ fig_3c <- ggplot(heat_dat, aes(y_true, region,
         legend.margin = margin(0, 0,0, -1, unit='cm'),
         axis.title.x = element_text(margin = margin(t = 27, r = 0, b = 0, l = 0)),
         axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)))
+
+# heat_dat %>% 
+#   filter(scale_pred_prob < 0) %>% 
+#   arrange(desc(scale_pred_prob))
 # fig_3c
 # library(viridis)
 # scales::show_col(viridis_pal(option = 'D')(20))
