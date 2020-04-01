@@ -504,9 +504,20 @@ my_riskratio <- function (x, y = NULL, conf.level = 0.95, rev = c("neither",
     # cat('n0 = ', n0)
     est <- (a1/n1)/((a0)/(n0))
     logRR <- log(est)
+    
+    # Delta method
     # choose delta = 0.1 for only a slight correction, avoid divide by 0
-    SElogRR <- sqrt(1/(a1+0.1) - 1/(n1) + 1/(a0+0.1) - 1/(n0))
-    ci <- exp(logRR + c(-1, 1) * Z * SElogRR)
+    # SElogRR <- sqrt(1/(a1+0.1) - 1/(n1) + 1/(a0+0.1) - 1/(n0))
+    # ci <- exp(logRR + c(-1, 1) * Z * SElogRR)
+    
+    # Poisson model method
+    # https://books.google.com/books?id=oDlBZgyx54kC&pg=PP19&lpg=PP19
+    
+    alpha <- 1 - conf.level
+    rr_low <- ifelse(a1 == 0, 0, n0/n1 * a1/(a0+1) / qf(1-alpha/2, 2*(a0+1), 2*a1))
+    rr_high <- n0/n1 * (a1+1)/a0 * qf(1-alpha/2, 2*(a1+1), 2*a0)
+    ci <- c(rr_low, rr_high)
+    
     small[i, ] <- c(est, ci)
   }
   pv <- tab2by2.test(x, correction = correction)
