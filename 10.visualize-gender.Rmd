@@ -53,6 +53,10 @@ n_confs <- length(my_confs)
 iscb_gender_df %>% 
   distinct(fore_name, last_name) %>% 
   nrow()
+
+iscb_gender_df %>% 
+  pull(conference) %>% 
+  table()
 ```
 
 
