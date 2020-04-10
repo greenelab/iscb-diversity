@@ -39,7 +39,8 @@ iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   separate_rows(afflcountries, sep = '\\|') %>% 
   filter(afflcountries == 'United States') %>% 
   left_join(nationalize_df, by = c('fore_name', 'last_name')) %>% 
-  filter(conference != 'PSB') # remove PSB
+  filter(conference != 'PSB', year != '2020-01-01') 
+  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
 
 start_year <- 1992
 end_year <- 2019

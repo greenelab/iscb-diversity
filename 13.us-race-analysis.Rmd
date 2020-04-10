@@ -58,7 +58,8 @@ iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>%
   left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
   rename('surname' = last_name_simple) %>%
   predict_race(surname.only = T, impute.missing = F) %>% 
-  filter(conference != 'PSB') # remove PSB
+  filter(conference != 'PSB', year != '2020-01-01') 
+  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
 
 my_jours <- unique(pubmed_us_race$journal)
 my_confs <- unique(iscb_us_race$conference)

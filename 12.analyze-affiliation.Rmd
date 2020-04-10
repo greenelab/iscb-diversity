@@ -48,7 +48,8 @@ iscb_aff_country <- read_tsv('data/iscb/keynotes.tsv') %>%
          publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>%
   left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
-  filter(conference != 'PSB') # remove PSB
+  filter(conference != 'PSB', year != '2020-01-01') 
+  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
 
 pubmed_aff_country <- pubmed_aff_pmids %>%
   filter(!is.na(countries)) %>% 

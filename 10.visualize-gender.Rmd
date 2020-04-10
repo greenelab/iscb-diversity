@@ -39,7 +39,8 @@ iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
          year = ymd(year, truncated = 2)) %>% 
   left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
   left_join(gender_df, by = 'fore_name_simple') %>% 
-  filter(conference != 'PSB') # remove PSB
+  filter(conference != 'PSB', year != '2020-01-01') 
+  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
 
 start_year <- 1993
 end_year <- 2019
