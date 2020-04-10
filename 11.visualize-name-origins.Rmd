@@ -146,6 +146,7 @@ iscb_pubmed_oth <- iscb_nat_df %>%
   pivot_longer(c(African:SouthAsian, OtherCategories),
                names_to = 'region',
                values_to = 'probabilities') %>%
+  filter(!is.na(probabilities)) %>% 
   group_by(type, year, publication_date, region) %>%
   add_count() %>%
   mutate(

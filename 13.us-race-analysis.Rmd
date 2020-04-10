@@ -92,6 +92,7 @@ iscb_pubmed <- iscb_us_race %>%
   pivot_longer(contains('pred'),
                names_to = 'Race',
                values_to = 'probabilities') %>%
+  filter(!is.na(probabilities)) %>% 
   recode_race() %>%
   group_by(type, year, publication_date, Race) %>%
   add_count() %>%

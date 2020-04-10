@@ -208,6 +208,7 @@ iscb_pubmed <- iscb_gender_df %>%
   pivot_longer(contains('probability'),
                names_to = 'gender',
                values_to = 'probabilities') %>%
+  filter(!is.na(probabilities)) %>% 
   group_by(type, year, publication_date, gender) %>%
   add_count() %>%
   mutate(
