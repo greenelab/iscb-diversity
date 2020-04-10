@@ -1,0 +1,142 @@
+---
+title: "Analyzing 2020 data: ISCB Fellows and ISMB Speakers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(rnaturalearth)
+library(wru)
+source('utils/r-utils.R')
+theme_set(theme_bw() + theme(legend.title = element_blank()))
+```
+
+## Gender
+
+### Load data
+
+```{r message=FALSE, warning=FALSE}
+alpha_threshold <- qnorm(0.975)
+
+all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
+gender_df <- read_tsv('data/gender/genderize.tsv')
+
+world <- ne_countries(scale='medium',returnclass = 'sf') 
+nat_to_reg <- world %>% 
+  as_tibble() %>% 
+  select(iso_a2, name, region_wb) %>% 
+  rename('countries' = iso_a2,
+         'country_name' = name,
+         'region' = region_wb)
+
+iscb_gender_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  left_join(all_full_names, by = c('fore_name', 'last_name')) %>% 
+  left_join(gender_df, by = 'fore_name_simple') %>% 
+  filter(conference != 'PSB', year == '2020-01-01') 
+
+start_year <- 1993
+end_year <- 2019
+n_years <- end_year - start_year
+my_confs <- unique(iscb_gender_df$conference)
+n_confs <- length(my_confs)
+
+```
+
+
+```{r}
+table(iscb_gender_df$afflcountries)
+mean(iscb_gender_df$probability_male, na.rm = T)
+```
+
+Proportion of US affiliation: 76.47\%.
+Mean probability of being male: 58.44\%.
+
+## Name origins
+
+```{r message=FALSE, warning=FALSE}
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/7c22d0a5f661ce5aeb785215095deda40973ff17/data/NamePrism_results_authors.tsv') %>%
+  rename('full_name' = X1) %>%
+  distinct(full_name, .keep_all = T) %>%
+  left_join(all_full_names, by = 'full_name')
+
+iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>%
+  left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
+  left_join(nationalize_df, by = c('fore_name', 'last_name_simple')) %>% 
+  filter(conference != 'PSB', year == '2020-01-01') 
+  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+
+my_confs <- unique(iscb_nat_df$conference)
+n_confs <- length(my_confs)
+region_levels <- paste(c('Celtic/English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 'African', 'Nordic', 'Greek'), 'names')
+```
+
+
+```{r}
+iscb_nat_df %>%
+  select(African:SouthAsian, publication_date) %>%
+  pivot_longer(African:SouthAsian,
+               names_to = 'region',
+               values_to = 'probabilities') %>%
+  filter(!is.na(probabilities)) %>% 
+  group_by(region) %>%
+  add_count() %>%
+  summarise(
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() %>%
+  recode_region() %>% 
+  arrange(desc(mean_prob))
+```
+
+## Race
+Among US-affiliated honorees:
+
+```{r message=FALSE, warning=FALSE}
+iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  separate_rows(afflcountries, sep = '\\|') %>% 
+  filter(afflcountries == 'United States') %>%
+  left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
+  rename('surname' = last_name_simple) %>%
+  predict_race(surname.only = T, impute.missing = F) %>% 
+  filter(conference != 'PSB', year == '2020-01-01') 
+
+my_confs <- unique(iscb_us_race$conference)
+n_confs <- length(my_confs)
+sum(is.na(iscb_us_race$pred.whi))
+```
+
+4 out of 13 do not have a race prediction.
+
+
+```{r}
+iscb_us_race %>%
+  pivot_longer(contains('pred'),
+               names_to = 'Race',
+               values_to = 'probabilities') %>%
+  recode_race() %>%
+  filter(!is.na(probabilities)) %>% 
+  group_by(Race) %>%
+  add_count() %>%
+  summarise(
+    mean_prob = mean(probabilities, na.rm = T),
+    sd_prob = sd(probabilities, na.rm = T),
+    n = mean(n),
+    me_prob = alpha_threshold * sd_prob / sqrt(n)
+  ) %>%
+  ungroup() 
+```
+
+
+```{r}
+sessionInfo()
+```
