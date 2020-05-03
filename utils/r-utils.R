@@ -218,7 +218,7 @@ recode_region <- function(df){
 }
 
 recode_region_letter <- function(df){
-  # recode the Race column in df (output from wru::predict_race())
+  # recode the Region column in df 
   df %>%
     mutate(
       region = fct_recode(
@@ -395,9 +395,7 @@ race_breakdown <- function(df, category = 'main', ...){
     my_plot <- my_plot +
       scale_x_date(
         labels = scales::date_format("%Y"),
-        expand = c(0, 0),
-        limits = c(ymd(start_year, truncated = 2L), ymd(end_year, truncated = 2L))
-      ) +
+        expand = c(0, 0)) +
       scale_y_continuous(
         labels = scales::percent_format(),
         expand = c(0, 0),
@@ -408,9 +406,7 @@ race_breakdown <- function(df, category = 'main', ...){
     my_plot <- my_plot +
       scale_x_date(
         labels = scales::date_format("'%y"),
-        expand = c(0, 0),
-        limits = c(ymd(start_year, truncated = 2L), ymd(end_year, truncated = 2L))
-      ) +
+        expand = c(0, 0)) +
       scale_y_continuous(
         labels = scales::percent_format(),
         expand = c(0, 0),
@@ -431,7 +427,7 @@ get_keynote_summary <- function(df){
     distinct()
 }
 
-loess_and_ci <- function(df){
+loess_and_ci <- function(df, start_y = start_year, end_y = end_year){
   df %>% 
     ggplot(aes(group = type)) +
     geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
@@ -445,8 +441,8 @@ loess_and_ci <- function(df){
                         ymax = mean_prob + me_prob)) +
     scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
     scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
-                 limits = c(ymd(start_year, truncated = 2L),
-                            ymd(end_year, truncated = 2L))) +
+                 limits = c(ymd(start_y, truncated = 2L),
+                            ymd(end_y, truncated = 2L))) +
     scale_color_manual(values = '#3fa392') +
     scale_fill_manual(values = '#3fa392') +
     coord_cartesian(ylim = c(0, 1)) +
