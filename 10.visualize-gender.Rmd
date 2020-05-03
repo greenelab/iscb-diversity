@@ -180,13 +180,14 @@ pubmed_gender_df %>% filter(is.na(probability_male)) %>%
   ylab('Number of forenames NOT genderized')
 
 pubmed_gender_pmids %>%
-  filter(is.na(probability_male),
-         journal == 'BMC Bioinformatics',
-         year < '2002-01-01')
+  filter(!is.na(probability_male),
+         year == '2000-01-01')
 ```
 
-The metadata for Bioinformatics and BMC Bioinformatics papers before 2002 only have initials of first and/or middle names. 
-Therefore, we do not have prediction for genders before this year.
+The metadata for most Bioinformatics and BMC Bioinformatics papers before 2002 only have initials of first and/or middle names. 
+Therefore, we miss many predictions for genders before this year.
+
+In 2000, only two gender predictions were made for two corresponding authors of one paper with probability of each author being male = 1 and 0.99.
 
 ## Prepare data frames for later analyses
 
