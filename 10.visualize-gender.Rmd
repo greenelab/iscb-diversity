@@ -267,7 +267,7 @@ fig_1 <- iscb_pubmed %>%
   gender_breakdown('main', fct_rev(type))
 fig_1
 ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
-
+ggsave('figs/gender_breakdown.svg', fig_1, width = 5, height = 2.5)
 ```
 
 ```{r}
@@ -275,12 +275,14 @@ f_df <- iscb_pubmed %>% filter(gender == 'probability_female', !is.na(probabilit
 f_pub <- f_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
 f_iscb <- f_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
 
-t.test(f_iscb, f_pub) %>% 
+t_res <- t.test(f_iscb, f_pub) 
+t_res %>% 
   broom::tidy() %>% 
   select(-contains('estimate')) %>% 
   print()
+
 ```
-Taking all the years together, the Welch two-sample one-sided t-test does not reveal any difference in the mean probability of ISCB speakers predicted to be female compared to that of authors (p = 0.452).
+Taking all the years together, the Welch two-sample one-sided t-test does not reveal any difference in the mean probability of ISCB speakers predicted to be female compared to that of authors (p = `r round(t_res$p.value, 3)`).
 
 ### Supplementary Figure S1 {#sup_fig_s1}
 Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
@@ -298,6 +300,7 @@ fig_1d <- bind_rows(iscb_gender) %>%
 fig_s1 <- cowplot::plot_grid(fig_1c, fig_1d, labels = 'AUTO', ncol = 1)
 fig_s1
 ggsave('figs/fig_s1.png', fig_s1, width = 6, height = 3.5)
+ggsave('figs/fig_s1.svg', fig_s1, width = 6, height = 3.5)
 ```
 
 

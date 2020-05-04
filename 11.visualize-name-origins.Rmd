@@ -74,6 +74,7 @@ my_world <- ne_countries(scale='medium', returnclass = 'sf') %>%
           panel.border = element_rect(fill = NA)))
 
 ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 4.3)
+ggsave('figs/2020-01-31_groupings.svg', gworld, width = 7, height = 4.3)
 ```
 
 ```{r}
@@ -227,7 +228,7 @@ fig_4b <- iscb_pubmed_oth %>%
 fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
 fig_4
 ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
-
+ggsave('figs/region_breakdown.svg', fig_4, width = 6.5, height = 5.5)
 ```
 
 
@@ -299,6 +300,7 @@ fig_s4_2 <- bind_rows(iscb_nat) %>%
 fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
 fig_s4
 ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
+ggsave('figs/fig_s4.svg', fig_s4, width = 6, height = 3.5)
 ```
 
 ### Supplementary Figure S5 {#sup_fig_s5}
@@ -314,7 +316,7 @@ fig_s5 <- iscb_pubmed %>%
   facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
 fig_s5
 ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
-
+ggsave('figs/fig_s5.svg', fig_s5, width = 6, height = 6)
 ```
 
 

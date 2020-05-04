@@ -252,7 +252,6 @@ gender_breakdown <- function(df, category = 'main', ...) {
         breaks = seq(0, 1, 0.2)
       ) +
       labs(y = 'Estimated composition') +
-      facet_wrap(vars(...), nrow = 1, scales = 'free_x') +
       theme(legend.position = 'bottom',
             legend.key.height = unit(3, 'mm'),
             legend.key.width = unit(6, 'mm'),
@@ -261,7 +260,9 @@ gender_breakdown <- function(df, category = 'main', ...) {
       scale_x_date(
         labels = scales::date_format("%Y"),
         expand = c(0, 0)
-      )
+      ) +
+      facet_grid(cols = vars(...), scales = 'free_x', space = 'free_x')
+    
   } else if (category == 'sub') {
     my_plot <- my_plot +
       scale_y_continuous(
@@ -313,7 +314,8 @@ region_breakdown <- function(df, category = 'main', ...) {
         expand = c(0, 0)
       ) +
       labs(y = 'Estimated composition') +
-      facet_wrap(vars(...), ncol = 2, scales = 'free_x') 
+      facet_grid(cols = vars(...), scales = 'free_x', space = 'free_x')
+    
   } else if (category == 'sub') {
     my_plot <- my_plot +
       scale_y_continuous(
@@ -326,7 +328,7 @@ region_breakdown <- function(df, category = 'main', ...) {
         labels = scales::date_format("'%y"),
         expand = c(0, 0)
       ) +
-      facet_wrap(vars(...), nrow = 1) 
+      facet_wrap(vars(...), nrow = 1)
   }
   my_plot
 }

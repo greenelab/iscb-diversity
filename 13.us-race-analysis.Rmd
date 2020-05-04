@@ -159,11 +159,14 @@ fig_2b <- bind_rows(pubmed_race) %>%
 fig_2d <- bind_rows(iscb_race) %>%
   race_breakdown(category = 'sub', journal)
 
-fig_2_a_d <- cowplot::plot_grid(fig_2a, fig_2c, fig_2b, fig_2d, labels = 'AUTO')
+fig_2_a_d <- cowplot::plot_grid(fig_2a, fig_2c, fig_2b, fig_2d, ncol = 2, 
+                                labels = 'AUTO', 
+                                rel_widths = c(year(end_year) - 1990, year(end_year) - 1985))
 fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
 fig_2
 
 ggsave('figs/us_racial_makeup.png', fig_2, width = 7, height = 7.5)
+ggsave('figs/us_racial_makeup.svg', fig_2, width = 7, height = 7.5)
 ```
 
 ### What about p-values?
