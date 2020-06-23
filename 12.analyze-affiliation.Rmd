@@ -240,6 +240,10 @@ plot_obs_exp <- filtered_obs_exp %>%
 
 ```
 
+```{r}
+save(plot_obs_exp, file = 'Rdata/affiliations.Rdata')
+```
+
 ### Log enrichment figure {#enrichment_plot}
 ```{r}
 plot_obs_exp_right <- plot_obs_exp %>% filter(subtype == 'Sqrt(number of honorees)')

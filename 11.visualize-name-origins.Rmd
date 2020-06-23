@@ -194,6 +194,10 @@ for (conf in my_confs){
 }
 ```
 
+```{r}
+save(my_world, iscb_pubmed_oth, pubmed_nat, iscb_nat, file = 'Rdata/iscb-pubmed_nat.Rdata')
+```
+
 ## Figures for paper
 
 ### Figure 4: Compared to the name collection of Pubmed authors, honorees with Celtic/English names are overrepresented while honorees with East Asian names are underrepresented.

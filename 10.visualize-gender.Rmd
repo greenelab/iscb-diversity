@@ -253,6 +253,9 @@ for (conf in my_confs){
 }
 ```
 
+```{r}
+save(iscb_pubmed, pubmed_gender, iscb_gender, file = 'Rdata/iscb-pubmed_gender.Rdata')
+```
 
 ## Figures for paper
 
