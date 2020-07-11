@@ -32,12 +32,15 @@ nat_to_reg <- world %>%
   rename('countries' = iso_a2,
          'country_name' = name,
          'region' = region_wb)
+articles <- read_tsv('data/pubmed/articles.tsv.xz')
 
 # looking at only US affiliation
-pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
-  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
+pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz',
+                             col_types = cols(fore_name_simple = col_character())) %>%
+  left_join(articles, by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>% 
+  filter(year(publication_date) < 2020) %>% 
   separate_rows(countries, sep = ',') %>% 
   filter(countries == 'US')
   
@@ -48,7 +51,8 @@ pubmed_race_pmids <- pubmed_aff_pmids %>%
 pubmed_us_race <- pubmed_race_pmids %>% 
   group_by(pmid, journal, publication_date, year) %>% 
   summarise_at(vars(contains('pred.')), mean, na.rm = T) %>% 
-  ungroup()
+  ungroup() %>%
+  {.}
 
 iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
@@ -105,16 +109,42 @@ iscb_pubmed <- iscb_us_race %>%
   ungroup() 
 ```
 
+10 journals with the most computational biology articles:
+
+```{r}
+large_jours <- articles %>%
+  count(journal, sort = T) %>% 
+  head(10)
+
+articles %>% 
+  mutate(publication_date = ymd(publication_date, truncated = 2)) %>% 
+  select(publication_date, journal) %>% 
+  filter(journal %in% large_jours$journal) %>% 
+  ggplot(aes(x = publication_date, fill = fct_infreq(journal))) +
+  geom_histogram(size = 0, bins = 27) +
+  scale_fill_brewer(palette = 'Set3') +
+  theme(legend.position = c(0.2, 0.7)) +
+  labs(x = NULL, y = NULL) +
+scale_x_date(
+    labels = scales::date_format("%Y"),
+    breaks = as.Date(c('2000-01-01', '2010-01-01', '2019-01-01')),
+    limits = c(as.Date('1993-01-01'), as.Date('2019-12-31'))) + 
+  # geom_text(data = jours, aes(x = x, y = y, label = label), color = 'grey10') +
+  NULL
+```
+
+
 ```{r}
 pubmed_race <- vector('list', length = n_jours)
 i <- 0
-for (jour in my_jours){
+for (jour in large_jours$journal){
   i <- i + 1
   pubmed_race[[i]] <- iscb_pubmed %>%
     filter(type == 'Pubmed authors' & journal == jour & (Race != 'Other categories')) %>%
     group_by(year, Race, journal) %>%
-    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-    ungroup()
+    summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
+    # ungroup() %>% 
+    {.}
 }
 
 iscb_race <- vector('list', length = n_confs)
@@ -124,8 +154,9 @@ for (conf in my_confs){
   iscb_race[[i]] <- iscb_pubmed %>%
     filter(type != 'Pubmed authors' & journal == conf & (Race != 'Other categories')) %>%
     group_by(year, Race, journal) %>%
-    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-    ungroup()
+    summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
+    # ungroup() %>% 
+    {.}
 }
 ```
 
@@ -141,35 +172,20 @@ fig_stats <- iscb_pubmed %>%
   facet_wrap(vars(fct_rev(Race)))
 
 fig_2a <- iscb_pubmed %>%
-  filter(Race != 'Other categories',
-         type == 'Pubmed authors') %>%
+  filter(Race != 'Other categories'
+         # ,
+         # type == 'Pubmed authors'
+         ) %>%
   group_by(year, type, Race) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-  ungroup() %>%
-  race_breakdown(category = 'main', type) 
-
-fig_2c <- iscb_pubmed %>%
-  filter(Race != 'Other categories',
-         type != 'Pubmed authors') %>%
-  group_by(year, type, Race) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-  ungroup() %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
   race_breakdown(category = 'main', type)
 
-fig_2b <- bind_rows(pubmed_race) %>%
-  race_breakdown(category = 'sub', journal)
-
-fig_2d <- bind_rows(iscb_race) %>%
-  race_breakdown(category = 'sub', journal)
-
-fig_2_a_d <- cowplot::plot_grid(fig_2a, fig_2c, fig_2b, fig_2d, ncol = 2, 
-                                labels = 'AUTO', 
-                                rel_widths = c(year(end_year) - 1990, year(end_year) - 1985))
-fig_2 <- cowplot::plot_grid(fig_2_a_d, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(2,1))
+fig_2 <- cowplot::plot_grid(fig_2a, fig_stats, labels = c('', 'E'), ncol = 1
+                            , rel_heights = c(1.5,1))
 fig_2
 
-ggsave('figs/us_racial_makeup.png', fig_2, width = 7, height = 7.5)
-ggsave('figs/us_racial_makeup.svg', fig_2, width = 7, height = 7.5)
+ggsave('figs/us_racial_makeup.png', fig_2, width = 6.5, height = 5.5)
+ggsave('figs/us_racial_makeup.svg', fig_2, width = 6.5, height = 5.5)
 ```
 
 ### What about p-values?
@@ -179,33 +195,49 @@ w_df <- iscb_pubmed %>% filter(Race == 'White', !is.na(probabilities))
 w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
 w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
 
-t.test(w_iscb, w_pub, alternative = 'greater') %>% 
-  broom::tidy() %>% 
+t_w <- t.test(w_iscb, w_pub, alternative = 'greater') %>% 
+  broom::tidy() 
+
+t_w %>% 
   select(-contains('estimate')) %>% 
   print()
 ```
-The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be white is higher than that of authors.
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be white is higher than that of authors: t\_`r round(t_w$parameter)`) = `r round(t_w$statistic, 1)`  (p = `r t_w$p.value`).
 
 ```{r}
 w_df <- iscb_pubmed %>% filter(Race == 'Asian', !is.na(probabilities))
 w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
 w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
 
-t.test(w_iscb, w_pub, alternative = 'less') %>% 
-  broom::tidy() %>% 
+t_a <- t.test(w_iscb, w_pub, alternative = 'less') %>% 
+  broom::tidy() 
+
+t_a %>% 
   select(-contains('estimate')) %>% 
   print()
 ```
-The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be Asian is lower than that of authors.
+The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be Asian is lower than that of authors: t\_`r round(t_a$parameter)`) = `r round(t_a$statistic, 1)` (p = `r t_a$p.value`).
 
 ```{r}
 w_df <- iscb_pubmed %>% filter(Race == 'Other categories', !is.na(probabilities))
 w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
 w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
 
-t.test(w_iscb, w_pub) %>% 
-  broom::tidy() %>% 
+t_o <- t.test(w_iscb, w_pub) %>% 
+  broom::tidy() 
+
+t_o %>% 
   select(-contains('estimate')) %>% 
   print()
 ```
-A Welch two-sample t-test also does not reveal any statistically significant difference between the mean probability of ISCB speakers predicted to be in Other categories compared to authors.
+A Welch two-sample t-test also does not reveal any statistically significant difference between the mean probability of ISCB speakers predicted to be in Other categories compared to authors: t\_`r round(t_o$parameter)`) = `r round(t_o$statistic, 1)`  (p = `r t_o$p.value`).
+
+
+```{r}
+w_df %>% 
+  select(type, year, probabilities) %>% 
+  mutate(year = year(year),
+         type = as.factor(type)) %>% 
+  str()
+```
+

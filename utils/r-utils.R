@@ -387,11 +387,16 @@ race_breakdown <- function(df, category = 'main', ...){
     # scale_fill_brewer(palette = 'Set3') +
     scale_fill_manual(
       values = c('#ffffb3', '#b3de69','#fb8072', '#fdb462', '#80b1d3',  '#8dd3c7', '#bebada')) +
-    theme(legend.position = 'None', 
+    theme(legend.position = 'bottom', 
+          legend.key.height = unit(4, 'mm'),
+          legend.key.width = unit(2.5, 'mm'),
+          legend.margin = margin(-0.2, 0, 0.2, 0, unit='cm'),
           panel.grid.major.x = element_blank(), 
+          panel.grid.major.y = element_blank(), 
+          panel.grid.minor.y = element_blank(), 
           panel.grid.minor.x = element_blank()) +
     labs(x = NULL) +
-    facet_wrap(vars(...), ncol = 2)
+    facet_grid(cols = vars(...), scales = 'free_x', space = 'free_x')
   
   if (category == 'main') {
     my_plot <- my_plot +
@@ -408,7 +413,8 @@ race_breakdown <- function(df, category = 'main', ...){
     my_plot <- my_plot +
       scale_x_date(
         labels = scales::date_format("'%y"),
-        expand = c(0, 0)) +
+        expand = c(0, 0),
+        breaks = seq.Date(ymd("1990-01-01"), ymd("2020-01-01"), by = "5 years")) +
       scale_y_continuous(
         labels = scales::percent_format(),
         expand = c(0, 0),

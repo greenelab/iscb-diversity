@@ -21,7 +21,8 @@ theme_set(
 
 
 ```{r}
-pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
+pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz',
+                             col_types = cols(fore_name_simple = col_character())) %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2))
@@ -216,7 +217,7 @@ Presentation enrichment/depletion of 20 countries that have the most publication
 ```{r fig.width = 7, fig.height = 3.5}
 filtered_obs_exp <- obs_vs_exp_all %>% 
   left_join(fish_obs_exp, by = 'country_name') %>% 
-  top_n(20, num_authors) %>% 
+  top_n(25, num_authors) %>% 
   mutate(
     distance_to_null = case_when(
       lower > 1 ~ lower - 1,
@@ -273,6 +274,10 @@ enrichment_plot_left <- plot_obs_exp_left %>%
   scale_y_reverse() +
   geom_hline(data = plot_obs_exp_left, aes(yintercept = 0), linetype = 2)
 
+overrep_countries <- plot_obs_exp_right %>% 
+  filter(over_rep > 0) %>% 
+  pull(country_name)
+
 enrichment_plot_right <- plot_obs_exp_right %>%
   ggplot(aes(x = country_name, y = value)) +
   geom_line(aes(group = country_name),
@@ -292,11 +297,11 @@ enrichment_plot_right <- plot_obs_exp_right %>%
   coord_flip() +
   geom_text(
     data = . %>% 
-      filter(type == 'Expected' & !(country_name %in% c('Israel', 'United States'))),
+      filter(type == 'Expected', !(country_name %in% overrep_countries)),
     nudge_y = 1.2, aes(label = round(over_rep, 1)), size = 2.5) +
   geom_text(
     data = . %>% 
-      filter(type == 'Expected' & country_name %in% c('Israel', 'United States')), 
+      filter(type == 'Expected', country_name %in% overrep_countries), 
     nudge_y = -1.2, aes(label = round(over_rep, 1)), size = 2.5)
 
 enrichment_plot <- cowplot::plot_grid(enrichment_plot_left, enrichment_plot_right,
