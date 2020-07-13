@@ -1,12 +1,19 @@
 ---
 title: "Representation analysis of race/ethnicity in the US"
-output: html_document
+output:
+  html_document:
+    theme: flatly
+    code_download: true
 ---
 
 
 ```{r setup, include=FALSE}
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(broom)
 library(lubridate)
+library(forcats)
+
 source('utils/r-utils.R')
 library(wru)
 theme_set(
@@ -24,7 +31,7 @@ race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Other', 'Other categori
 
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
+all_full_names <- readr::read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 world <- rnaturalearth::ne_countries(scale='medium',returnclass = 'sf') 
 nat_to_reg <- world %>% 
   as_tibble() %>% 
@@ -32,16 +39,16 @@ nat_to_reg <- world %>%
   rename('countries' = iso_a2,
          'country_name' = name,
          'region' = region_wb)
-articles <- read_tsv('data/pubmed/articles.tsv.xz')
+articles <- readr::read_tsv('data/pubmed/articles.tsv.xz')
 
 # looking at only US affiliation
-pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz',
-                             col_types = cols(fore_name_simple = col_character())) %>%
+pubmed_aff_pmids <- readr::read_tsv('data/names/corresponding-authors.tsv.xz',
+                             col_types = readr::cols(fore_name_simple = readr::col_character())) %>%
   left_join(articles, by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>% 
   filter(year(publication_date) < 2020) %>% 
-  separate_rows(countries, sep = ',') %>% 
+  tidyr::separate_rows(countries, sep = ',') %>% 
   filter(countries == 'US')
   
 pubmed_race_pmids <- pubmed_aff_pmids %>%
@@ -54,10 +61,10 @@ pubmed_us_race <- pubmed_race_pmids %>%
   ungroup() %>%
   {.}
 
-iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>%
+iscb_us_race <- readr::read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
-  separate_rows(afflcountries, sep = '\\|') %>% 
+  tidyr::separate_rows(afflcountries, sep = '\\|') %>% 
   filter(afflcountries == 'United States') %>% 
   left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
   rename('surname' = last_name_simple) %>%
@@ -93,7 +100,7 @@ iscb_pubmed <- iscb_us_race %>%
       mutate(type = 'Pubmed authors')
   ) %>%
   mutate(pred_sum_others = pred.his + pred.oth + pred.bla) %>% 
-  pivot_longer(contains('pred'),
+  tidyr::pivot_longer(contains('pred'),
                names_to = 'Race',
                values_to = 'probabilities') %>%
   filter(!is.na(probabilities)) %>% 
@@ -120,7 +127,7 @@ articles %>%
   mutate(publication_date = ymd(publication_date, truncated = 2)) %>% 
   select(publication_date, journal) %>% 
   filter(journal %in% large_jours$journal) %>% 
-  ggplot(aes(x = publication_date, fill = fct_infreq(journal))) +
+  ggplot(aes(x = publication_date, fill = forcats::fct_infreq(journal))) +
   geom_histogram(size = 0, bins = 27) +
   scale_fill_brewer(palette = 'Set3') +
   theme(legend.position = c(0.2, 0.7)) +
@@ -169,7 +176,7 @@ fig_stats <- iscb_pubmed %>%
   filter(Race %in% c('White', 'Asian', 'Other categories')) %>% 
   loess_and_ci(start_y = '1992-01-01', end_y = end_year) +
   theme(legend.position = c(0.84, 0.78)) +
-  facet_wrap(vars(fct_rev(Race)))
+  facet_wrap(vars(forcats::fct_rev(Race)))
 
 fig_2a <- iscb_pubmed %>%
   filter(Race != 'Other categories'
@@ -190,54 +197,29 @@ ggsave('figs/us_racial_makeup.svg', fig_2, width = 6.5, height = 5.5)
 
 ### What about p-values?
 
-```{r}
-w_df <- iscb_pubmed %>% filter(Race == 'White', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
-
-t_w <- t.test(w_iscb, w_pub, alternative = 'greater') %>% 
-  broom::tidy() 
-
-t_w %>% 
-  select(-contains('estimate')) %>% 
-  print()
-```
-The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be white is higher than that of authors: t\_`r round(t_w$parameter)`) = `r round(t_w$statistic, 1)`  (p = `r t_w$p.value`).
+Regression of the probability of a name of a certain race on the type of scientists (authors vs. speakers) and year (interaction term included):
 
 ```{r}
-w_df <- iscb_pubmed %>% filter(Race == 'Asian', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+inte_lm <- function(racei){
+  lm(probabilities ~ year * type, 
+     data = iscb_pubmed %>% 
+       filter(Race == racei, !is.na(probabilities)) %>% 
+       mutate(year = scale(year)))
+}
 
-t_a <- t.test(w_iscb, w_pub, alternative = 'less') %>% 
-  broom::tidy() 
-
-t_a %>% 
-  select(-contains('estimate')) %>% 
-  print()
-```
-The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be Asian is lower than that of authors: t\_`r round(t_a$parameter)`) = `r round(t_a$statistic, 1)` (p = `r t_a$p.value`).
-
-```{r}
-w_df <- iscb_pubmed %>% filter(Race == 'Other categories', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
-
-t_o <- t.test(w_iscb, w_pub) %>% 
-  broom::tidy() 
-
-t_o %>% 
-  select(-contains('estimate')) %>% 
-  print()
-```
-A Welch two-sample t-test also does not reveal any statistically significant difference between the mean probability of ISCB speakers predicted to be in Other categories compared to authors: t\_`r round(t_o$parameter)`) = `r round(t_o$statistic, 1)`  (p = `r t_o$p.value`).
-
-
-```{r}
-w_df %>% 
-  select(type, year, probabilities) %>% 
-  mutate(year = year(year),
-         type = as.factor(type)) %>% 
-  str()
+inte_list <- lapply(c('White', 'Asian', 'Other categories'), inte_lm)
+lapply(inte_list, summary)
 ```
 
+```{r echo = F}
+get_p <- function(i, colu){
+  tidy(inte_list[[i]]) %>% 
+    filter(term == 'typePubmed authors') %>% 
+    pull(colu) %>% 
+    sprintf("%0.5f", .)
+}
+```
+
+## Conclusion
+
+A name coming from the group of authors has significantly lower probability of being white, $\beta_\textrm{white} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), and higher probability of being Asian, $\beta_\textrm{Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be in Other categories (_P_ = `r get_p(3, 'p.value')`).

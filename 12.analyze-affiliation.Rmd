@@ -1,6 +1,9 @@
 ---
 title: 'Affiliation analysis'
-output: html_document
+output:
+  html_document:
+    theme: flatly
+    code_download: true
 ---
 
 ```{r setup, include=FALSE}
