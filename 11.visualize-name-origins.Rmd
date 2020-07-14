@@ -1,6 +1,9 @@
 ---
 title: "Visualize nationality predictions"
-output: html_document
+output:
+  html_document:
+    theme: flatly
+    code_download: true
 ---
 
 ```{r setup, include=FALSE}
@@ -13,32 +16,36 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 
 
 ```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
-
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/7c22d0a5f661ce5aeb785215095deda40973ff17/data/NamePrism_results_authors.tsv') %>%
-  rename('full_name' = X1) %>%
-  distinct(full_name, .keep_all = T) %>%
-  left_join(all_full_names, by = 'full_name')
-
 alpha_threshold <- qnorm(0.975)
 
-pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz') %>%
+# all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
+# 
+# nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/c9e459ab7ee869cef777d0946a25a17f2328932b/data/NamePrism_results_authors.tsv') %>%
+#   rename('full_name' = X1) %>%
+#   distinct(full_name, .keep_all = T) %>%
+#   left_join(all_full_names, by = 'full_name')
+# save(nationalize_df, file = 'Rdata/nationalize_df.Rdata')
+load('Rdata/nationalize_df.Rdata')
+
+pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz',
+                             col_types = readr::cols(fore_name_simple = readr::col_character())) %>%
   left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>%
   left_join(nationalize_df, by = c('fore_name', 'last_name'))
-
 pubmed_nat_df <- pubmed_nat_pmids %>%
   group_by(pmid, journal, publication_date, year) %>%
   summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
   ungroup()
+save(pubmed_nat_pmids, pubmed_nat_df, file = 'Rdata/pubmed_nat_df.Rdata')
+
+# load('Rdata/pubmed_nat_df.Rdata')
 
 iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>%
   left_join(nationalize_df, by = c('fore_name', 'last_name')) %>% 
-  filter(conference != 'PSB', year != '2020-01-01') 
-  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+  filter(conference != 'PSB', year != '2020-01-01') # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
 
 start_year <- 1992
 end_year <- 2019
@@ -95,7 +102,7 @@ top_names %>%
   pivot_longer(everything(), names_to = 'region', values_to = 'names') %>% 
   recode_region() %>% 
   group_by(region) %>% 
-  summarise(names = paste(names, collapse = ', ')) %>% 
+  summarise(names = paste(names, collapse = ', '), .groups = 'drop') %>% 
   arrange(factor(region, levels = region_levels)) %>%
   write_tsv('data/names/example_name_origin.tsv')
 ```
@@ -104,9 +111,9 @@ top_names %>%
 ## Missing data
 
 ```{r}
-iscb_nat_df %>% filter(is.na(African))
-pubmed_nat_pmids %>% filter(is.na(African))
-pubmed_nat_pmids %>% filter(is.na(African)&!is.na(fore_name_simple.x))
+# iscb_nat_df %>% filter(is.na(African))
+# pubmed_nat_pmids %>% filter(is.na(African))
+# pubmed_nat_pmids %>% filter(is.na(African)&!is.na(fore_name_simple.x))
 sum(is.na(pubmed_nat_df$African))
 ```
 
@@ -115,12 +122,12 @@ All ISCB speakers have nationality predictions.
 <!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
 
 ```{r}
-pubmed_nat_df %>% filter(is.na(African)) %>%
-  count(year, journal) %>%
-  ggplot(aes(year(year), n, fill = journal)) +
-  geom_bar(stat = 'identity') +
-  scale_fill_viridis_d() +
-  ylab('Number of full names NOT nationalized')
+# pubmed_nat_df %>% filter(is.na(African)) %>%
+#   count(year, journal) %>%
+#   ggplot(aes(year(year), n, fill = journal)) +
+#   geom_bar(stat = 'identity') +
+#   scale_fill_viridis_d() +
+#   ylab('Number of full names NOT nationalized')
 ```
 
 In 2000, there is only one article that has nationality prediction.
@@ -166,17 +173,17 @@ iscb_pubmed <- iscb_pubmed_oth %>%
 ### By journals
 
 ```{r}
-pubmed_nat <- vector('list', length = n_jours)
-i <- 0
-
-for (jour in my_jours){
-  i <- i + 1
-  pubmed_nat[[i]] <- iscb_pubmed %>%
-    filter(type == 'Pubmed authors' & journal == jour) %>%
-    group_by(year, region, journal) %>%
-    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-    ungroup()
-}
+# pubmed_nat <- vector('list', length = n_jours)
+# i <- 0
+# 
+# for (jour in my_jours){
+#   i <- i + 1
+#   pubmed_nat[[i]] <- iscb_pubmed %>%
+#     filter(type == 'Pubmed authors' & journal == jour) %>%
+#     group_by(year, region, journal) %>%
+#     summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
+#     ungroup()
+# }
 ```
 
 ### By conference keynotes/fellows
@@ -189,13 +196,12 @@ for (conf in my_confs){
   iscb_nat[[i]] <- iscb_pubmed %>%
     filter(type != 'Pubmed authors' & journal == conf) %>%
     group_by(year, region, journal) %>%
-    summarise(mean_prob = mean(probabilities, na.rm = T)) %>%
-    ungroup()
+    summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop')
 }
 ```
 
 ```{r}
-save(my_world, iscb_pubmed_oth, pubmed_nat, iscb_nat, file = 'Rdata/iscb-pubmed_nat.Rdata')
+# save(my_world, iscb_pubmed_oth, pubmed_nat, iscb_nat, file = 'Rdata/iscb-pubmed_nat.Rdata')
 ```
 
 ## Figures for paper
@@ -239,54 +245,32 @@ ggsave('figs/region_breakdown.svg', fig_4, width = 6.5, height = 5.5)
 ### What about p-values?
 
 ```{r}
-w_df <- iscb_pubmed %>% filter(region == 'CelticEnglish', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
+inte_lm <- function(regioni){
+  lm(probabilities ~ year + type, 
+     data = iscb_pubmed_oth %>% 
+       filter(region == regioni, !is.na(probabilities)) %>% 
+       mutate(year = scale(year)))
+}
 
-t.test(w_iscb, w_pub, alternative = 'greater') %>% 
-  broom::tidy() %>% 
-  select(-contains('estimate')) %>% 
-  print()
-```
-The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to be have Celtic/English names is higher than that of authors.
-
-```{r}
-w_df <- iscb_pubmed %>% filter(region == 'European', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
-
-t.test(w_iscb, w_pub, alternative = 'greater') %>% 
-  broom::tidy() %>% 
-  select(-contains('estimate')) %>% 
-  print()
+inte_list <- lapply(large_regions, inte_lm)
+names(inte_list) <- large_regions
+lapply(inte_list, summary)
 ```
 
-A Welch two-sample t-test does not reveal a statistically significant difference between the mean probability of ISCB honorees predicted to be have European names and authors.
-
-```{r}
-w_df <- iscb_pubmed %>% filter(region == 'EastAsian', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
-
-t.test(w_iscb, w_pub, alternative = 'less') %>% 
-  broom::tidy() %>% 
-  select(-contains('estimate')) %>% 
-  print()
-```
-The Welch two-sample one-sided t-test shows that the mean probability of ISCB speakers predicted to have East Asian names is lower than that of authors.
-
-```{r}
-w_df <- iscb_pubmed_oth %>% filter(region == 'OtherCategories', !is.na(probabilities))
-w_pub <- w_df %>% filter(type == 'Pubmed authors') %>% pull(probabilities)
-w_iscb <- w_df %>% filter(type != 'Pubmed authors') %>% pull(probabilities)
-
-t.test(w_iscb, w_pub) %>% 
-  broom::tidy() %>% 
-  select(-contains('estimate')) %>% 
-  print()
+```{r echo = F}
+get_p <- function(i, colu){
+  broom::tidy(inte_list[[i]]) %>% 
+    filter(term == 'typePubmed authors') %>% 
+    pull(colu) %>% 
+    sprintf("%0.5g", .)
+}
 ```
 
-A Welch two-sample t-test does not reveal any difference in mean probability of ISCB speakers predicted to be in other groups compared to authors.
+## Conclusion
+
+A name coming from the group of authors has significantly lower probability of being Celtic/English, $\beta_\textrm{Celtic/English} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), and higher probability of being East Asian, $\beta_\textrm{East Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be European and in Other categories (_P_ = `r get_p(3, 'p.value')` and _P_ = `r get_p(4, 'p.value')`, respectively).
+
+
 
 ### Supplementary Figure S4 {#sup_fig_s4}
 
@@ -294,17 +278,17 @@ Proportion of authors in the Celtic English categories had decreased, particular
 ISMB keynotes had more probability attributable to Hebrew names, while RECOMB had more attributable to East Asian names.
 
 ```{r}
-fig_s4_1 <- bind_rows(pubmed_nat) %>%
-  region_breakdown(category = 'sub', journal)
+# fig_s4_1 <- bind_rows(pubmed_nat) %>%
+#   region_breakdown(category = 'sub', journal)
 
 fig_s4_2 <- bind_rows(iscb_nat) %>%
   filter(year < '2020-01-01') %>%
   region_breakdown(category = 'sub', journal)
 
-fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
-fig_s4
-ggsave('figs/fig_s4.png', fig_s4, width = 6, height = 3.5)
-ggsave('figs/fig_s4.svg', fig_s4, width = 6, height = 3.5)
+# fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
+# fig_s4
+ggsave('figs/fig_s4.png', fig_s4_2, width = 6, height = 3.5)
+ggsave('figs/fig_s4.svg', fig_s4_2, width = 6, height = 3.5)
 ```
 
 ### Supplementary Figure S5 {#sup_fig_s5}

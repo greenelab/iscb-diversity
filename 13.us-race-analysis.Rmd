@@ -116,6 +116,7 @@ iscb_pubmed <- iscb_us_race %>%
   ungroup() 
 ```
 
+
 10 journals with the most computational biology articles:
 
 ```{r}
@@ -139,7 +140,6 @@ scale_x_date(
   # geom_text(data = jours, aes(x = x, y = y, label = label), color = 'grey10') +
   NULL
 ```
-
 
 ```{r}
 pubmed_race <- vector('list', length = n_jours)
@@ -200,14 +200,19 @@ ggsave('figs/us_racial_makeup.svg', fig_2, width = 6.5, height = 5.5)
 Regression of the probability of a name of a certain race on the type of scientists (authors vs. speakers) and year (interaction term included):
 
 ```{r}
+main_lm <- function(racei){
+  lm(probabilities ~ year + type, 
+     data = iscb_pubmed %>% 
+       filter(Race == racei, !is.na(probabilities)) %>% 
+       mutate(year = scale(year)))
+}
 inte_lm <- function(racei){
   lm(probabilities ~ year * type, 
      data = iscb_pubmed %>% 
        filter(Race == racei, !is.na(probabilities)) %>% 
        mutate(year = scale(year)))
 }
-
-inte_list <- lapply(c('White', 'Asian', 'Other categories'), inte_lm)
+inte_list <- lapply(c('White', 'Asian', 'Other categories'), main_lm)
 lapply(inte_list, summary)
 ```
 
@@ -220,6 +225,15 @@ get_p <- function(i, colu){
 }
 ```
 
+### Should we include interaction terms?
+
+Interaction terms do not predict `probabilities` over and above the main effect of group of scientists and year.
+```{r}
+compare_lm <- function(racei) anova(main_lm(racei), inte_lm(racei))
+lapply(c('White', 'Asian', 'Other categories'), compare_lm)
+```
+
 ## Conclusion
 
 A name coming from the group of authors has significantly lower probability of being white, $\beta_\textrm{white} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), and higher probability of being Asian, $\beta_\textrm{Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be in Other categories (_P_ = `r get_p(3, 'p.value')`).
+
