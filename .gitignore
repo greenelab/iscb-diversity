@@ -29,3 +29,6 @@ iscb-diversity.Rproj
 .Rhistory
 Rdata/
 for-presentation/
+
+## Genderize.io API
+utils/secrets.py
