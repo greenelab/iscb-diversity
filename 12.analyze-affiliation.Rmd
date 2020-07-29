@@ -22,28 +22,13 @@ theme_set(
     ))
 ```
 
-
-```{r}
-pubmed_aff_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz',
-                             col_types = cols(fore_name_simple = col_character())) %>%
-  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
-  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
-         publication_date = ymd(publication_date, truncated = 2))
-
-world <- ne_countries(scale='medium',returnclass = 'sf') 
-nat_to_reg <- world %>% 
-  as_tibble() %>% 
-  select(iso_a2, name, region_wb) %>% 
-  rename('countries' = iso_a2,
-         'country_name' = name,
-         'region' = region_wb)
-```
-
 ## Country level analysis
 
 Observed vs. expected
 
 ```{r}
+load('Rdata/raws.Rdata')
+
 iscb_aff_country <- read_tsv('data/iscb/keynotes.tsv') %>%
   separate_rows(afflcountries, sep = '\\|') %>% 
   filter(!is.na(afflcountries)) %>% 
@@ -51,11 +36,9 @@ iscb_aff_country <- read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(probabilities = 1 / num_affls,
          publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>%
-  left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
-  filter(conference != 'PSB', year != '2020-01-01') 
-  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+  left_join(nat_to_reg, by = c('afflcountries' = 'country_name'))
 
-pubmed_aff_country <- pubmed_aff_pmids %>%
+pubmed_aff_country <- corr_authors %>%
   filter(!is.na(countries)) %>% 
   add_count(pmid, name = 'num_corr_authors') %>% # number of corresponding authors per pmid
   select(pmid, journal, publication_date, year, countries, fore_name_simple, last_name_simple, num_corr_authors) %>%
@@ -68,7 +51,7 @@ country_rep <- iscb_aff_country %>%
   summarise(Observed = sum(probabilities)) %>% 
   arrange(desc(Observed))
 
-num_papers <- pubmed_aff_pmids %>% 
+num_papers <- corr_authors %>% 
   filter(!is.na(countries)) %>% 
   pull(pmid) %>% 
   unique() %>% 

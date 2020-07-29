@@ -13,37 +13,27 @@ source('utils/r-utils.R')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
-```{r}
-all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
+Only keep articles from 2002 because few authors had nationality predictions before 2002 (mostly due to missing metadata).
+See [093.summary-stats](docs/093.summary-stats.html) for more details.
 
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/c9e459ab7ee869cef777d0946a25a17f2328932b/data/NamePrism_results_authors.tsv') %>%
-  rename('full_name' = X1) %>%
-  distinct(full_name, .keep_all = T) %>%
-  left_join(all_full_names, by = 'full_name')
+```{r}
+load('Rdata/raws.Rdata')
 
 alpha_threshold <- qnorm(0.975)
 
-pubmed_nat_pmids <- read_tsv('data/names/corresponding-authors.tsv.xz',
-                             col_types = readr::cols(fore_name_simple = readr::col_character())) %>%
-  left_join(read_tsv('data/pubmed/articles.tsv.xz'), by = 'pmid') %>%
-  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
-         publication_date = ymd(publication_date, truncated = 2)) %>%
+pubmed_nat_df <-  corr_authors %>%
+  filter(year(year) >= 2002) %>% 
   separate_rows(countries, sep = ',') %>% 
   filter(countries == 'US') %>% 
-  left_join(nationalize_df, by = c('fore_name', 'last_name'))
-
-pubmed_nat_df <- pubmed_nat_pmids %>%
+  left_join(nationalize_df, by = c('fore_name', 'last_name')) %>%
   group_by(pmid, journal, publication_date, year) %>%
   summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
   ungroup()
 
-iscb_nat_df <- read_tsv('data/iscb/keynotes.tsv') %>%
-  mutate(publication_date = ymd(year, truncated = 2),
-         year = ymd(year, truncated = 2)) %>%
+iscb_nat_df <- keynotes %>%
   separate_rows(afflcountries, sep = '\\|') %>% 
   filter(afflcountries == 'United States') %>% 
-  left_join(nationalize_df, by = c('fore_name', 'last_name')) %>% 
-  filter(conference != 'PSB', year != '2020-01-01') # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
 
 start_year <- 1992
 end_year <- 2019
@@ -55,28 +45,6 @@ n_confs <- length(my_confs)
 region_levels <- paste(c('Celtic/English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 'African', 'Nordic', 'Greek'), 'names')
 
 region_cols <- c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072', '#bc80bd', '#ccebc5')
-```
-
-## Missing data
-
-```{r}
-# iscb_nat_df %>% filter(is.na(African))
-pubmed_nat_pmids %>% filter(is.na(African))
-pubmed_nat_pmids %>% filter(is.na(African)&!is.na(fore_name_simple.x))
-sum(is.na(pubmed_nat_df$African))
-```
-
-All ISCB speakers have nationality predictions.
-`r sum(is.na(pubmed_nat_df$African))` pubmed full names not nationalized because they don't have fore_name_simple (only initials were recorded).
-<!-- These mostly include initials only, hyphenated names and perhaps names with accent marks. -->
-
-```{r}
-pubmed_nat_df %>% filter(is.na(African)) %>%
-  count(year) %>%
-  ggplot(aes(year(year), n)) +
-  geom_bar(stat = 'identity') +
-  scale_fill_viridis_d() +
-  ylab('Number of full names NOT nationalized')
 ```
 
 ## Descriptive statistics
@@ -116,20 +84,6 @@ iscb_pubmed <- iscb_pubmed_oth %>%
 ```
 
 ## Prepare data frames for analysis
-### By journals
-
-```{r}
-# pubmed_nat <- vector('list', length = n_jours)
-# i <- 0
-# 
-# for (jour in my_jours){
-#   i <- i + 1
-#   pubmed_nat[[i]] <- iscb_pubmed %>%
-#     filter(type == 'Pubmed authors' & journal == jour) %>%
-#     group_by(year, region, journal) %>%
-#     summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop')
-# }
-```
 
 ### By conference keynotes/fellows
 ```{r fig.height=6}
@@ -180,7 +134,7 @@ ggsave('figs/us_name_origin.png', fig_us_name_origin, width = 6.5, height = 5.5)
 ggsave('figs/us_name_origin.svg', fig_us_name_origin, width = 6.5, height = 5.5)
 ```
 
-### What about p-values?
+## _P_ values for reviewers
 
 ```{r}
 inte_lm <- function(regioni){

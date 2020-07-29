@@ -16,10 +16,11 @@ library(forcats)
 
 source('utils/r-utils.R')
 library(wru)
-theme_set(
-  theme_bw() + 
-    theme(panel.grid.minor = element_blank(),
-          legend.title = element_blank()))
+theme_set(theme_bw() + 
+            theme(panel.grid.minor = element_blank(),
+                  legend.title = element_blank()))
+
+load('Rdata/raws.Rdata')
 
 alpha_threshold <- qnorm(0.975)
 start_year <- '1993-01-01'
@@ -31,27 +32,10 @@ race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Other', 'Other categori
 
 
 ```{r}
-all_full_names <- readr::read_tsv('data/names/full-names.tsv.xz') %>% distinct()
-world <- rnaturalearth::ne_countries(scale='medium',returnclass = 'sf') 
-nat_to_reg <- world %>% 
-  as_tibble() %>% 
-  select(iso_a2, name, region_wb) %>% 
-  rename('countries' = iso_a2,
-         'country_name' = name,
-         'region' = region_wb)
-articles <- readr::read_tsv('data/pubmed/articles.tsv.xz')
-
 # looking at only US affiliation
-pubmed_aff_pmids <- readr::read_tsv('data/names/corresponding-authors.tsv.xz',
-                             col_types = readr::cols(fore_name_simple = readr::col_character())) %>%
-  left_join(articles, by = 'pmid') %>%
-  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
-         publication_date = ymd(publication_date, truncated = 2)) %>% 
-  filter(year(publication_date) < 2020) %>% 
+pubmed_race_pmids <- corr_authors %>% 
   tidyr::separate_rows(countries, sep = ',') %>% 
-  filter(countries == 'US')
-  
-pubmed_race_pmids <- pubmed_aff_pmids %>%
+  filter(countries == 'US') %>%
   rename('surname' = last_name_simple) %>% 
   predict_race(surname.only = T, impute.missing = F) 
 
@@ -61,30 +45,14 @@ pubmed_us_race <- pubmed_race_pmids %>%
   ungroup() %>%
   {.}
 
-iscb_us_race <- readr::read_tsv('data/iscb/keynotes.tsv') %>%
-  mutate(publication_date = ymd(year, truncated = 2),
-         year = ymd(year, truncated = 2)) %>% 
-  tidyr::separate_rows(afflcountries, sep = '\\|') %>% 
-  filter(afflcountries == 'United States') %>% 
-  left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
+iscb_us_race <- keynotes %>%
   rename('surname' = last_name_simple) %>%
-  predict_race(surname.only = T, impute.missing = F) %>% 
-  filter(conference != 'PSB', year != '2020-01-01') 
-  # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+  predict_race(surname.only = T, impute.missing = F)
 
 my_jours <- unique(pubmed_us_race$journal)
 my_confs <- unique(iscb_us_race$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-```
-
-Missing data:
-```{r}
-iscb_us_race %>% filter(is.na(pred.whi)) %>% nrow()
-iscb_us_race %>% nrow()
-# pubmed_us_race %>% filter(is.na(simple_last_name)) %>% nrow()
-pubmed_race_pmids %>% filter(is.na(pred.whi)) %>% nrow()
-pubmed_race_pmids %>% filter(is.na(surname)) %>% nrow()
 ```
 
 
@@ -117,43 +85,7 @@ iscb_pubmed <- iscb_us_race %>%
 ```
 
 
-10 journals with the most computational biology articles:
-
 ```{r}
-large_jours <- articles %>%
-  count(journal, sort = T) %>% 
-  head(10)
-
-articles %>% 
-  mutate(publication_date = ymd(publication_date, truncated = 2)) %>% 
-  select(publication_date, journal) %>% 
-  filter(journal %in% large_jours$journal) %>% 
-  ggplot(aes(x = publication_date, fill = forcats::fct_infreq(journal))) +
-  geom_histogram(size = 0, bins = 27) +
-  scale_fill_brewer(palette = 'Set3') +
-  theme(legend.position = c(0.2, 0.7)) +
-  labs(x = NULL, y = NULL) +
-scale_x_date(
-    labels = scales::date_format("%Y"),
-    breaks = as.Date(c('2000-01-01', '2010-01-01', '2019-01-01')),
-    limits = c(as.Date('1993-01-01'), as.Date('2019-12-31'))) + 
-  # geom_text(data = jours, aes(x = x, y = y, label = label), color = 'grey10') +
-  NULL
-```
-
-```{r}
-pubmed_race <- vector('list', length = n_jours)
-i <- 0
-for (jour in large_jours$journal){
-  i <- i + 1
-  pubmed_race[[i]] <- iscb_pubmed %>%
-    filter(type == 'Pubmed authors' & journal == jour & (Race != 'Other categories')) %>%
-    group_by(year, Race, journal) %>%
-    summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
-    # ungroup() %>% 
-    {.}
-}
-
 iscb_race <- vector('list', length = n_confs)
 i <- 0
 for (conf in my_confs){
@@ -168,7 +100,7 @@ for (conf in my_confs){
 ```
 
 ```{r}
-save(iscb_pubmed, pubmed_race, iscb_race, file = 'Rdata/iscb-pubmed_us-race.Rdata')
+save(iscb_pubmed, iscb_race, file = 'Rdata/iscb-us-race.Rdata')
 ```
 
 ```{r fig.height=7}
@@ -179,23 +111,20 @@ fig_stats <- iscb_pubmed %>%
   facet_wrap(vars(forcats::fct_rev(Race)))
 
 fig_2a <- iscb_pubmed %>%
-  filter(Race != 'Other categories'
-         # ,
-         # type == 'Pubmed authors'
-         ) %>%
+  filter(Race != 'Other categories') %>%
   group_by(year, type, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
   race_breakdown(category = 'main', type)
 
-fig_2 <- cowplot::plot_grid(fig_2a, fig_stats, labels = c('', 'E'), ncol = 1
-                            , rel_heights = c(1.5,1))
+fig_2 <- cowplot::plot_grid(
+  fig_2a, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(1.5,1))
 fig_2
 
 ggsave('figs/us_racial_makeup.png', fig_2, width = 6.5, height = 5.5)
 ggsave('figs/us_racial_makeup.svg', fig_2, width = 6.5, height = 5.5)
 ```
 
-### What about p-values?
+## _P_ values for reviewers
 
 Regression of the probability of a name of a certain race on the type of scientists (authors vs. speakers) and year (interaction term included):
 
@@ -221,7 +150,7 @@ get_p <- function(i, colu){
   tidy(inte_list[[i]]) %>% 
     filter(term == 'typePubmed authors') %>% 
     pull(colu) %>% 
-    sprintf("%0.5f", .)
+    sprintf("%0.5g", .)
 }
 ```
 

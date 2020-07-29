@@ -1,0 +1,308 @@
+---
+title: "Summary statistics and missing data analysis"
+output:
+  html_document:
+    theme: flatly
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(rnaturalearth)
+library(wru)
+source('utils/r-utils.R')
+theme_set(theme_bw() + theme(legend.title = element_blank()))
+```
+
+### General data read-in
+
+```{r}
+load('Rdata/raws.Rdata')
+```
+
+### Honorees
+
+- Number of honorees up until 2019: `r nrow(keynotes)`.
+
+- Three types of honorees:
+```{r}
+keynotes %>% 
+  pull(conference) %>% 
+  table()
+```
+
+There are `r nrow(keynotes)` entries and `r keynotes %>% distinct(fore_name, last_name) %>% nrow()` unique names in the ISCB cohort.
+
+Names sorted by the number of honors:
+```{r}
+keynotes %>% 
+  count(fore_name, last_name) %>% 
+  arrange(desc(n)) %>% 
+  DT::datatable()
+```
+
+Number of keynote speakers/fellows across years:
+
+```{r}
+keynotes %>%
+  select(year, conference) %>% 
+  count(year, conference) %>% 
+  ggplot(aes(x = year(year), y = n, color = conference)) +
+  geom_point() +
+  geom_line(alpha = 0.5) +
+  coord_cartesian(ylim = c(0, 13)) +
+  scale_x_continuous(breaks = seq(1995, 2019, 5)) +
+  scale_y_continuous(breaks = seq(0, 14, 2)) +
+  scale_color_viridis_d() +
+  labs(x = 'Year', y = 'Number of keynote speakers/fellows')
+```
+
+
+### Authors
+
+10 journals with the most computational biology articles:
+
+```{r}
+corr_authors %>% 
+  mutate(publication_date = ymd(publication_date, truncated = 2)) %>% 
+  select(publication_date, journal) %>% 
+  filter(journal %in% large_jours$journal) %>% 
+  ggplot(aes(x = publication_date, fill = forcats::fct_infreq(journal))) +
+  geom_histogram(size = 0, bins = 27) +
+  scale_fill_brewer(palette = 'Set3') +
+  theme(legend.position = c(0.2, 0.7)) +
+  labs(x = NULL, y = NULL) +
+scale_x_date(
+    labels = scales::date_format("%Y"),
+    breaks = as.Date(c('2000-01-01', '2010-01-01', '2019-01-01')),
+    limits = c(as.Date('1993-01-01'), as.Date('2019-12-31'))) + 
+  # geom_text(data = jours, aes(x = x, y = y, label = label), color = 'grey10') +
+  NULL
+```
+
+
+### Gender analysis
+
+```{r}
+gender_df <- read_tsv('data/gender/genderize.tsv')
+
+pubmed_gender_pmids <- corr_authors %>%
+  left_join(gender_df, by = 'fore_name_simple')
+
+iscb_gender_df <- keynotes %>% 
+  left_join(gender_df, by = 'fore_name_simple')
+```
+
+`r pubmed_gender_pmids %>% filter(is.na(fore_name)) %>% nrow()` corresponding authors with empty fore name field (i.e., missing metadata).
+
+```{r}
+pubmed_gender_pmids %>% 
+  mutate(genderized = ifelse(is.na(probability_male), 'NOT genderized', 'Genderized')) %>% 
+  ggplot(aes(year(year), fill = genderized)) +
+  geom_bar() +
+  scale_fill_viridis_d() +
+  theme(legend.position = c(0.2, 0.8)) +
+  ylab('Number of full names')
+```
+
+  
+```{r}
+gender_check <- pubmed_gender_pmids %>%
+  mutate(got_gender = case_when(
+    is.na(probability_male) ~ 'Gender not predicted',
+    TRUE ~ 'Gender predicted'))
+
+pred_all <- pubmed_gender_pmids %>% 
+  count(is.na(probability_male))
+
+dash_df <- pubmed_gender_pmids %>% 
+  filter(is.na(probability_male) & !is.na(fore_name_simple)) %>% 
+  mutate(dashed_name = grepl('-', fore_name_simple)) %>% 
+  count(dashed_name)
+
+pred_before_2002 <- gender_check %>% 
+  filter(year(year) < 2002) %>% 
+  count(is.na(probability_male), is.na(fore_name_simple))
+
+```
+
+In total, `r pred_all[1, 'n']` authors had gender prediction and `r pred_all[2, 'n']` didn't.
+`r pubmed_gender_pmids %>% filter(!is.na(fore_name)&is.na(fore_name_simple)) %>% nrow()` authors with fore name that is NA once simplified (i.e., initials only).
+Among `r sum(dash_df$n)` authors with fore name but no predictions, ~ `r round(dash_df$n[1]/sum(dash_df$n)*100)`% has a dash.
+
+Honorees that didn't receive a gender prediction: `r iscb_gender_df %>% filter(is.na(probability_male)) %>% pull(full_name.x)`.
+
+Before 2002, `r pred_before_2002[1, 'n']` authors had gender predictions, `r pred_before_2002[3, 'n'] + pred_before_2002[2, 'n']` didn't have gender predictions, `r pred_before_2002[3, 'n']` of these authors only have initials for fore names.
+
+
+Mean probability of selecting Asian among these names:
+```{r}
+pubmed_gender_pmids %>% 
+  filter(is.na(probability_male) & !is.na(fore_name_simple)) %>% 
+  rename('surname' = last_name_simple) %>% 
+  predict_race(surname.only = T, impute.missing = F) %>% 
+  pull(pred.asi) %>% 
+  mean(na.rm = T)
+```
+
+**In summary, the NA predictions mostly include initials only, hyphenated names and perhaps names with accent marks.**
+
+
+```{r include = F, eval = F}
+# How much did ISCB honorees publish in these journals as last authors?
+
+n_pubs <- iscb_gender_df %>% 
+  distinct(fore_name_simple, last_name_simple) %>% 
+  # left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
+  left_join(pubmed_gender_pmids, by = c('fore_name_simple', 'last_name_simple')) %>% 
+  group_by(fore_name_simple, last_name_simple) %>% 
+  summarise(num_pubs = sum(!is.na(pmid)))
+
+n_pubs %>% 
+  ggplot() +
+  geom_bar(aes(x = num_pubs))
+```
+
+
+
+### US race analysis
+
+```{r warning=FALSE, message=FALSE}
+pubmed_aff_pmids <- corr_authors %>% 
+  tidyr::separate_rows(countries, sep = ',') %>% 
+  filter(countries == 'US') # looking at only US affiliation
+
+keynotes_us <- keynotes %>% 
+  tidyr::separate_rows(afflcountries, sep = '\\|') %>% 
+  filter(afflcountries == 'United States') 
+
+pubmed_race_pmids <- pubmed_aff_pmids %>%
+  rename('surname' = last_name_simple) %>% 
+  predict_race(surname.only = T, impute.missing = F)
+
+iscb_us_race <- keynotes_us %>% 
+  rename('surname' = last_name_simple) %>%
+  predict_race(surname.only = T, impute.missing = F)
+  
+```
+
+- Number of honorees affiliated with the US: `r nrow(keynotes_us)`.
+
+- Number of last authors affiliated with the US: `r nrow(pubmed_aff_pmids)`.
+
+- Number of authors with no race prediction: `r sum(is.na(pubmed_race_pmids$pred.whi))` (of which `r sum(is.na(pubmed_race_pmids$surname))` did not have a surname).
+
+- Number of honorees with no race prediction: `r sum(is.na(iscb_us_race$pred.whi))` (of which `r sum(is.na(iscb_us_race$surname))` did not have a surname).
+
+```{r}
+pubmed_race_pmids %>% 
+  mutate(race_pred = ifelse(is.na(pred.whi), 'Race NOT predicted', 'Race predicted')) %>% 
+  ggplot(aes(year(year), fill = fct_rev(race_pred))) +
+  geom_bar() +
+  scale_fill_viridis_d() +
+  theme(legend.position = c(0.2, 0.8)) +
+  ylab('Number of full names')
+```
+
+
+## Name origin analysis
+
+```{r}
+region_levels <- paste(c('Celtic/English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 'African', 'Nordic', 'Greek'), 'names')
+
+pubmed_nat_pmids <- corr_authors %>%
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
+
+pubmed_nat_df <- pubmed_nat_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>%
+  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
+  ungroup()
+
+iscb_nat_df <- keynotes %>%
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
+
+```
+
+```{r}
+set.seed(0)
+
+top_names <- map_dfc(
+  nationalize_df %>% 
+    select(African:SouthAsian) %>% 
+    colnames(), 
+  function(x) {
+    nationalize_df %>%
+      filter((!!sym(x)) > 0.9) %>%
+      sample_n(6) %>%
+      select(full_name) %>%
+      rename(!!x := full_name)
+  })
+
+top_names %>% 
+  pivot_longer(everything(), names_to = 'region', values_to = 'names') %>% 
+  recode_region() %>% 
+  group_by(region) %>% 
+  summarise(names = paste(names, collapse = ', '), .groups = 'drop') %>% 
+  arrange(factor(region, levels = region_levels)) %>%
+  DT::datatable() %>% 
+  # write_tsv('data/names/example_name_origin.tsv') %>% 
+  {.}
+```
+
+`r iscb_nat_df %>% filter(is.na(African)) %>% nrow()` ISCB speakers did not have nationality predictions.
+`pubmed_nat_pmids %>% filter(is.na(African)) %>% nrow()` pubmed full names not nationalized.
+`r pubmed_nat_pmids %>% filter(is.na(African)&is.na(fore_name_simple.x)) %>% nrow()` of these don't have fore_name_simple.
+(See earlier conclusion in Gender analysis.)
+
+```{r}
+pubmed_nat_df %>% 
+  mutate(nationalized = ifelse(is.na(African), 'NOT nationalized', 'Nationalized')) %>% 
+  ggplot(aes(year(year), fill = nationalized)) +
+  geom_bar() +
+  scale_fill_viridis_d() +
+  theme(legend.position = c(0.2, 0.8)) +
+  ylab('Number of full names')
+```
+
+
+## US name origin analysis
+
+## Missing data
+
+```{r}
+pubmed_nat_pmids <- corr_authors %>%
+  separate_rows(countries, sep = ',') %>% 
+  filter(countries == 'US') %>% 
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
+
+pubmed_nat_df <- pubmed_nat_pmids %>% 
+  group_by(pmid, journal, publication_date, year) %>%
+  summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
+  ungroup()
+
+iscb_nat_df <- keynotes %>%
+  separate_rows(afflcountries, sep = '\\|') %>% 
+  filter(afflcountries == 'United States') %>% 
+  left_join(nationalize_df, by = c('fore_name', 'last_name'))
+```
+
+`r iscb_nat_df %>% filter(is.na(African)) %>% nrow()` US-affiliated ISCB speakers did not have nationality predictions.
+`pubmed_nat_pmids %>% filter(is.na(African)) %>% nrow()` US-affiliated authors did not have nationality predictions.
+`r pubmed_nat_pmids %>% filter(is.na(African)&is.na(fore_name_simple.x)) %>% nrow()` of these don't have fore_name_simple.
+(See earlier conclusion in Gender analysis.)
+
+
+```{r}
+pubmed_nat_df %>% 
+  mutate(nationalized = ifelse(is.na(African), 'NOT nationalized', 'Nationalized')) %>% 
+  ggplot(aes(year(year), fill = nationalized)) +
+  geom_bar() +
+  scale_fill_viridis_d() +
+  theme(legend.position = c(0.2, 0.8)) +
+  ylab('Number of US-affiliated full names')
+```
+
+
+
+

@@ -1,0 +1,77 @@
+---
+title: "Save raw data into .Rdata to be loaded in by analysis notebooks"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(rnaturalearth)
+source('utils/r-utils.R')
+theme_set(theme_bw() + theme(legend.title = element_blank()))
+```
+
+
+### General data read-in
+
+```{r}
+all_full_names <- readr::read_tsv('data/names/full-names.tsv.xz') %>% distinct()
+world <- rnaturalearth::ne_countries(scale='medium', returnclass = 'sf') 
+nat_to_reg <- world %>% 
+  as_tibble() %>% 
+  select(iso_a2, name, region_wb) %>% 
+  rename('countries' = iso_a2,
+         'country_name' = name,
+         'region' = region_wb)
+
+articles <- readr::read_tsv('data/pubmed/articles.tsv.xz') %>%
+  mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
+         publication_date = ymd(publication_date, truncated = 2)) %>% 
+  filter(year(publication_date) < 2020)
+
+corr_authors <- readr::read_tsv(
+  'data/names/corresponding-authors.tsv.xz',
+  col_types = readr::cols(fore_name_simple = readr::col_character())) %>%
+  inner_join(articles, by = 'pmid')
+
+keynotes <- readr::read_tsv('data/iscb/keynotes.tsv') %>%
+  mutate(publication_date = ymd(year, truncated = 2),
+         year = ymd(year, truncated = 2)) %>% 
+  filter(year(year) < 2020, conference != 'PSB') %>% # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+  left_join(all_full_names, by = c('fore_name', 'last_name'))
+
+large_jours <- articles %>%
+  count(journal, sort = T) %>% 
+  head(10)
+
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/c9e459ab7ee869cef777d0946a25a17f2328932b/data/NamePrism_results_authors.tsv') %>%
+  rename('full_name' = X1) %>%
+  distinct(full_name, .keep_all = T) %>%
+  left_join(all_full_names, by = 'full_name')
+```
+
+
+- Number of articles from 1993-2019: `r nrow(articles)` (~ 100 articles with no authors).
+
+- Number of last authors: `r nrow(corr_authors)`.
+
+
+```{r}
+corr_authors %>% 
+  count(year, name = 'Number of articles with last authors') %>% 
+  DT::datatable(rownames = F)
+```
+
+**If we set a threshold at least 200 articles a year, we should only consider articles from 1998 on.**
+
+```{r}
+corr_authors <- corr_authors %>% 
+  add_count(year, name = 'n_aut_yr') %>% 
+  filter(n_aut_yr > 200) %>% 
+  select(- n_aut_yr)
+```
+
+
+```{r}
+save(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, file = 'Rdata/raws.Rdata')
+```
+
