@@ -287,7 +287,6 @@ gender_breakdown <- function(df, category = 'main', ...) {
 region_breakdown <- function(df, category = 'main', ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
-    # recode_region_letter() %>% 
     recode_region() %>%
     ggplot(aes(year, mean_prob, fill = fct_relevel(region, region_levels))) +
     geom_bar(stat = 'identity') +
@@ -435,13 +434,15 @@ get_keynote_summary <- function(df){
     distinct()
 }
 
-loess_and_ci <- function(df, start_y = start_year, end_y = end_year){
+gam_and_ci <- function(df, start_y = start_year, end_y = end_year){
   df %>% 
     ggplot(aes(group = type)) +
-    geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
-                aes(x = publication_date, y = probabilities, 
-                    fill = type, 
-                    color = type)) +
+    geom_smooth(
+      method = 'gam',
+      size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
+      aes(x = publication_date, y = probabilities, 
+          fill = type, 
+          color = type)) +
     geom_pointrange(data = . %>% get_keynote_summary(),
                     alpha = 0.75, size = 0.3,
                     aes(x = year, y = mean_prob, shape = type,
