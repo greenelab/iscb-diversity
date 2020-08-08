@@ -1,9 +1,12 @@
 ---
-title: "Name origin analysis in the US"
+title: "Representation analysis of name origin in the US"
 output:
   html_document:
     theme: flatly
+    toc: true
+    toc_float: true
     code_download: true
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
@@ -121,7 +124,7 @@ large_regions <- c('CelticEnglish', 'EastAsian', 'European', 'OtherCategories')
 fig_us_name_originb <- iscb_pubmed_oth %>%
   filter(region %in% large_regions) %>%
   recode_region() %>%
-  loess_and_ci() +
+  gam_and_ci() +
   theme(legend.position = c(0.88, 0.83),
         legend.key.height = unit(4, 'mm'),
         legend.key.width = unit(5, 'mm'),
@@ -134,17 +137,18 @@ ggsave('figs/us_name_origin.png', fig_us_name_origin, width = 6.5, height = 5.5)
 ggsave('figs/us_name_origin.svg', fig_us_name_origin, width = 6.5, height = 5.5)
 ```
 
-## _P_ values for reviewers
+## Hypothesis testing
 
 ```{r}
-inte_lm <- function(regioni){
+main_lm <- function(regioni){
   lm(probabilities ~ year + type, 
      data = iscb_pubmed_oth %>% 
        filter(region == regioni, !is.na(probabilities)) %>% 
-       mutate(year = scale(year)))
+       mutate(year = scale(year),
+              type = relevel(as.factor(type), ref = 'Pubmed authors')))
 }
 
-inte_list <- lapply(large_regions, inte_lm)
+inte_list <- lapply(large_regions, main_lm)
 names(inte_list) <- large_regions
 lapply(inte_list, summary)
 ```
@@ -152,7 +156,7 @@ lapply(inte_list, summary)
 ```{r echo = F}
 get_p <- function(i, colu){
   broom::tidy(inte_list[[i]]) %>% 
-    filter(term == 'typePubmed authors') %>% 
+    filter(term == 'typeKeynote speakers/Fellows') %>% 
     pull(colu) %>% 
     sprintf("%0.5g", .)
 }
@@ -160,7 +164,7 @@ get_p <- function(i, colu){
 
 ## Conclusion
 
-A name coming from the group of authors has significantly lower probability of being Celtic/English, $\beta_\textrm{Celtic/English} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), lower probability of being European, $\beta_\textrm{European} =$ `r get_p(3, 'estimate')` (_P_ = `r get_p(3, 'p.value')`), and higher probability of being East Asian, $\beta_\textrm{East Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be in Other categories (_P_ = `r get_p(4, 'p.value')`).
+A name coming from the group of honorees has significantly higher probability of being Celtic/English, $\beta_\textrm{Celtic/English} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), higher probability of being European, $\beta_\textrm{European} =$ `r get_p(3, 'estimate')` (_P_ = `r get_p(3, 'p.value')`), and lower probability of being East Asian, $\beta_\textrm{East Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be in Other categories (_P_ = `r get_p(4, 'p.value')`).
 
 
 
@@ -192,7 +196,7 @@ However, just because a nationality isn't underrepresented against the field doe
 ```{r fig.height=6}
 fig_s7 <- iscb_pubmed %>%
   recode_region() %>%
-  loess_and_ci() +
+  gam_and_ci() +
   theme(legend.position = c(0.8, 0.1)) +
   facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
 fig_s7

@@ -1,6 +1,12 @@
 ---
 title: "Save raw data into .Rdata to be loaded in by analysis notebooks"
-output: html_document
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    code_download: true
+    highlight: tango
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -43,7 +49,7 @@ large_jours <- articles %>%
   count(journal, sort = T) %>% 
   head(10)
 
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/c9e459ab7ee869cef777d0946a25a17f2328932b/data/NamePrism_results_authors.tsv') %>%
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/1f41256f782f3fc95e6d7254dfa2cf941ff41e36/data/NamePrism_results_authors.tsv') %>%
   rename('full_name' = X1) %>%
   distinct(full_name, .keep_all = T) %>%
   left_join(all_full_names, by = 'full_name')
@@ -68,6 +74,8 @@ corr_authors <- corr_authors %>%
   add_count(year, name = 'n_aut_yr') %>% 
   filter(n_aut_yr > 200) %>% 
   select(- n_aut_yr)
+
+nrow(corr_authors)
 ```
 
 

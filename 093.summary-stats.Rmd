@@ -3,7 +3,10 @@ title: "Summary statistics and missing data analysis"
 output:
   html_document:
     theme: flatly
+    toc: true
+    toc_float: true
     code_download: true
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
@@ -15,13 +18,12 @@ source('utils/r-utils.R')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
-### General data read-in
+## General data read-in
 
 ```{r}
 load('Rdata/raws.Rdata')
 ```
-
-### Honorees
+## Honorees
 
 - Number of honorees up until 2019: `r nrow(keynotes)`.
 
@@ -59,7 +61,7 @@ keynotes %>%
 ```
 
 
-### Authors
+## Authors
 
 10 journals with the most computational biology articles:
 
@@ -81,6 +83,10 @@ scale_x_date(
   NULL
 ```
 
+```{r}
+nucleic_acids <- corr_authors %>% filter(grepl('Nucleic Acids Res', journal))
+table(nucleic_acids$journal)
+```
 
 ### Gender analysis
 
@@ -122,7 +128,7 @@ dash_df <- pubmed_gender_pmids %>%
   count(dashed_name)
 
 pred_before_2002 <- gender_check %>% 
-  filter(year(year) < 2002) %>% 
+  filter(year(year) < 2002) %>%
   count(is.na(probability_male), is.na(fore_name_simple))
 
 ```
@@ -133,7 +139,7 @@ Among `r sum(dash_df$n)` authors with fore name but no predictions, ~ `r round(d
 
 Honorees that didn't receive a gender prediction: `r iscb_gender_df %>% filter(is.na(probability_male)) %>% pull(full_name.x)`.
 
-Before 2002, `r pred_before_2002[1, 'n']` authors had gender predictions, `r pred_before_2002[3, 'n'] + pred_before_2002[2, 'n']` didn't have gender predictions, `r pred_before_2002[3, 'n']` of these authors only have initials for fore names.
+Before 2002, `r pred_before_2002[1, 'n']` authors had gender predictions, `r pred_before_2002[2, 'n']` didn't have gender predictions because of these authors only have initials for fore names.
 
 
 Mean probability of selecting Asian among these names:
@@ -152,12 +158,12 @@ pubmed_gender_pmids %>%
 ```{r include = F, eval = F}
 # How much did ISCB honorees publish in these journals as last authors?
 
-n_pubs <- iscb_gender_df %>% 
+n_pubs <- keynotes %>% 
   distinct(fore_name_simple, last_name_simple) %>% 
   # left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
-  left_join(pubmed_gender_pmids, by = c('fore_name_simple', 'last_name_simple')) %>% 
+  left_join(corr_authors, by = c('fore_name_simple', 'last_name_simple')) %>% 
   group_by(fore_name_simple, last_name_simple) %>% 
-  summarise(num_pubs = sum(!is.na(pmid)))
+  summarise(num_pubs = sum(!is.na(pmid)), .groups = 'drop')
 
 n_pubs %>% 
   ggplot() +
@@ -251,7 +257,7 @@ top_names %>%
 ```
 
 `r iscb_nat_df %>% filter(is.na(African)) %>% nrow()` ISCB speakers did not have nationality predictions.
-`pubmed_nat_pmids %>% filter(is.na(African)) %>% nrow()` pubmed full names not nationalized.
+`r pubmed_nat_pmids %>% filter(is.na(African)) %>% nrow()` pubmed full names not nationalized.
 `r pubmed_nat_pmids %>% filter(is.na(African)&is.na(fore_name_simple.x)) %>% nrow()` of these don't have fore_name_simple.
 (See earlier conclusion in Gender analysis.)
 
@@ -268,7 +274,6 @@ pubmed_nat_df %>%
 
 ## US name origin analysis
 
-## Missing data
 
 ```{r}
 pubmed_nat_pmids <- corr_authors %>%

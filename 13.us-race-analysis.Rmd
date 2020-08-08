@@ -3,7 +3,10 @@ title: "Representation analysis of race/ethnicity in the US"
 output:
   html_document:
     theme: flatly
+    toc: true
+    toc_float: true
     code_download: true
+    highlight: tango
 ---
 
 
@@ -30,6 +33,7 @@ n_years <- year(end_year) - year(start_year)
 race_levels <- c('White', 'Asian', 'Black', 'Hispanic', 'Other', 'Other categories')
 ```
 
+## Race/ethnicity predictions
 
 ```{r}
 # looking at only US affiliation
@@ -106,25 +110,26 @@ save(iscb_pubmed, iscb_race, file = 'Rdata/iscb-us-race.Rdata')
 ```{r fig.height=7}
 fig_stats <- iscb_pubmed %>% 
   filter(Race %in% c('White', 'Asian', 'Other categories')) %>% 
-  loess_and_ci(start_y = '1992-01-01', end_y = end_year) +
+  gam_and_ci(start_y = '1992-01-01', end_y = end_year) +
   theme(legend.position = c(0.84, 0.78)) +
   facet_wrap(vars(forcats::fct_rev(Race)))
 
 fig_2a <- iscb_pubmed %>%
+  mutate(type = fct_rev(as.factor(type))) %>% 
   filter(Race != 'Other categories') %>%
   group_by(year, type, Race) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
   race_breakdown(category = 'main', type)
 
 fig_2 <- cowplot::plot_grid(
-  fig_2a, fig_stats, labels = c('', 'E'), ncol = 1, rel_heights = c(1.5,1))
+  fig_2a, fig_stats, labels = 'AUTO', ncol = 1, rel_heights = c(1.5,1))
 fig_2
 
 ggsave('figs/us_racial_makeup.png', fig_2, width = 6.5, height = 5.5)
 ggsave('figs/us_racial_makeup.svg', fig_2, width = 6.5, height = 5.5)
 ```
 
-## _P_ values for reviewers
+## Hypothesis testing
 
 Regression of the probability of a name of a certain race on the type of scientists (authors vs. speakers) and year (interaction term included):
 
@@ -133,13 +138,15 @@ main_lm <- function(racei){
   lm(probabilities ~ year + type, 
      data = iscb_pubmed %>% 
        filter(Race == racei, !is.na(probabilities)) %>% 
-       mutate(year = scale(year)))
+       mutate(year = scale(year),
+              type = relevel(as.factor(type), ref = 'Pubmed authors')))
 }
 inte_lm <- function(racei){
   lm(probabilities ~ year * type, 
      data = iscb_pubmed %>% 
        filter(Race == racei, !is.na(probabilities)) %>% 
-       mutate(year = scale(year)))
+       mutate(year = scale(year),
+              type = relevel(as.factor(type), ref = 'Pubmed authors')))
 }
 inte_list <- lapply(c('White', 'Asian', 'Other categories'), main_lm)
 lapply(inte_list, summary)
@@ -148,7 +155,7 @@ lapply(inte_list, summary)
 ```{r echo = F}
 get_p <- function(i, colu){
   tidy(inte_list[[i]]) %>% 
-    filter(term == 'typePubmed authors') %>% 
+    filter(term == 'typeKeynote speakers/Fellows') %>% 
     pull(colu) %>% 
     sprintf("%0.5g", .)
 }
@@ -164,5 +171,6 @@ lapply(c('White', 'Asian', 'Other categories'), compare_lm)
 
 ## Conclusion
 
-A name coming from the group of authors has significantly lower probability of being white, $\beta_\textrm{white} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), and higher probability of being Asian, $\beta_\textrm{Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be in Other categories (_P_ = `r get_p(3, 'p.value')`).
+Specifically, a name coming from the group of honorees has significantly higher probability of being white ($\beta_\textrm{white} =$ `r get_p(1, 'estimate')` _p_ = `r get_p(1, 'p.value')`) and lower probability of being Asian, ($\beta_\textrm{Asian} =$ `r get_p(2, 'estimate')`, _p_ = `r get_p(2, 'p.value')`).
+The two groups of scientists did not have a significant association with names predicted to be in Other categories (_p_ = `r get_p(3, 'p.value')`).
 

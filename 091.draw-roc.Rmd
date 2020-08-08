@@ -1,6 +1,12 @@
 ---
 title: "Plotting ROC curves"
-output: html_document
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    code_download: true
+    highlight: tango
 ---
 
 ```{r}

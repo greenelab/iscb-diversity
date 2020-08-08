@@ -1,8 +1,10 @@
 ---
-title: "Visualize gender predictions based on census data"
+title: "Representation analysis of gender"
 output:
   html_document:
     theme: flatly
+    toc: true
+    toc_float: true
     code_download: true
 ---
 
@@ -54,7 +56,7 @@ n_confs <- length(my_confs)
 
 ```{r}
 iscb_pubmed <- iscb_gender_df %>%
-  rename('journal' = conference) %>% 
+  rename('journal' = conference) %>%
   select(year, journal, probability_male, publication_date) %>%
   mutate(type = 'Keynote speakers/Fellows') %>%
   bind_rows(
@@ -105,13 +107,19 @@ save(iscb_pubmed, iscb_gender, file = 'Rdata/iscb-pubmed_gender.Rdata')
 
 ```{r fig.height=3}
 fig_1 <- iscb_pubmed %>%
-
   group_by(year, type, gender) %>%
   summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
   gender_breakdown('main', fct_rev(type))
 fig_1
 ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
 ggsave('figs/gender_breakdown.svg', fig_1, width = 5, height = 2.5)
+```
+
+```{r echo=FALSE}
+iscb_pubmed %>%
+  group_by(year, type, gender) %>%
+  summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>% 
+  filter(year(year) == 2019, grepl('female', gender), grepl('Pubmed', type))
 ```
 
 
@@ -148,7 +156,7 @@ iscb_pubmed %>%
 ```{r}
 ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
   aes(group = type)) +
-  geom_smooth(size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
+  geom_smooth(method = 'gam', size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
               aes(x = publication_date, y = probabilities, fill = type, color = type)) +
   geom_pointrange(data = . %>% get_keynote_summary(),
                   alpha = 0.75, size = 0.3,
@@ -166,7 +174,7 @@ ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
 
 ```
 
-## _P_ values for reviewers
+## Hypothesis testing
 
 ```{r echo = F}
 get_p <- function(inte, colu){
