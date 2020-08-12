@@ -62,6 +62,7 @@ keynotes %>%
 
 
 ## Authors
+Total number of last authors: `r nrow(corr_authors)`.
 
 10 journals with the most computational biology articles:
 
@@ -88,7 +89,22 @@ nucleic_acids <- corr_authors %>% filter(grepl('Nucleic Acids Res', journal))
 table(nucleic_acids$journal)
 ```
 
-### Gender analysis
+```{r include = F, eval = F}
+# How much did ISCB honorees publish in these journals as last authors?
+
+n_pubs <- keynotes %>% 
+  distinct(fore_name_simple, last_name_simple) %>% 
+  # left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
+  left_join(corr_authors, by = c('fore_name_simple', 'last_name_simple')) %>% 
+  group_by(fore_name_simple, last_name_simple) %>% 
+  summarise(num_pubs = sum(!is.na(pmid)), .groups = 'drop')
+n_pubs$num_pubs %>% sum()
+# n_pubs %>% 
+#   ggplot() +
+#   geom_bar(aes(x = num_pubs))
+```
+
+## Gender analysis
 
 ```{r}
 gender_df <- read_tsv('data/gender/genderize.tsv')
@@ -99,8 +115,6 @@ pubmed_gender_pmids <- corr_authors %>%
 iscb_gender_df <- keynotes %>% 
   left_join(gender_df, by = 'fore_name_simple')
 ```
-
-`r pubmed_gender_pmids %>% filter(is.na(fore_name)) %>% nrow()` corresponding authors with empty fore name field (i.e., missing metadata).
 
 ```{r}
 pubmed_gender_pmids %>% 
@@ -133,11 +147,12 @@ pred_before_2002 <- gender_check %>%
 
 ```
 
+`r pubmed_gender_pmids %>% filter(is.na(fore_name)) %>% nrow()` last authors with empty fore name field (i.e., missing metadata).
+`r pubmed_gender_pmids %>% filter(is.na(fore_name_simple)) %>% nrow()` authors with no `fore_name_simple`.
+
 In total, `r pred_all[1, 'n']` authors had gender prediction and `r pred_all[2, 'n']` didn't.
 `r pubmed_gender_pmids %>% filter(!is.na(fore_name)&is.na(fore_name_simple)) %>% nrow()` authors with fore name that is NA once simplified (i.e., initials only).
 Among `r sum(dash_df$n)` authors with fore name but no predictions, ~ `r round(dash_df$n[1]/sum(dash_df$n)*100)`% has a dash.
-
-Honorees that didn't receive a gender prediction: `r iscb_gender_df %>% filter(is.na(probability_male)) %>% pull(full_name.x)`.
 
 Before 2002, `r pred_before_2002[1, 'n']` authors had gender predictions, `r pred_before_2002[2, 'n']` didn't have gender predictions because of these authors only have initials for fore names.
 
@@ -152,27 +167,12 @@ pubmed_gender_pmids %>%
   mean(na.rm = T)
 ```
 
+Honorees that didn't receive a gender prediction: `r iscb_gender_df %>% filter(is.na(probability_male)) %>% pull(full_name.x)`.
+
 **In summary, the NA predictions mostly include initials only, hyphenated names and perhaps names with accent marks.**
 
 
-```{r include = F, eval = F}
-# How much did ISCB honorees publish in these journals as last authors?
-
-n_pubs <- keynotes %>% 
-  distinct(fore_name_simple, last_name_simple) %>% 
-  # left_join(nat_to_reg, by = c('afflcountries' = 'country_name')) %>% 
-  left_join(corr_authors, by = c('fore_name_simple', 'last_name_simple')) %>% 
-  group_by(fore_name_simple, last_name_simple) %>% 
-  summarise(num_pubs = sum(!is.na(pmid)), .groups = 'drop')
-
-n_pubs %>% 
-  ggplot() +
-  geom_bar(aes(x = num_pubs))
-```
-
-
-
-### US race analysis
+## US race analysis
 
 ```{r warning=FALSE, message=FALSE}
 pubmed_aff_pmids <- corr_authors %>% 
@@ -254,6 +254,8 @@ top_names %>%
   DT::datatable() %>% 
   # write_tsv('data/names/example_name_origin.tsv') %>% 
   {.}
+
+ pubmed_nat_pmids %>% count(!is.na(African), is.na(fore_name_simple.x))
 ```
 
 `r iscb_nat_df %>% filter(is.na(African)) %>% nrow()` ISCB speakers did not have nationality predictions.
