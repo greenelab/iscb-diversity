@@ -2,6 +2,19 @@
 
 This is a data analysis repository for the study at <https://greenelab.github.io/iscb-diversity-manuscript/>.
 
+## Datasets
+
+Datasets are stored in the [`data`](data) directory.
+This repository uses [Git LFS](https://git-lfs.github.com/) to store large / binary datasets.
+Make sure to have Git LFS installed locally before cloning the repository,
+if you'd like to download the datasets.
+You can also download datasets directly from the GitHub website by clicking "Raw".
+
+In general, we use [XZ](https://tukaani.org/xz/) for compressing files (denoted by an `.xz` extension).
+For users that would like a graphical interface for decompressing XZ-compressed files,
+options include [PeaZip](https://giorgiotani.github.io/PeaZip/) on Windows (open source) and [The Unarchiver](https://theunarchiver.com/) on macOS (proprietary freeware).
+macOS users can install the `xz` command line utility with `brew install xz`.
+
 ## Development
 
 This repository has a corresponding Docker image with the required dependencies.
