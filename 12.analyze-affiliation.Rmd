@@ -83,6 +83,32 @@ obs_vs_exp_all <- pubmed_aff_country %>%
   )
 ```
 
+
+```{r}
+corr_authors %>% 
+  mutate(affi_country_found = ifelse(is.na(countries), 'Country NOT found', 'Country found')) %>% 
+  ggplot(aes(year(year), fill = affi_country_found)) +
+  geom_bar(position = 'stack') +
+  scale_fill_viridis_d() +
+  theme(legend.position = c(0.2, 0.8)) +
+  ylab('Number of full names')
+
+# corr_authors %>% 
+#   mutate(affi_country_found = ifelse(is.na(countries), 'Country NOT found', 'Country found')) %>% 
+#   add_count(journal) %>%
+#   group_by(journal) %>% 
+#  summarise(has_country = mean(affi_country_found))
+
+corr_authors %>% 
+  mutate(affi_country_found = ifelse(is.na(countries), 'Country NOT found', 'Country found'),
+         has_pmcid = ifelse(is.na(pmcid), 'No PMCID', 'Has PMCID')) %>% 
+  count(affi_country_found, has_pmcid)
+corr_authors %>% 
+  # mutate(affi_country_found = ifelse(is.na(countries), 'Country NOT found', 'Country found'),
+  #        has_pmcid = ifelse(is.na(pmcid), 'No PMCID', 'Has PMCID')) %>% 
+  count(is.na(countries))
+```
+
 ### Fisher's exact test and 
 #### Table of representations
 Null hypothesis: For each country, the proportion of honorees affiliated with an institution/company from that country is similar to the proportion of authors affiliated with an institution/company from that country.

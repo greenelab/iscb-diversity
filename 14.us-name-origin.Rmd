@@ -50,7 +50,8 @@ region_levels <- paste(c('Celtic/English', 'European', 'East Asian', 'Hispanic',
 region_cols <- c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072', '#bc80bd', '#ccebc5')
 ```
 
-## Descriptive statistics
+## Organize data
+
 Prepare data frames for later analyses:
 
 - rbind results of race predictions in iscb and Pubmed
@@ -86,7 +87,6 @@ iscb_pubmed <- iscb_pubmed_oth %>%
   filter(region != 'OtherCategories')
 ```
 
-## Prepare data frames for analysis
 
 ### By conference keynotes/fellows
 ```{r fig.height=6}
@@ -104,7 +104,6 @@ for (conf in my_confs){
 
 ## Figures for paper
 
-### Figure
 
 ```{r fig.height=7, fig.width=9}
 fig_us_name_origina <- iscb_pubmed %>%
@@ -168,6 +167,7 @@ A name coming from the group of honorees has significantly higher probability of
 
 
 
+## Supplement
 
 ### Supplementary Figure S6 {#sup_fig_s6}
 
@@ -183,7 +183,7 @@ fig_s6_2 <- bind_rows(iscb_nat) %>%
   region_breakdown(category = 'sub', journal)
 
 # fig_s6 <- cowplot::plot_grid(fig_s6_1, fig_s6_2, labels = 'AUTO', ncol = 1)
-# fig_s6
+fig_s6_2
 ggsave('figs/fig_s6.png', fig_s6_2, width = 6, height = 3.5)
 ggsave('figs/fig_s6.svg', fig_s6_2, width = 6, height = 3.5)
 ```
