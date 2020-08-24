@@ -273,9 +273,30 @@ pubmed_nat_df %>%
   ylab('Number of full names')
 ```
 
+## Affiliation analysis
+
+```{r}
+corr_authors %>% 
+  mutate(affi_country_found = ifelse(is.na(countries), 'Country NOT found', 'Country found')) %>% 
+  ggplot(aes(year(year), fill = affi_country_found)) +
+  geom_bar(position = 'stack') +
+  scale_fill_viridis_d() +
+  theme(legend.position = c(0.2, 0.8)) +
+  ylab('Number of full names')
+
+corr_authors %>% 
+  mutate(affi_country_found = ifelse(
+    is.na(countries), 'Country NOT found', 'Country found'),
+         has_pmcid = ifelse(is.na(pmcid), 'No PMCID', 'Has PMCID')) %>% 
+  count(affi_country_found, has_pmcid)
+```
+
+Due to the lack of metadata, our method couldn't extract countries for most articles before 2014.
+Even though many of these articles have PMCIDs, the affiliations were not mapped to authors in PMC metadata and thus couldn't be parsed.
+However, unlike the other analyses where we considered "year" as a covariate, we calculated the enrichment by gathering data from all the years together.
+Therefore, we leave all the data in as is.
 
 ## US name origin analysis
-
 
 ```{r}
 pubmed_nat_pmids <- corr_authors %>%

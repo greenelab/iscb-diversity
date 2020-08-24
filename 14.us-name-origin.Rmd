@@ -174,7 +174,7 @@ A name coming from the group of honorees has significantly higher probability of
 Proportion of authors in the Celtic English categories had decreased, particularly for papers published in Bioinformatics and BMC Bioinformatics.
 ISMB keynotes had more probability attributable to Hebrew names, while RECOMB had more attributable to East Asian names.
 
-```{r}
+```{r fig.height=3, fig.width=9}
 # fig_s6_1 <- bind_rows(pubmed_nat) %>%
 #   region_breakdown(category = 'sub', journal)
 

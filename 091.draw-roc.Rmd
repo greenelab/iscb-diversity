@@ -9,6 +9,8 @@ output:
     highlight: tango
 ---
 
+## Name origin prediction method performance {#auroc}
+
 ```{r}
 library(tidyverse)
 library(lubridate)
@@ -97,7 +99,7 @@ fig_3b <- bind_rows(cal_dfs) %>%
 
 ```
 
-## Name origin prediction method performance {#auroc}
+
 
 ```{r fig.height=3.5, fig.width=10}
 n_obs <- sum(auc_df$n)
