@@ -66,8 +66,8 @@ my_world <- ne_countries(scale='medium', returnclass = 'sf') %>%
           legend.position = 'bottom',
           panel.border = element_rect(fill = NA)))
 
-ggsave('figs/2020-01-31_groupings.png', gworld, width = 7, height = 4.3)
-ggsave('figs/2020-01-31_groupings.svg', gworld, width = 7, height = 4.3)
+ggsave('figs/2020-01-31_groupings.png', gworld, width = 7.2, height = 4.3)
+ggsave('figs/2020-01-31_groupings.svg', gworld, width = 7.2, height = 4.3)
 ```
 
 
@@ -160,8 +160,8 @@ fig_4b <- iscb_pubmed_oth %>%
 
 fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
 fig_4
-ggsave('figs/region_breakdown.png', fig_4, width = 6.5, height = 5.5)
-ggsave('figs/region_breakdown.svg', fig_4, width = 6.5, height = 5.5)
+ggsave('figs/region_breakdown.png', fig_4, width = 6.7, height = 5.5)
+ggsave('figs/region_breakdown.svg', fig_4, width = 6.7, height = 5.5)
 ```
 
 
@@ -208,12 +208,13 @@ ISMB keynotes had more probability attributable to Hebrew names, while RECOMB ha
 fig_s4_2 <- bind_rows(iscb_nat) %>%
   filter(year < '2020-01-01') %>%
   region_breakdown(category = 'sub', journal) +
-  theme(legend.position = 'bottom')
+  theme(legend.position = 'bottom',
+        legend.margin = margin(0, 0, 0, 0, unit='cm'))
 
 # fig_s4 <- cowplot::plot_grid(fig_s4_1, fig_s4_2, labels = 'AUTO', ncol = 1)
 fig_s4_2
-ggsave('figs/fig_s4.png', fig_s4_2, width = 6, height = 3.5)
-ggsave('figs/fig_s4.svg', fig_s4_2, width = 6, height = 3.5)
+ggsave('figs/fig_s4.png', fig_s4_2, width = 8, height = 4)
+ggsave('figs/fig_s4.svg', fig_s4_2, width = 7, height = 3.5)
 ```
 
 ### Supplementary Figure S5 {#sup_fig_s5}

@@ -208,7 +208,7 @@ recode_region <- function(df){
         'East Asian names' = 'EastAsian',
         'South Asian names' = 'SouthAsian',
         'Hebrew names' = 'Jewish',
-        'Arabic names' = 'Muslim',
+        'Arab/Turk/Pers names' = 'Muslim',
         'African names' = 'African',
         'Hispanic names' = 'Hispanic',
         'Nordic names' = 'Nordic',
