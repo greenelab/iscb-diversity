@@ -21,8 +21,7 @@ jobs:
     - name: Set Environment Variables
       shell: bash
       run: |
-        IMAGE_VERSION="$(date --utc --iso-8601)_${GITHUB_SHA::7}"
-        echo "::set-env name=IMAGE_VERSION::$IMAGE_VERSION"
+        echo "IMAGE_VERSION=$(date --utc --iso-8601)_${GITHUB_SHA::7}" >> $GITHUB_ENV
     - name: Build Docker image
       working-directory: environment
       run: |
