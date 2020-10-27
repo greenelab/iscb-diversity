@@ -91,17 +91,11 @@ iscb_pubmed_sum <- iscb_pubmed_sum_oth %>%
 ```{r fig.height=7, fig.width=9, warning=FALSE}
 fig_us_name_origina <- iscb_pubmed_sum %>%
   filter(year < '2020-01-01') %>%
-  # group_by(year, type, region) %>%
-  # summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>% 
   region_breakdown('main', region_levels, fct_rev(type)) +
-  guides(fill = guide_legend(nrow = 2)) +
-  theme(legend.position = 'bottom',
-        legend.key.height = unit(3, 'mm'),
-        legend.key.width = unit(3, 'mm'),
-        legend.text = element_text(size = 8),
-        legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
+  guides(fill = guide_legend(nrow = 2))
 
 large_regions <- c('CelticEnglish', 'EastAsian', 'European', 'OtherCategories')
+
 ## Mean and standard deviation of predicted probabilities:
 fig_us_name_originb <- iscb_pubmed_sum_oth %>%
   filter(region %in% large_regions) %>%

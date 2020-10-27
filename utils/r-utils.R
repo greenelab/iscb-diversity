@@ -299,8 +299,11 @@ region_breakdown <- function(
     scale_fill_manual(
       drop = FALSE,
       values = c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072', '#bc80bd', '#ccebc5')) +
-    theme(legend.key.height = unit(3.5, 'mm'),
-          legend.margin = margin(-0.5, 0, 0, 0, unit='cm'),
+    theme(legend.position = 'bottom',
+          legend.key.height = unit(3, 'mm'),
+          legend.key.width = unit(3, 'mm'),
+          legend.text = element_text(size = 8),
+          legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'),
           panel.grid.minor = element_blank(),
           panel.grid.major.x = element_blank()) +
     labs(x = NULL) 

@@ -1643,7 +1643,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))</code></pre>
 alpha_threshold &lt;- qnorm(0.975)
 gender_df &lt;- read_tsv(&#39;data/gender/genderize.tsv&#39;)</code></pre>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────────────────────────────────
 ## cols(
 ##   fore_name_simple = col_character(),
 ##   n_authors = col_double(),
@@ -1826,9 +1826,10 @@ summary(inte_lm)</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] caret_6.0-86        lattice_0.20-41     wru_0.1-9           gdtools_0.2.2       rnaturalearth_0.2.0
-##  [6] lubridate_1.7.9     forcats_0.5.0       stringr_1.4.0       dplyr_1.0.2         purrr_0.3.4        
-## [11] readr_1.4.0         tidyr_1.1.2         tibble_3.0.4        ggplot2_3.3.2       tidyverse_1.3.0    
+##  [1] wru_0.1-9           caret_6.0-86        lattice_0.20-41     gdtools_0.2.2      
+##  [5] rnaturalearth_0.2.0 lubridate_1.7.9     forcats_0.5.0       stringr_1.4.0      
+##  [9] dplyr_1.0.2         purrr_0.3.4         readr_1.4.0         tidyr_1.1.2        
+## [13] tibble_3.0.4        ggplot2_3.3.2       tidyverse_1.3.0    
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] colorspace_1.4-1        ellipsis_0.3.1          class_7.3-17            rprojroot_1.3-2        
@@ -1837,19 +1838,19 @@ summary(inte_lm)</code></pre>
 ##  [13] codetools_0.2-16        splines_4.0.3           knitr_1.30              pkgload_1.1.0          
 ##  [17] jsonlite_1.7.1          pROC_1.16.2             broom_0.7.1             dbplyr_1.4.4           
 ##  [21] rgeos_0.5-5             compiler_4.0.3          httr_1.4.2              backports_1.1.10       
-##  [25] assertthat_0.2.1        Matrix_1.2-18           cli_2.1.0               htmltools_0.5.0        
-##  [29] prettyunits_1.1.1       tools_4.0.3             gtable_0.3.0            glue_1.4.2             
+##  [25] assertthat_0.2.1        Matrix_1.2-18           cli_2.1.0               prettyunits_1.1.1      
+##  [29] htmltools_0.5.0         tools_4.0.3             gtable_0.3.0            glue_1.4.2             
 ##  [33] rnaturalearthdata_0.2.0 reshape2_1.4.4          Rcpp_1.0.5              cellranger_1.1.0       
-##  [37] vctrs_0.3.4             svglite_1.2.3.2         nlme_3.1-149            crosstalk_1.1.0.1      
-##  [41] iterators_1.0.13        timeDate_3043.102       xfun_0.18               gower_0.2.2            
+##  [37] vctrs_0.3.4             svglite_1.2.3.2         nlme_3.1-149            iterators_1.0.13       
+##  [41] crosstalk_1.1.0.1       timeDate_3043.102       gower_0.2.2             xfun_0.18              
 ##  [45] ps_1.4.0                testthat_2.3.2          rvest_0.3.6             lifecycle_0.2.0        
 ##  [49] devtools_2.3.2          MASS_7.3-53             scales_1.1.1            ipred_0.9-9            
 ##  [53] hms_0.5.3               RColorBrewer_1.1-2      yaml_2.2.1              curl_4.3               
 ##  [57] memoise_1.1.0           rpart_4.1-15            stringi_1.5.3           desc_1.2.0             
 ##  [61] foreach_1.5.1           e1071_1.7-4             pkgbuild_1.1.0          lava_1.6.8             
 ##  [65] rlang_0.4.8             pkgconfig_2.0.3         systemfonts_0.3.2       evaluate_0.14          
-##  [69] sf_0.9-6                htmlwidgets_1.5.2       labeling_0.3            recipes_0.1.14         
-##  [73] cowplot_1.1.0           processx_3.4.4          tidyselect_1.1.0        plyr_1.8.6             
+##  [69] sf_0.9-6                recipes_0.1.14          htmlwidgets_1.5.2       labeling_0.3           
+##  [73] cowplot_1.1.0           tidyselect_1.1.0        processx_3.4.4          plyr_1.8.6             
 ##  [77] magrittr_1.5            R6_2.4.1                generics_0.0.2          DBI_1.1.0              
 ##  [81] pillar_1.4.6            haven_2.3.1             withr_2.3.0             mgcv_1.8-33            
 ##  [85] units_0.6-7             survival_3.2-7          sp_1.4-4                nnet_7.3-14            
