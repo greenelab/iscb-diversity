@@ -7,6 +7,8 @@ output:
     toc_float: true
     code_download: true
     highlight: tango
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs") })
 ---
 
 ```{r setup, include=FALSE}
@@ -167,7 +169,7 @@ pubmed_gender_pmids %>%
   mean(na.rm = T)
 ```
 
-Honorees that didn't receive a gender prediction: `r iscb_gender_df %>% filter(is.na(probability_male)) %>% pull(full_name.x)`.
+Honorees that didn't receive a gender prediction: `r iscb_gender_df %>% filter(is.na(probability_male)) %>% pull(full_name)`.
 
 **In summary, the NA predictions mostly include initials only, hyphenated names and perhaps names with accent marks.**
 
@@ -283,6 +285,10 @@ corr_authors %>%
   scale_fill_viridis_d() +
   theme(legend.position = c(0.2, 0.8)) +
   ylab('Number of full names')
+
+corr_authors %>% 
+  ggplot(aes(x = adjusted_citations)) +
+  geom_density()
 
 corr_authors %>% 
   mutate(affi_country_found = ifelse(

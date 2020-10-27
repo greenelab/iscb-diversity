@@ -1,12 +1,5 @@
 ---
 title: "Representation analysis of race/ethnicity in the US"
-output:
-  html_document:
-    theme: flatly
-    toc: true
-    toc_float: true
-    code_download: true
-    highlight: tango
 ---
 
 
@@ -44,9 +37,8 @@ pubmed_race_pmids <- corr_authors %>%
   predict_race(surname.only = T, impute.missing = F) 
 
 pubmed_us_race <- pubmed_race_pmids %>% 
-  group_by(pmid, journal, publication_date, year) %>% 
-  summarise_at(vars(contains('pred.')), mean, na.rm = T) %>% 
-  ungroup() %>%
+  group_by(pmid, journal, publication_date, year, adjusted_citations) %>% 
+  summarise_at(vars(contains('pred.')), mean, na.rm = T, .groups = 'drop') %>% 
   {.}
 
 iscb_us_race <- keynotes %>%
@@ -65,29 +57,35 @@ iscb_pubmed <- iscb_us_race %>%
   rename('journal' = conference) %>% 
   select(year, journal, contains('pred')) %>%
   mutate(publication_date = year,
-         type = 'Keynote speakers/Fellows') %>%
+         type = 'Keynote speakers/Fellows',
+         adjusted_citations = 1) %>%
   bind_rows(
     pubmed_us_race %>%
-      select(year, journal, contains('pred'), publication_date) %>%
+      select(year, journal, contains('pred'), publication_date, adjusted_citations) %>%
       mutate(type = 'Pubmed authors')
   ) %>%
   mutate(pred_sum_others = pred.his + pred.oth + pred.bla) %>% 
   tidyr::pivot_longer(contains('pred'),
-               names_to = 'Race',
-               values_to = 'probabilities') %>%
+                      names_to = 'Race',
+                      values_to = 'probabilities') %>%
   filter(!is.na(probabilities)) %>% 
   recode_race() %>%
-  group_by(type, year, publication_date, Race) %>%
-  add_count() %>%
+  group_by(type, year, Race) %>%
   mutate(
-    mean_prob = mean(probabilities, na.rm = T),
-    sd_prob = sd(probabilities, na.rm = T),
-    n = mean(n),
-    me_prob = alpha_threshold * sd_prob / sqrt(n)
-  ) %>%
-  ungroup() 
-```
+    pmc_citations_year = mean(adjusted_citations),
+    weight = adjusted_citations/pmc_citations_year,
+    weighted_probs = probabilities*weight
+  )
 
+iscb_pubmed_sum <- iscb_pubmed %>% 
+  summarise(
+    mean_prob = mean(weighted_probs),
+    mean_raw = mean(probabilities),
+    se_prob = sqrt(var(probabilities) * sum(weight^2)/(sum(weight)^2)),
+    me_prob = alpha_threshold * se_prob,
+    .groups = 'drop'
+  )
+```
 
 ```{r}
 iscb_race <- vector('list', length = n_confs)
@@ -108,18 +106,23 @@ save(iscb_pubmed, iscb_race, file = 'Rdata/iscb-us-race.Rdata')
 ```
 
 ```{r fig.height=7}
-fig_stats <- iscb_pubmed %>% 
+fig_stats <- iscb_pubmed_sum %>% 
   filter(Race %in% c('White', 'Asian', 'Other categories')) %>% 
-  gam_and_ci(start_y = '1992-01-01', end_y = end_year) +
-  theme(legend.position = c(0.84, 0.78)) +
+  gam_and_ci(
+    df2 = iscb_pubmed %>% 
+      filter(Race %in% c('White', 'Asian', 'Other categories')),
+    start_y = start_year, end_y = end_year) + 
+  theme(legend.position = c(0.84, 0.78),
+        panel.grid.minor = element_blank(),
+        legend.margin = margin(-0.5, 0, 0, 0, unit='cm')) +
   facet_wrap(vars(forcats::fct_rev(Race)))
 
-fig_2a <- iscb_pubmed %>%
+fig_2a <- iscb_pubmed_sum %>%
   mutate(type = fct_rev(as.factor(type))) %>% 
   filter(Race != 'Other categories') %>%
-  group_by(year, type, Race) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
-  race_breakdown(category = 'main', type)
+  # group_by(year, type, Race) %>%
+  # summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
+  race_breakdown(category = 'main', race_levels, type)
 
 fig_2 <- cowplot::plot_grid(
   fig_2a, fig_stats, labels = 'AUTO', ncol = 1, rel_heights = c(1.5,1))
@@ -135,17 +138,19 @@ Regression of the probability of a name of a certain race on the type of scienti
 
 ```{r}
 main_lm <- function(racei){
-  lm(probabilities ~ year + type, 
+  lm(weighted_probs ~ year + type, 
      data = iscb_pubmed %>% 
-       filter(Race == racei, !is.na(probabilities)) %>% 
-       mutate(year = scale(year),
+       ungroup() %>% 
+       filter(Race == racei, !is.na(weighted_probs)) %>% 
+       mutate(year = c(scale(year)),
               type = relevel(as.factor(type), ref = 'Pubmed authors')))
 }
 inte_lm <- function(racei){
-  lm(probabilities ~ year * type, 
+  lm(weighted_probs ~ year * type, 
      data = iscb_pubmed %>% 
-       filter(Race == racei, !is.na(probabilities)) %>% 
-       mutate(year = scale(year),
+       ungroup() %>% 
+       filter(Race == racei, !is.na(weighted_probs)) %>% 
+       mutate(year = c(scale(year)),
               type = relevel(as.factor(type), ref = 'Pubmed authors')))
 }
 inte_list <- lapply(c('White', 'Asian', 'Other categories'), main_lm)
@@ -171,6 +176,6 @@ lapply(c('White', 'Asian', 'Other categories'), compare_lm)
 
 ## Conclusion
 
-Specifically, a name coming from the group of honorees has significantly higher probability of being white ($\beta_\textrm{white} =$ `r get_p(1, 'estimate')` _p_ = `r get_p(1, 'p.value')`) and lower probability of being Asian, ($\beta_\textrm{Asian} =$ `r get_p(2, 'estimate')`, _p_ = `r get_p(2, 'p.value')`).
+Specifically, a name coming from the group of honorees has significantly higher probability of being white ($\beta_\textrm{white} =$ `r get_p(1, 'estimate')`, _p_ = `r get_p(1, 'p.value')`) and lower probability of being Asian, ($\beta_\textrm{Asian} =$ `r get_p(2, 'estimate')`, _p_ = `r get_p(2, 'p.value')`).
 The two groups of scientists did not have a significant association with names predicted to be in Other categories (_p_ = `r get_p(3, 'p.value')`).
 

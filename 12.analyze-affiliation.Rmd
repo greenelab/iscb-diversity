@@ -1,12 +1,5 @@
 ---
 title: 'Affiliation analysis'
-output:
-  html_document:
-    theme: flatly
-    toc: true
-    toc_float: true
-    code_download: true
-    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +25,8 @@ Observed vs. expected
 ```{r}
 load('Rdata/raws.Rdata')
 
-iscb_aff_country <- read_tsv('data/iscb/keynotes.tsv') %>%
+iscb_aff_country <- 
+  keynotes %>% 
   separate_rows(afflcountries, sep = '\\|') %>% 
   filter(!is.na(afflcountries)) %>% 
   add_count(year, conference, full_name, name = 'num_affls') %>%
@@ -48,7 +42,7 @@ pubmed_aff_country <- corr_authors %>%
   separate_rows(countries) %>%
   add_count(pmid, fore_name_simple, last_name_simple, name = 'num_affls') %>% 
   mutate(probabilities = 1 / num_corr_authors / num_affls)
-
+  
 country_rep <- iscb_aff_country %>% 
   group_by(countries) %>% 
   summarise(Observed = sum(probabilities)) %>% 

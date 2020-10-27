@@ -1,11 +1,5 @@
 ---
 title: "Representation analysis of gender"
-output:
-  html_document:
-    theme: flatly
-    toc: true
-    toc_float: true
-    code_download: true
 ---
 
 ## Setups
@@ -46,8 +40,6 @@ n_jours <- length(my_jours)
 n_confs <- length(my_confs)
 ```
 
-
-
 ## Prepare data frames for later analyses
 
 - rbind results of race predictions in iscb and Pubmed
@@ -58,10 +50,11 @@ n_confs <- length(my_confs)
 iscb_pubmed <- iscb_gender_df %>%
   rename('journal' = conference) %>%
   select(year, journal, probability_male, publication_date) %>%
-  mutate(type = 'Keynote speakers/Fellows') %>%
+  mutate(type = 'Keynote speakers/Fellows',
+         adjusted_citations = 1) %>%
   bind_rows(
     pubmed_gender_df %>%
-      select(year, journal, probability_male, publication_date) %>%
+      select(year, journal, probability_male, publication_date, adjusted_citations) %>%
       mutate(type = 'Pubmed authors')
   ) %>%
   mutate(probability_female = 1 - probability_male) %>% 
@@ -69,35 +62,31 @@ iscb_pubmed <- iscb_gender_df %>%
                names_to = 'gender',
                values_to = 'probabilities') %>%
   filter(!is.na(probabilities)) %>% 
-  group_by(type, year, publication_date, gender) %>%
-  add_count() %>%
+  group_by(type, year, gender) %>%
   mutate(
-    mean_prob = mean(probabilities, na.rm = T),
-    sd_prob = sd(probabilities, na.rm = T),
-    n = mean(n),
-    me_prob = alpha_threshold * sd_prob / sqrt(n)
-  ) %>%
-  ungroup() 
+    pmc_citations_year = mean(adjusted_citations),
+    weight = adjusted_citations/pmc_citations_year,
+    weighted_probs = probabilities*weight
+    # weight = 1
+    )
 
+iscb_pubmed_sum <- iscb_pubmed %>% 
+  summarise(
+    # n = n(),
+    mean_prob = mean(weighted_probs),
+    # mean_prob = mean(probabilities, na.rm = T),
+    # sd_prob = sd(probabilities, na.rm = T),
+    se_prob = sqrt(var(probabilities) * sum(weight^2)/(sum(weight)^2)),
+    # n = mean(n),
+    me_prob = alpha_threshold * se_prob,
+    .groups = 'drop'
+  )
+# https://stats.stackexchange.com/questions/25895/computing-standard-error-in-weighted-mean-estimation
 ```
 
 
-### By conference keynotes/fellows
 ```{r}
-i <- 0
-iscb_gender <- vector('list', length = n_confs)
-
-for (conf in my_confs){
-  i <- i + 1
-  iscb_gender[[i]] <- iscb_pubmed %>%
-    filter(type != 'Pubmed authors' & journal == conf) %>%
-    group_by(year, gender, journal) %>%
-    summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop')
-}
-```
-
-```{r}
-save(iscb_pubmed, iscb_gender, file = 'Rdata/iscb-pubmed_gender.Rdata')
+# save(iscb_pubmed, file = 'Rdata/iscb-pubmed_gender.Rdata')
 ```
 
 
@@ -106,9 +95,8 @@ save(iscb_pubmed, iscb_gender, file = 'Rdata/iscb-pubmed_gender.Rdata')
 ### Figure 1: ISCB Fellows and keynote speakers appear more evenly split between men and women than PubMed authors, but the proportion has not reached parity.
 
 ```{r fig.height=3}
-fig_1 <- iscb_pubmed %>%
-  group_by(year, type, gender) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
+fig_1 <- iscb_pubmed_sum %>%
+  # group_by(year, type, gender) %>%
   gender_breakdown('main', fct_rev(type))
 fig_1
 ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
@@ -116,9 +104,9 @@ ggsave('figs/gender_breakdown.svg', fig_1, width = 5, height = 2.5)
 ```
 
 ```{r echo=FALSE}
-iscb_pubmed %>%
+iscb_pubmed_sum %>%
   group_by(year, type, gender) %>%
-  summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>% 
+  # summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>% 
   filter(year(year) == 2019, grepl('female', gender), grepl('Pubmed', type))
 ```
 
@@ -126,52 +114,24 @@ iscb_pubmed %>%
 ### Supplementary Figure S1 {#sup_fig_s1}
 Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
 
-```{r warning=FALSE, message=FALSE, fig.height=3}
+```{r eval=FALSE}
 # By conference:
-fig_1d <- bind_rows(iscb_gender) %>%
-  gender_breakdown(category = 'sub', journal) +
-  theme(legend.position = 'bottom')
+# fig_1d <- bind_rows(iscb_gender) %>%
+#   gender_breakdown(category = 'sub', journal) +
+#   theme(legend.position = 'bottom')
 
-fig_1d
-ggsave('figs/fig_s1.png', fig_1d, width = 6, height = 2)
-ggsave('figs/fig_s1.svg', fig_1d, width = 6, height = 2)
-```
-
-
-## Overview of gender prediction distribution
-
-```{r fig.height = 3}
-iscb_pubmed %>% 
-  filter(gender == 'probability_male') %>% 
-  ggplot(aes(x = probabilities, y = ..density.., fill = type)) +
-  geom_histogram(position = 'dodge') +
-  scale_fill_viridis_d(option = 'D', end = 0.8) +
-  guides(label = F) +
-  labs(x = 'probability_male') +
-  theme(legend.position = c(0.2, 0.8))
+# fig_1d
+# ggsave('figs/fig_s1.png', fig_1d, width = 6, height = 2)
+# ggsave('figs/fig_s1.svg', fig_1d, width = 6, height = 2)
 ```
 
 ## Mean and standard deviation of predicted probabilities
 
 ```{r}
-ggplot(iscb_pubmed %>% filter(gender == 'probability_male'),
-  aes(group = type)) +
-  geom_smooth(method = 'gam', size = 0.2, data = . %>% filter(type == 'Pubmed authors'),
-              aes(x = publication_date, y = probabilities, fill = type, color = type)) +
-  geom_pointrange(data = . %>% get_keynote_summary(),
-                  alpha = 0.75, size = 0.3,
-                  aes(x = year, y = mean_prob, shape = type,
-                      ymin = mean_prob - me_prob,
-                      ymax = mean_prob + me_prob)) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent_format()) +
-  scale_x_date(labels = scales::date_format("%Y")) +
-  scale_color_viridis_d(option = 'D', begin = 0.5) +
-  scale_fill_viridis_d(option = 'D', begin = 0.5) +
-  coord_cartesian(ylim = c(0, 1)) +
-  labs(x = NULL, y = 'Estimated male composition') +
-  theme(legend.position = c(0.2, 0.2),
-        legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
-
+iscb_pubmed_sum %>% filter(gender == 'probability_male') %>% 
+  gam_and_ci(df2 = iscb_pubmed %>% filter(gender == 'probability_male'),
+             start_y = start_year, end_y = end_year) +
+  theme(legend.position = c(0.88, 0.2))
 ```
 
 ## Hypothesis testing
@@ -186,10 +146,9 @@ get_p <- function(inte, colu){
 ```
 
 ```{r}
-main_lm <- lm(probabilities ~ year + type, 
+main_lm <- lm(weighted_probs ~ year + type, 
      data = iscb_pubmed %>% 
-       filter(gender == 'probability_female', !is.na(probabilities)) %>% 
-       mutate(year = scale(year)))
+       filter(gender == 'probability_female', !is.na(weighted_probs)))
 summary(main_lm)
 ```
 
@@ -197,10 +156,9 @@ The two groups of scientists did not have a significant association with the gen
 Interaction terms do not predict `probabilities` over and above the main effect of group of scientists and year.
 
 ```{r}
-inte_lm <- lm(probabilities ~ year * type, 
+inte_lm <- lm(weighted_probs ~ year * type, 
    data = iscb_pubmed %>% 
-     filter(gender == 'probability_female', !is.na(probabilities)) %>% 
-     mutate(year = scale(year)))
+     filter(gender == 'probability_female', !is.na(weighted_probs)))
 summary(inte_lm)
 anova(main_lm, inte_lm)
 ```

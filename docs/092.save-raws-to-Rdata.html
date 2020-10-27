@@ -1304,21 +1304,21 @@ window.initializeCodeFolding = function(show) {
 
     // create a collapsable div to wrap the code in
     var div = $('<div class="collapse r-code-collapse"></div>');
-    show = (show || $(this).hasClass('fold-show')) && !$(this).hasClass('fold-hide');
-    if (show) div.addClass('in');
+    var showThis = (show || $(this).hasClass('fold-show')) && !$(this).hasClass('fold-hide');
+    if (showThis) div.addClass('in');
     var id = 'rcode-643E0F36' + currentIndex++;
     div.attr('id', id);
     $(this).before(div);
     $(this).detach().appendTo(div);
 
     // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    var showCodeText = $('<span>' + (showThis ? 'Hide' : 'Code') + '</span>');
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
     showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
-        .attr('aria-expanded', show)
+        .attr('aria-expanded', showThis)
         .attr('aria-controls', id);
 
     var buttonRow = $('<div class="row"></div>');
@@ -2452,7 +2452,7 @@ HTMLWidgets.widget({
     if (data.caption) $table.prepend(data.caption);
 
     if (!data.selection) data.selection = {
-      mode: 'none', selected: null, target: 'row'
+      mode: 'none', selected: null, target: 'row', selectable: null
     };
     if (HTMLWidgets.shinyMode && data.selection.mode !== 'none' &&
         data.selection.target === 'row+column') {
@@ -2780,6 +2780,12 @@ HTMLWidgets.widget({
             // to avoid problems like 3.423/100 -> 0.034230000000000003
             return (x / scale).toFixed(d);
           };
+          var slider_min = function() {
+            return filter.noUiSlider('options').range.min;
+          };
+          var slider_max = function() {
+            return filter.noUiSlider('options').range.max;
+          };
           $input.on({
             focus: function() {
               $x0.show().trigger('show');
@@ -2802,7 +2808,7 @@ HTMLWidgets.widget({
               $x0.hide().trigger('hide');
             },
             input: function() {
-              if ($input.val() === '') filter.val([r1, r2]);
+              if ($input.val() === '') filter.val([slider_min(), slider_max()]);
             },
             change: function() {
               var v = $input.val().replace(/\s/g, '');
@@ -2812,8 +2818,8 @@ HTMLWidgets.widget({
                 $input.parent().addClass('has-error');
                 return;
               }
-              if (v[0] === '') v[0] = r1;
-              if (v[1] === '') v[1] = r2;
+              if (v[0] === '') v[0] = slider_min();
+              if (v[1] === '') v[1] = slider_max();
               $input.parent().removeClass('has-error');
               // treat date as UTC time at midnight
               var strTime = function(x) {
@@ -2829,8 +2835,8 @@ HTMLWidgets.widget({
                 v[0] = strTime(v[0]);
                 v[1] = strTime(v[1]);
               }
-              if (v[0] != r1) v[0] *= scale;
-              if (v[1] != r2) v[1] *= scale;
+              if (v[0] != slider_min()) v[0] *= scale;
+              if (v[1] != slider_max()) v[1] *= scale;
               filter.val(v);
             }
           });
@@ -2884,7 +2890,7 @@ HTMLWidgets.widget({
           var updateSlider = function(e) {
             var val = filter.val();
             // turn off filter if in full range
-            $td.data('filter', val[0] > r1 || val[1] < r2);
+            $td.data('filter', val[0] > slider_min() || val[1] < slider_max());
             var v1 = formatDate(val[0]), v2 = formatDate(val[1]), ival;
             if ($td.data('filter')) {
               ival = v1 + ' ... ' + v2;
@@ -3122,7 +3128,7 @@ HTMLWidgets.widget({
       id = el.id + '_' + id;
       if (type) id = id + ':' + type;
       // do not update if the new value is the same as old value
-      if (event !== 'cell_edit' && shinyData.hasOwnProperty(id) && shinyData[id] === JSON.stringify(value))
+      if (event !== 'cell_edit' && !/_clicked$/.test(event) && shinyData.hasOwnProperty(id) && shinyData[id] === JSON.stringify(value))
         return;
       shinyData[id] = JSON.stringify(value);
       if (HTMLWidgets.shinyMode && Shiny.setInputValue) {
@@ -3179,6 +3185,14 @@ HTMLWidgets.widget({
       return {row: info.row, col: info.column};
     }
 
+    var cleanSelectedValues = function() {
+      changeInput('rows_selected', []);
+      changeInput('columns_selected', []);
+      changeInput('cells_selected', transposeArray2D([]), 'shiny.matrix');
+    }
+    // #828 we should clean the selection on the server-side when the table reloads
+    cleanSelectedValues();
+
     // a flag to indicates if select extension is initialized or not
     var flagSelectExt = table.settings()[0]._select !== undefined;
     // the Select extension should only be used in the client mode and
@@ -3214,20 +3228,29 @@ HTMLWidgets.widget({
     }
 
     var selMode = data.selection.mode, selTarget = data.selection.target;
+    var selDisable = data.selection.selectable === false;
     if (inArray(selMode, ['single', 'multiple'])) {
       var selClass = inArray(data.style, ['bootstrap', 'bootstrap4']) ? 'active' : 'selected';
-      var selected = data.selection.selected, selected1, selected2;
       // selected1: row indices; selected2: column indices
-      if (selected === null) {
-        selected1 = selected2 = [];
-      } else if (selTarget === 'row') {
-        selected1 = $.makeArray(selected);
-      } else if (selTarget === 'column') {
-        selected2 = $.makeArray(selected);
-      } else if (selTarget === 'row+column') {
-        selected1 = $.makeArray(selected.rows);
-        selected2 = $.makeArray(selected.cols);
+      var initSel = function(x) {
+        if (x === null || typeof x === 'boolean' || selTarget === 'cell') {
+          return {rows: [], cols: []};
+        } else if (selTarget === 'row') {
+          return {rows: $.makeArray(x), cols: []};
+        } else if (selTarget === 'column') {
+          return {rows: [], cols: $.makeArray(x)};
+        } else if (selTarget === 'row+column') {
+          return {rows: $.makeArray(x.rows), cols: $.makeArray(x.cols)};
+        }
       }
+      var selected = data.selection.selected;
+      var selected1 = initSel(selected).rows, selected2 = initSel(selected).cols;
+      // selectable should contain either all positive or all non-positive values, not both
+      // positive values indicate "selectable" while non-positive values means "nonselectable"
+      // the assertion is performed on R side. (only column indicides could be zero which indicates
+      // the row name)
+      var selectable = data.selection.selectable;
+      var selectable1 = initSel(selectable).rows, selectable2 = initSel(selectable).cols;
 
       // After users reorder the rows or filter the table, we cannot use the table index
       // directly. Instead, we need this function to find out the rows between the two clicks.
@@ -3250,15 +3273,56 @@ HTMLWidgets.widget({
       // row, column, or cell selection
       var lastClickedRow;
       if (inArray(selTarget, ['row', 'row+column'])) {
+        // Get the current selected rows. It will also
+        // update the selected1's value based on the current row selection state
+        // Note we can't put this function inside selectRows() directly,
+        // the reason is method.selectRows() will override selected1's value but this
+        // function will add rows to selected1 (keep the existing selection), which is
+        // inconsistent with column and cell selection.
         var selectedRows = function() {
           var rows = table.rows('.' + selClass);
           var idx = rows.indexes().toArray();
-          if (!server) return addOne(idx);
+          if (!server) {
+            selected1 = addOne(idx);
+            return selected1;
+          }
           idx = idx.map(function(i) {
             return DT_rows_current[i];
           });
           selected1 = selMode === 'multiple' ? unique(selected1.concat(idx)) : idx;
           return selected1;
+        }
+        // Change selected1's value based on selectable1, then refresh the row state
+        var onlyKeepSelectableRows = function() {
+          if (selDisable) { // users can't select; useful when only want backend select
+            selected1 = [];
+            return;
+          }
+          if (selectable1.length === 0) return;
+          var nonselectable = selectable1[0] <= 0;
+          if (nonselectable) {
+            // should make selectable1 positive
+            selected1 = $(selected1).not(selectable1.map(function(i) { return -i; })).get();
+          } else {
+            selected1 = $(selected1).filter(selectable1).get();
+          }
+        }
+        // Change selected1's value based on selectable1, then
+        // refresh the row selection state according to values in selected1
+        var selectRows = function(ignoreSelectable) {
+          if (!ignoreSelectable) onlyKeepSelectableRows();
+          table.$('tr.' + selClass).removeClass(selClass);
+          if (selected1.length === 0) return;
+          if (server) {
+            table.rows({page: 'current'}).every(function() {
+              if (inArray(DT_rows_current[this.index()], selected1)) {
+                $(this.node()).addClass(selClass);
+              }
+            });
+          } else {
+            var selected0 = selected1.map(function(i) { return i - 1; });
+            $(table.rows(selected0).nodes()).addClass(selClass);
+          }
         }
         table.on('mousedown.dt', 'tbody tr', function(e) {
           var $this = $(this), thisRow = table.row(this);
@@ -3311,33 +3375,21 @@ HTMLWidgets.widget({
             // remove id from selected1 since its class .selected has been removed
             if (inArray(id, selected1)) selected1.splice($.inArray(id, selected1), 1);
           }
-          changeInput('rows_selected', selectedRows());
-          changeInput('row_last_clicked', serverRowIndex(thisRow.index()));
+          selectedRows(); // update selected1's value based on selClass
+          selectRows(false); // only keep the selectable rows
+          changeInput('rows_selected', selected1);
+          changeInput('row_last_clicked', serverRowIndex(thisRow.index()), null, null, {priority: 'event'});
           lastClickedRow = serverRowIndex(thisRow.index());
         });
-        changeInput('rows_selected', selected1);
-        var selectRows = function() {
-          table.$('tr.' + selClass).removeClass(selClass);
-          if (selected1.length === 0) return;
-          if (server) {
-            table.rows({page: 'current'}).every(function() {
-              if (inArray(DT_rows_current[this.index()], selected1)) {
-                $(this.node()).addClass(selClass);
-              }
-            });
-          } else {
-            var selected0 = selected1.map(function(i) { return i - 1; });
-            $(table.rows(selected0).nodes()).addClass(selClass);
-          }
-        }
-        selectRows();  // in case users have specified pre-selected rows
+        selectRows(false);  // in case users have specified pre-selected rows
         // restore selected rows after the table is redrawn (e.g. sort/search/page);
         // client-side tables will preserve the selections automatically; for
         // server-side tables, we have to *real* row indices are in `selected1`
-        if (server) table.on('draw.dt', selectRows);
-        methods.selectRows = function(selected) {
+        changeInput('rows_selected', selected1);
+        if (server) table.on('draw.dt', function(e) { selectRows(false); });
+        methods.selectRows = function(selected, ignoreSelectable) {
           selected1 = $.makeArray(selected);
-          selectRows();
+          selectRows(ignoreSelectable);
           changeInput('rows_selected', selected1);
         }
       }
@@ -3345,6 +3397,34 @@ HTMLWidgets.widget({
       if (inArray(selTarget, ['column', 'row+column'])) {
         if (selTarget === 'row+column') {
           $(table.columns().footer()).css('cursor', 'pointer');
+        }
+        // update selected2's value based on selectable2
+        var onlyKeepSelectableCols = function() {
+          if (selDisable) { // users can't select; useful when only want backend select
+            selected2 = [];
+            return;
+          }
+          if (selectable2.length === 0) return;
+          var nonselectable = selectable2[0] <= 0;
+          if (nonselectable) {
+            // need to make selectable2 positive
+            selected2 = $(selected2).not(selectable2.map(function(i) { return -i; })).get();
+          } else {
+            selected2 = $(selected2).filter(selectable2).get();
+          }
+        }
+        // update selected2 and then
+        // refresh the col selection state according to values in selected2
+        var selectCols = function(ignoreSelectable) {
+          if (!ignoreSelectable) onlyKeepSelectableCols();
+          // if selected2 is not a valide index (e.g., larger than the column number)
+          // table.columns(selected2) will fail and result in a blank table
+          // this is different from the table.rows(), where the out-of-range indexes
+          // doesn't affect at all
+          selected2 = $(selected2).filter(table.columns().indexes()).get();
+          table.columns().nodes().flatten().to$().removeClass(selClass);
+          if (selected2.length > 0)
+            table.columns(selected2).nodes().flatten().to$().addClass(selClass);
         }
         var callback = function() {
           var colIdx = selTarget === 'column' ? table.cell(this).index().column :
@@ -3359,6 +3439,7 @@ HTMLWidgets.widget({
             thisCol.addClass(selClass);
             selected2 = selMode === 'single' ? [colIdx] : unique(selected2.concat([colIdx]));
           }
+          selectCols(false); // update selected2 based on selectable
           changeInput('columns_selected', selected2);
         }
         if (selTarget === 'column') {
@@ -3366,49 +3447,51 @@ HTMLWidgets.widget({
         } else {
           $(table.table().footer()).on('click.dt', 'tr th', callback);
         }
+        selectCols(false);  // in case users have specified pre-selected columns
         changeInput('columns_selected', selected2);
-        var selectCols = function() {
-          table.columns().nodes().flatten().to$().removeClass(selClass);
-          if (selected2.length > 0)
-            table.columns(selected2).nodes().flatten().to$().addClass(selClass);
-        }
-        selectCols();  // in case users have specified pre-selected columns
-        if (server) table.on('draw.dt', selectCols);
-        methods.selectColumns = function(selected) {
+        if (server) table.on('draw.dt', function(e) { selectCols(false); });
+        methods.selectColumns = function(selected, ignoreSelectable) {
           selected2 = $.makeArray(selected);
-          selectCols();
+          selectCols(ignoreSelectable);
           changeInput('columns_selected', selected2);
         }
       }
 
       if (selTarget === 'cell') {
-        var selected3;
-        if (selected === null) {
-          selected3 = [];
-        } else {
-          selected3 = selected;
-        }
-        var findIndex = function(ij) {
-          for (var i = 0; i < selected3.length; i++) {
-            if (ij[0] === selected3[i][0] && ij[1] === selected3[i][1]) return i;
+        var selected3 = [], selectable3 = [];
+        if (selected !== null) selected3 = selected;
+        if (selectable !== null && typeof selectable !== 'boolean') selectable3 = selectable;
+        var findIndex = function(ij, sel) {
+          for (var i = 0; i < sel.length; i++) {
+            if (ij[0] === sel[i][0] && ij[1] === sel[i][1]) return i;
           }
           return -1;
         }
-        table.on('click.dt', 'tbody td', function() {
-          var $this = $(this), info = tweakCellIndex(table.cell(this));
-          if ($this.hasClass(selClass)) {
-            $this.removeClass(selClass);
-            selected3.splice(findIndex([info.row, info.col]), 1);
-          } else {
-            if (selMode === 'single') $(table.cells().nodes()).removeClass(selClass);
-            $this.addClass(selClass);
-            selected3 = selMode === 'single' ? [[info.row, info.col]] :
-              unique(selected3.concat([[info.row, info.col]]));
+         // Change selected3's value based on selectable3, then refresh the cell state
+        var onlyKeepSelectableCells = function() {
+          if (selDisable) { // users can't select; useful when only want backend select
+            selected3 = [];
+            return;
           }
-          changeInput('cells_selected', transposeArray2D(selected3), 'shiny.matrix');
-        });
-        changeInput('cells_selected', transposeArray2D(selected3), 'shiny.matrix');
-        var selectCells = function() {
+          if (selectable3.length === 0) return;
+          var nonselectable = selectable3[0][0] <= 0;
+          var out = [];
+          if (nonselectable) {
+            selected3.map(function(ij) {
+              // should make selectable3 positive
+              if (findIndex([-ij[0], -ij[1]], selectable3) === -1) { out.push(ij); }
+            });
+          } else {
+            selected3.map(function(ij) {
+              if (findIndex(ij, selectable3) > -1) { out.push(ij); }
+            });
+          }
+          selected3 = out;
+        }
+        // Change selected3's value based on selectable3, then
+        // refresh the cell selection state according to values in selected3
+        var selectCells = function(ignoreSelectable) {
+          if (!ignoreSelectable) onlyKeepSelectableCells();
           table.$('td.' + selClass).removeClass(selClass);
           if (selected3.length === 0) return;
           if (server) {
@@ -3423,11 +3506,27 @@ HTMLWidgets.widget({
             });
           }
         };
-        selectCells();  // in case users have specified pre-selected columns
-        if (server) table.on('draw.dt', selectCells);
-        methods.selectCells = function(selected) {
+        table.on('click.dt', 'tbody td', function() {
+          var $this = $(this), info = tweakCellIndex(table.cell(this));
+          if ($this.hasClass(selClass)) {
+            $this.removeClass(selClass);
+            selected3.splice(findIndex([info.row, info.col], selected3), 1);
+          } else {
+            if (selMode === 'single') $(table.cells().nodes()).removeClass(selClass);
+            $this.addClass(selClass);
+            selected3 = selMode === 'single' ? [[info.row, info.col]] :
+              unique(selected3.concat([[info.row, info.col]]));
+          }
+          selectCells(false); // must call this to update selected3 based on selectable3
+          changeInput('cells_selected', transposeArray2D(selected3), 'shiny.matrix');
+        });
+        selectCells(false);  // in case users have specified pre-selected columns
+        changeInput('cells_selected', transposeArray2D(selected3), 'shiny.matrix');
+
+        if (server) table.on('draw.dt', function(e) { selectCells(false); });
+        methods.selectCells = function(selected, ignoreSelectable) {
           selected3 = selected ? selected : [];
-          selectCells();
+          selectCells(ignoreSelectable);
           changeInput('cells_selected', transposeArray2D(selected3), 'shiny.matrix');
         }
       }
@@ -3479,7 +3578,7 @@ HTMLWidgets.widget({
     }
     // the current cell clicked on
     table.on('click.dt', 'tbody td', function() {
-      changeInput('cell_clicked', cellInfo(this));
+      changeInput('cell_clicked', cellInfo(this), null, null, {priority: 'event'});
     })
     changeInput('cell_clicked', {});
 
@@ -3488,7 +3587,7 @@ HTMLWidgets.widget({
       if (this.className === '') e.stopPropagation();
     });
 
-    methods.addRow = function(data, rowname) {
+    methods.addRow = function(data, rowname, resetPaging) {
       var data0 = table.row(0).data(), n = data0.length, d = n - data.length;
       if (d === 1) {
         data = rowname.concat(data)
@@ -3497,7 +3596,7 @@ HTMLWidgets.widget({
         console.log(data0);
         throw 'New data must be of the same length as current data (' + n + ')';
       };
-      table.row.add(data).draw();
+      table.row.add(data).draw(resetPaging);
     }
 
     methods.updateSearch = function(keywords) {
@@ -3827,6 +3926,77 @@ padding-right: inherit;
 <script>!function o(u,a,l){function s(n,e){if(!a[n]){if(!u[n]){var t="function"==typeof require&&require;if(!e&&t)return t(n,!0);if(f)return f(n,!0);var r=new Error("Cannot find module '"+n+"'");throw r.code="MODULE_NOT_FOUND",r}var i=a[n]={exports:{}};u[n][0].call(i.exports,function(e){var t=u[n][1][e];return s(t||e)},i,i.exports,o,u,a,l)}return a[n].exports}for(var f="function"==typeof require&&require,e=0;e<l.length;e++)s(l[e]);return s}({1:[function(e,t,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0});var r=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}();var i=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this._types={},this._seq=0}return r(e,[{key:"on",value:function(e,t){var n=this._types[e];n||(n=this._types[e]={});var r="sub"+this._seq++;return n[r]=t,r}},{key:"off",value:function(e,t){var n=this._types[e];if("function"==typeof t){for(var r in n)if(n.hasOwnProperty(r)&&n[r]===t)return delete n[r],r;return!1}if("string"==typeof t)return!(!n||!n[t])&&(delete n[t],t);throw new Error("Unexpected type for listener")}},{key:"trigger",value:function(e,t,n){var r=this._types[e];for(var i in r)r.hasOwnProperty(i)&&r[i].call(n,t)}}]),e}();n.default=i},{}],2:[function(e,t,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0}),n.FilterHandle=void 0;var r=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}(),i=l(e("./events")),o=l(e("./filterset")),u=l(e("./group")),a=function(e){{if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t}}(e("./util"));function l(e){return e&&e.__esModule?e:{default:e}}var s=1;n.FilterHandle=function(){function n(e,t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,n),this._eventRelay=new i.default,this._emitter=new a.SubscriptionTracker(this._eventRelay),this._group=null,this._filterSet=null,this._filterVar=null,this._varOnChangeSub=null,this._extraInfo=a.extend({sender:this},t),this._id="filter"+s++,this.setGroup(e)}return r(n,[{key:"setGroup",value:function(e){var t,n,r=this;if(this._group!==e&&((this._group||e)&&(this._filterVar&&(this._filterVar.off("change",this._varOnChangeSub),this.clear(),this._varOnChangeSub=null,this._filterVar=null,this._filterSet=null),this._group=e))){e=(0,u.default)(e),this._filterSet=(t=e.var("filterset"),(n=t.get())||(n=new o.default,t.set(n)),n),this._filterVar=(0,u.default)(e).var("filter");var i=this._filterVar.on("change",function(e){r._eventRelay.trigger("change",e,r)});this._varOnChangeSub=i}}},{key:"_mergeExtraInfo",value:function(e){return a.extend({},this._extraInfo?this._extraInfo:null,e||null)}},{key:"close",value:function(){this._emitter.removeAllListeners(),this.clear(),this.setGroup(null)}},{key:"clear",value:function(e){this._filterSet&&(this._filterSet.clear(this._id),this._onChange(e))}},{key:"set",value:function(e,t){this._filterSet&&(this._filterSet.update(this._id,e),this._onChange(t))}},{key:"on",value:function(e,t){return this._emitter.on(e,t)}},{key:"off",value:function(e,t){return this._emitter.off(e,t)}},{key:"_onChange",value:function(e){this._filterSet&&this._filterVar.set(this._filterSet.value,this._mergeExtraInfo(e))}},{key:"filteredKeys",get:function(){return this._filterSet?this._filterSet.value:null}}]),n}()},{"./events":1,"./filterset":3,"./group":4,"./util":11}],3:[function(e,t,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0});var r=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}(),a=e("./util");function l(e,t){return e===t?0:e<t?-1:t<e?1:void 0}var i=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.reset()}return r(e,[{key:"reset",value:function(){this._handles={},this._keys={},this._value=null,this._activeHandles=0}},{key:"update",value:function(e,t){null!==t&&(t=t.slice(0)).sort(l);var n=(0,a.diffSortedLists)(this._handles[e],t),r=n.added,i=n.removed;this._handles[e]=t;for(var o=0;o<r.length;o++)this._keys[r[o]]=(this._keys[r[o]]||0)+1;for(var u=0;u<i.length;u++)this._keys[i[u]]--;this._updateValue(t)}},{key:"_updateValue",value:function(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:this._allKeys,t=Object.keys(this._handles).length;if(0===t)this._value=null;else{this._value=[];for(var n=0;n<e.length;n++){this._keys[e[n]]===t&&this._value.push(e[n])}}}},{key:"clear",value:function(e){if(void 0!==this._handles[e]){var t=this._handles[e];t||(t=[]);for(var n=0;n<t.length;n++)this._keys[t[n]]--;delete this._handles[e],this._updateValue()}}},{key:"value",get:function(){return this._value}},{key:"_allKeys",get:function(){var e=Object.keys(this._keys);return e.sort(l),e}}]),e}();n.default=i},{"./util":11}],4:[function(l,e,s){(function(e){"use strict";Object.defineProperty(s,"__esModule",{value:!0});var n=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}(),r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};s.default=function e(t){{if(t&&"string"==typeof t)return u.hasOwnProperty(t)||(u[t]=new a(t)),u[t];if("object"===(void 0===t?"undefined":r(t))&&t._vars&&t.var)return t;if(Array.isArray(t)&&1==t.length&&"string"==typeof t[0])return e(t[0]);throw new Error("Invalid groupName argument")}};var t,i=l("./var"),o=(t=i)&&t.__esModule?t:{default:t};e.__crosstalk_groups=e.__crosstalk_groups||{};var u=e.__crosstalk_groups;var a=function(){function t(e){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t),this.name=e,this._vars={}}return n(t,[{key:"var",value:function(e){if(!e||"string"!=typeof e)throw new Error("Invalid var name");return this._vars.hasOwnProperty(e)||(this._vars[e]=new o.default(this,e)),this._vars[e]}},{key:"has",value:function(e){if(!e||"string"!=typeof e)throw new Error("Invalid var name");return this._vars.hasOwnProperty(e)}}]),t}()}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{"./var":12}],5:[function(f,e,c){(function(e){"use strict";Object.defineProperty(c,"__esModule",{value:!0});var t,n=f("./group"),r=(t=n)&&t.__esModule?t:{default:t},i=f("./selection"),o=f("./filter"),u=f("./input");f("./input_selectize"),f("./input_checkboxgroup"),f("./input_slider");var a=(0,r.default)("default");function l(e){return a.var(e)}e.Shiny&&e.Shiny.addCustomMessageHandler("update-client-value",function(e){"string"==typeof e.group?(0,r.default)(e.group).var(e.name).set(e.value):l(e.name).set(e.value)});var s={group:r.default,var:l,has:function(e){return a.has(e)},SelectionHandle:i.SelectionHandle,FilterHandle:o.FilterHandle,bind:u.bind};c.default=s,e.crosstalk=s}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{"./filter":2,"./group":4,"./input":6,"./input_checkboxgroup":7,"./input_selectize":8,"./input_slider":9,"./selection":10}],6:[function(e,t,a){(function(t){"use strict";Object.defineProperty(a,"__esModule",{value:!0}),a.register=function(e){r[e.className]=e,t.document&&"complete"!==t.document.readyState?o(function(){n()}):t.document&&setTimeout(n,100)},a.bind=n;var o=t.jQuery,r={};function n(){Object.keys(r).forEach(function(e){var n=r[e];o("."+n.className).not(".crosstalk-input-bound").each(function(e,t){i(n,t)})})}function i(e,t){var n=o(t).find("script[type='application/json'][data-for='"+t.id.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g,"\\$1")+"']"),r=JSON.parse(n[0].innerText),i=e.factory(t,r);o(t).data("crosstalk-instance",i),o(t).addClass("crosstalk-input-bound")}if(t.Shiny){var e=new t.Shiny.InputBinding,u=t.jQuery;u.extend(e,{find:function(e){return u(e).find(".crosstalk-input")},initialize:function(e){var t,n;u(e).hasClass("crosstalk-input-bound")||(n=o(t=e),Object.keys(r).forEach(function(e){n.hasClass(e)&&!n.hasClass("crosstalk-input-bound")&&i(r[e],t)}))},getId:function(e){return e.id},getValue:function(e){},setValue:function(e,t){},receiveMessage:function(e,t){},subscribe:function(e,t){u(e).data("crosstalk-instance").resume()},unsubscribe:function(e){u(e).data("crosstalk-instance").suspend()}}),t.Shiny.inputBindings.register(e,"crosstalk.inputBinding")}}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{}],7:[function(r,e,t){(function(e){"use strict";var t=function(e){{if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t}}(r("./input")),n=r("./filter");var a=e.jQuery;t.register({className:"crosstalk-input-checkboxgroup",factory:function(e,r){var i=new n.FilterHandle(r.group),o=void 0,u=a(e);return u.on("change","input[type='checkbox']",function(){var e=u.find("input[type='checkbox']:checked");if(0===e.length)o=null,i.clear();else{var t={};e.each(function(){r.map[this.value].forEach(function(e){t[e]=!0})});var n=Object.keys(t);n.sort(),o=n,i.set(n)}}),{suspend:function(){i.clear()},resume:function(){o&&i.set(o)}}}})}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{"./filter":2,"./input":6}],8:[function(r,e,t){(function(e){"use strict";var t=n(r("./input")),l=n(r("./util")),s=r("./filter");function n(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t}var f=e.jQuery;t.register({className:"crosstalk-input-select",factory:function(e,n){var t=l.dataframeToD3(n.items),r={options:[{value:"",label:"(All)"}].concat(t),valueField:"value",labelField:"label",searchField:"label"},i=f(e).find("select")[0],o=f(i).selectize(r)[0].selectize,u=new s.FilterHandle(n.group),a=void 0;return o.on("change",function(){if(0===o.items.length)a=null,u.clear();else{var t={};o.items.forEach(function(e){n.map[e].forEach(function(e){t[e]=!0})});var e=Object.keys(t);e.sort(),a=e,u.set(e)}}),{suspend:function(){u.clear()},resume:function(){a&&u.set(a)}}}})}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{"./filter":2,"./input":6,"./util":11}],9:[function(n,e,t){(function(e){"use strict";var d=function(e,t){if(Array.isArray(e))return e;if(Symbol.iterator in Object(e))return function(e,t){var n=[],r=!0,i=!1,o=void 0;try{for(var u,a=e[Symbol.iterator]();!(r=(u=a.next()).done)&&(n.push(u.value),!t||n.length!==t);r=!0);}catch(e){i=!0,o=e}finally{try{!r&&a.return&&a.return()}finally{if(i)throw o}}return n}(e,t);throw new TypeError("Invalid attempt to destructure non-iterable instance")},t=function(e){{if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t}}(n("./input")),a=n("./filter");var v=e.jQuery,p=e.strftime;function y(e,t){for(var n=e.toString();n.length<t;)n="0"+n;return n}t.register({className:"crosstalk-input-slider",factory:function(e,l){var s=new a.FilterHandle(l.group),t={},f=v(e).find("input"),n=f.data("data-type"),r=f.data("time-format"),i=f.data("round"),o=void 0;if("date"===n)o=p.utc(),t.prettify=function(e){return o(r,new Date(e))};else if("datetime"===n){var u=f.data("timezone");o=u?p.timezone(u):p,t.prettify=function(e){return o(r,new Date(e))}}else"number"===n&&void 0!==i&&(t.prettify=function(e){var t=Math.pow(10,i);return Math.round(e*t)/t});function c(){var e=f.data("ionRangeSlider").result,t=void 0,n=f.data("data-type");return t="date"===n?function(e){return(t=new Date(+e))instanceof Date?t.getUTCFullYear()+"-"+y(t.getUTCMonth()+1,2)+"-"+y(t.getUTCDate(),2):null;var t}:"datetime"===n?function(e){return+e/1e3}:function(e){return+e},"double"===f.data("ionRangeSlider").options.type?[t(e.from),t(e.to)]:t(e.from)}f.ionRangeSlider(t);var h=null;return f.on("change.crosstalkSliderInput",function(e){if(!f.data("updating")&&!f.data("animating")){for(var t=c(),n=d(t,2),r=n[0],i=n[1],o=[],u=0;u<l.values.length;u++){var a=l.values[u];r<=a&&a<=i&&o.push(l.keys[u])}o.sort(),s.set(o),h=o}}),{suspend:function(){s.clear()},resume:function(){h&&s.set(h)}}}})}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{"./filter":2,"./input":6}],10:[function(e,t,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0}),n.SelectionHandle=void 0;var r=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}(),i=a(e("./events")),o=a(e("./group")),u=function(e){{if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t}}(e("./util"));function a(e){return e&&e.__esModule?e:{default:e}}n.SelectionHandle=function(){function n(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:null,t=1<arguments.length&&void 0!==arguments[1]?arguments[1]:null;!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,n),this._eventRelay=new i.default,this._emitter=new u.SubscriptionTracker(this._eventRelay),this._group=null,this._var=null,this._varOnChangeSub=null,this._extraInfo=u.extend({sender:this},t),this.setGroup(e)}return r(n,[{key:"setGroup",value:function(e){var t=this;if(this._group!==e&&(this._group||e)&&(this._var&&(this._var.off("change",this._varOnChangeSub),this._var=null,this._varOnChangeSub=null),this._group=e)){this._var=(0,o.default)(e).var("selection");var n=this._var.on("change",function(e){t._eventRelay.trigger("change",e,t)});this._varOnChangeSub=n}}},{key:"_mergeExtraInfo",value:function(e){return u.extend({},this._extraInfo?this._extraInfo:null,e||null)}},{key:"set",value:function(e,t){this._var&&this._var.set(e,this._mergeExtraInfo(t))}},{key:"clear",value:function(e){this._var&&this.set(void 0,this._mergeExtraInfo(e))}},{key:"on",value:function(e,t){return this._emitter.on(e,t)}},{key:"off",value:function(e,t){return this._emitter.off(e,t)}},{key:"close",value:function(){this._emitter.removeAllListeners(),this.setGroup(null)}},{key:"value",get:function(){return this._var?this._var.get():null}}]),n}()},{"./events":1,"./group":4,"./util":11}],11:[function(e,t,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0});var r=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}(),l="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};function u(e){for(var t=1;t<e.length;t++)if(e[t]<=e[t-1])throw new Error("List is not sorted or contains duplicate")}n.extend=function(e){for(var t=arguments.length,n=Array(1<t?t-1:0),r=1;r<t;r++)n[r-1]=arguments[r];for(var i=0;i<n.length;i++){var o=n[i];if(null!=o)for(var u in o)o.hasOwnProperty(u)&&(e[u]=o[u])}return e},n.checkSorted=u,n.diffSortedLists=function(e,t){var n=0,r=0;e||(e=[]);t||(t=[]);var i=[],o=[];u(e),u(t);for(;n<e.length&&r<t.length;)e[n]===t[r]?(n++,r++):e[n]<t[r]?i.push(e[n++]):o.push(t[r++]);n<e.length&&(i=i.concat(e.slice(n)));r<t.length&&(o=o.concat(t.slice(r)));return{removed:i,added:o}},n.dataframeToD3=function(e){var t=[],n=void 0;for(var r in e){if(e.hasOwnProperty(r)&&t.push(r),"object"!==l(e[r])||void 0===e[r].length)throw new Error("All fields must be arrays");if(void 0!==n&&n!==e[r].length)throw new Error("All fields must be arrays of the same length");n=e[r].length}for(var i=[],o=void 0,u=0;u<n;u++){o={};for(var a=0;a<t.length;a++)o[t[a]]=e[t[a]][u];i.push(o)}return i};n.SubscriptionTracker=function(){function t(e){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t),this._emitter=e,this._subs={}}return r(t,[{key:"on",value:function(e,t){var n=this._emitter.on(e,t);return this._subs[n]=e,n}},{key:"off",value:function(e,t){var n=this._emitter.off(e,t);return n&&delete this._subs[n],n}},{key:"removeAllListeners",value:function(){var t=this,n=this._subs;this._subs={},Object.keys(n).forEach(function(e){t._emitter.off(n[e],e)})}}]),t}()},{}],12:[function(a,e,l){(function(o){"use strict";Object.defineProperty(l,"__esModule",{value:!0});var e,u="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},t=function(){function r(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(e,t,n){return t&&r(e.prototype,t),n&&r(e,n),e}}(),n=a("./events"),i=(e=n)&&e.__esModule?e:{default:e};var r=function(){function r(e,t,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,r),this._group=e,this._name=t,this._value=n,this._events=new i.default}return t(r,[{key:"get",value:function(){return this._value}},{key:"set",value:function(e,t){if(this._value!==e){var n=this._value;this._value=e;var r={};if(t&&"object"===(void 0===t?"undefined":u(t)))for(var i in t)t.hasOwnProperty(i)&&(r[i]=t[i]);r.oldValue=n,r.value=e,this._events.trigger("change",r,this),o.Shiny&&o.Shiny.onInputChange&&o.Shiny.onInputChange(".clientValue-"+(null!==this._group.name?this._group.name+"-":"")+this._name,void 0===e?null:e)}}},{key:"on",value:function(e,t){return this._events.on(e,t)}},{key:"off",value:function(e,t){return this._events.off(e,t)}}]),r}();l.default=r}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{"./events":1}]},{},[5]);
 //# sourceMappingURL=crosstalk.min.js.map</script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      code.sourceCode > span { display: inline-block; line-height: 1.25; }
+  code.sourceCode > span { color: inherit; text-decoration: inherit; }
+  code.sourceCode > span:empty { height: 1.2em; }
+  .sourceCode { overflow: visible; }
+  code.sourceCode { white-space: pre; position: relative; }
+  div.sourceCode { margin: 1em 0; }
+  pre.sourceCode { margin: 0; }
+  @media screen {
+  div.sourceCode { overflow: auto; }
+  }
+  @media print {
+  code.sourceCode { white-space: pre-wrap; }
+  code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+  }
+  pre.numberSource code
+    { counter-reset: source-line 0; }
+  pre.numberSource code > span
+    { position: relative; left: -4em; counter-increment: source-line; }
+  pre.numberSource code > span > a:first-child::before
+    { content: counter(source-line);
+      position: relative; left: -1em; text-align: right; vertical-align: baseline;
+      border: none; display: inline-block;
+      -webkit-touch-callout: none; -webkit-user-select: none;
+      -khtml-user-select: none; -moz-user-select: none;
+      -ms-user-select: none; user-select: none;
+      padding: 0 4px; width: 4em;
+      color: #aaaaaa;
+    }
+  pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+  div.sourceCode
+    {  background-color: #f8f8f8; }
+  @media screen {
+  code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+  }
+  code span.al { color: #ef2929; } /* Alert */
+  code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+  code span.at { color: #c4a000; } /* Attribute */
+  code span.bn { color: #0000cf; } /* BaseN */
+  code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+  code span.ch { color: #4e9a06; } /* Char */
+  code span.cn { color: #000000; } /* Constant */
+  code span.co { color: #8f5902; font-style: italic; } /* Comment */
+  code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+  code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+  code span.dt { color: #204a87; } /* DataType */
+  code span.dv { color: #0000cf; } /* DecVal */
+  code span.er { color: #a40000; font-weight: bold; } /* Error */
+  code span.ex { } /* Extension */
+  code span.fl { color: #0000cf; } /* Float */
+  code span.fu { color: #000000; } /* Function */
+  code span.im { } /* Import */
+  code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+  code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+  code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+  code span.ot { color: #8f5902; } /* Other */
+  code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+  code span.sc { color: #000000; } /* SpecialChar */
+  code span.ss { color: #4e9a06; } /* SpecialString */
+  code span.st { color: #4e9a06; } /* String */
+  code span.va { color: #000000; } /* Variable */
+  code span.vs { color: #4e9a06; } /* VerbatimString */
+  code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+    </style>
+
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
@@ -4151,7 +4321,8 @@ div.tocify {
 <div id="general-data-read-in" class="section level3">
 <h3>General data read-in</h3>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>all_full_names &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&#39;data/names/full-names.tsv.xz&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>()</span></code></pre></div>
-<pre><code>## Parsed with column specification:
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────────────────────────────
 ## cols(
 ##   fore_name = col_character(),
 ##   last_name = col_character(),
@@ -4165,32 +4336,50 @@ div.tocify {
 <span id="cb3-4"><a href="#cb3-4"></a><span class="st">  </span><span class="kw">select</span>(iso_a2, name, region_wb) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb3-5"><a href="#cb3-5"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&#39;countries&#39;</span> =<span class="st"> </span>iso_a2,</span>
 <span id="cb3-6"><a href="#cb3-6"></a>         <span class="st">&#39;country_name&#39;</span> =<span class="st"> </span>name,</span>
-<span id="cb3-7"><a href="#cb3-7"></a>         <span class="st">&#39;region&#39;</span> =<span class="st"> </span>region_wb)</span>
-<span id="cb3-8"><a href="#cb3-8"></a></span>
-<span id="cb3-9"><a href="#cb3-9"></a>articles &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&#39;data/pubmed/articles.tsv.xz&#39;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">year =</span> <span class="kw">substr</span>(publication_date, <span class="dv">1</span>, <span class="dv">4</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ymd</span>(<span class="dt">truncated =</span> <span class="dv">2</span>),</span>
-<span id="cb3-11"><a href="#cb3-11"></a>         <span class="dt">publication_date =</span> <span class="kw">ymd</span>(publication_date, <span class="dt">truncated =</span> <span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb3-12"><a href="#cb3-12"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">year</span>(publication_date) <span class="op">&lt;</span><span class="st"> </span><span class="dv">2020</span>)</span></code></pre></div>
-<pre><code>## Parsed with column specification:
+<span id="cb3-7"><a href="#cb3-7"></a>         <span class="st">&#39;region&#39;</span> =<span class="st"> </span>region_wb) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">country_name =</span> country_name <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="st">           </span><span class="kw">gsub</span>(<span class="st">&#39;United States of America&#39;</span>, <span class="st">&#39;United States&#39;</span>, .))</span>
+<span id="cb3-10"><a href="#cb3-10"></a>nat_to_reg[nat_to_reg<span class="op">$</span>country_name <span class="op">==</span><span class="st"> &#39;Norway&#39;</span>, <span class="st">&#39;countries&#39;</span>] &lt;-<span class="st"> &#39;NO&#39;</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>nat_to_reg[nat_to_reg<span class="op">$</span>country_name <span class="op">==</span><span class="st"> &#39;Somaliland&#39;</span>, <span class="st">&#39;countries&#39;</span>] &lt;-<span class="st"> &#39;SO&#39;</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>nat_to_reg[nat_to_reg<span class="op">$</span>country_name <span class="op">==</span><span class="st"> &#39;France&#39;</span>, <span class="st">&#39;countries&#39;</span>] &lt;-<span class="st"> &#39;FR&#39;</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a>nat_to_reg <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(<span class="kw">is.na</span>(countries))</span></code></pre></div>
+<pre><code>## # A tibble: 4 x 3
+##   countries country_name            region               
+##   &lt;chr&gt;     &lt;chr&gt;                   &lt;chr&gt;                
+## 1 &lt;NA&gt;      N. Cyprus               Europe &amp; Central Asia
+## 2 &lt;NA&gt;      Indian Ocean Ter.       East Asia &amp; Pacific  
+## 3 &lt;NA&gt;      Ashmore and Cartier Is. East Asia &amp; Pacific  
+## 4 &lt;NA&gt;      Siachen Glacier         South Asia</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>articles &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&#39;data/pubmed/articles.tsv.xz&#39;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">year =</span> <span class="kw">substr</span>(publication_date, <span class="dv">1</span>, <span class="dv">4</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ymd</span>(<span class="dt">truncated =</span> <span class="dv">2</span>),</span>
+<span id="cb5-3"><a href="#cb5-3"></a>         <span class="dt">publication_date =</span> <span class="kw">ymd</span>(publication_date, <span class="dt">truncated =</span> <span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">year</span>(publication_date) <span class="op">&lt;</span><span class="st"> </span><span class="dv">2020</span>)</span></code></pre></div>
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────────────────────────────
 ## cols(
 ##   pmid = col_double(),
 ##   pmcid = col_character(),
 ##   doi = col_character(),
 ##   journal = col_character(),
 ##   publication_date = col_character(),
+##   pmc_cited_by_count = col_double(),
 ##   title = col_character()
 ## )</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>corr_authors &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(</span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="st">&#39;data/names/corresponding-authors.tsv.xz&#39;</span>,</span>
-<span id="cb5-3"><a href="#cb5-3"></a>  <span class="dt">col_types =</span> readr<span class="op">::</span><span class="kw">cols</span>(<span class="dt">fore_name_simple =</span> readr<span class="op">::</span><span class="kw">col_character</span>())) <span class="op">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a><span class="st">  </span><span class="kw">inner_join</span>(articles, <span class="dt">by =</span> <span class="st">&#39;pmid&#39;</span>)</span>
-<span id="cb5-5"><a href="#cb5-5"></a></span>
-<span id="cb5-6"><a href="#cb5-6"></a>keynotes &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&#39;data/iscb/keynotes.tsv&#39;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">publication_date =</span> <span class="kw">ymd</span>(year, <span class="dt">truncated =</span> <span class="dv">2</span>),</span>
-<span id="cb5-8"><a href="#cb5-8"></a>         <span class="dt">year =</span> <span class="kw">ymd</span>(year, <span class="dt">truncated =</span> <span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb5-9"><a href="#cb5-9"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">year</span>(year) <span class="op">&lt;</span><span class="st"> </span><span class="dv">2020</span>, conference <span class="op">!=</span><span class="st"> &#39;PSB&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now</span></span>
-<span id="cb5-10"><a href="#cb5-10"></a><span class="st">  </span><span class="kw">left_join</span>(all_full_names, <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&#39;fore_name&#39;</span>, <span class="st">&#39;last_name&#39;</span>))</span></code></pre></div>
-<pre><code>## Parsed with column specification:
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># citations &lt;- xml2::read_xml(&#39;data/pubmed/esummary/compbio-english.xml.xz&#39;)</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a>corr_authors &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="st">&#39;data/names/corresponding-authors.tsv.xz&#39;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="dt">col_types =</span> readr<span class="op">::</span><span class="kw">cols</span>(<span class="dt">fore_name_simple =</span> readr<span class="op">::</span><span class="kw">col_character</span>())) <span class="op">%&gt;%</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="st">  </span><span class="kw">inner_join</span>(articles, <span class="dt">by =</span> <span class="st">&#39;pmid&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">adjusted_citations =</span> <span class="kw">sqrt</span>(pmc_cited_by_count <span class="op">+</span><span class="st"> </span><span class="dv">1</span>))</span>
+<span id="cb7-8"><a href="#cb7-8"></a></span>
+<span id="cb7-9"><a href="#cb7-9"></a>keynotes &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&#39;data/iscb/keynotes.tsv&#39;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">publication_date =</span> <span class="kw">ymd</span>(year, <span class="dt">truncated =</span> <span class="dv">2</span>),</span>
+<span id="cb7-11"><a href="#cb7-11"></a>         <span class="dt">year =</span> <span class="kw">ymd</span>(year, <span class="dt">truncated =</span> <span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="st">  </span><span class="kw">left_join</span>(<span class="kw">select</span>(all_full_names, <span class="op">-</span><span class="st"> </span>full_name), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&#39;fore_name&#39;</span>, <span class="st">&#39;last_name&#39;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb7-13"><a href="#cb7-13"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">year</span>(year) <span class="op">&lt;</span><span class="st"> </span><span class="dv">2020</span>, conference <span class="op">!=</span><span class="st"> &#39;PSB&#39;</span>) <span class="co"># remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now</span></span></code></pre></div>
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────────────────────────────
 ## cols(
 ##   year = col_double(),
 ##   full_name = col_character(),
@@ -4201,16 +4390,22 @@ div.tocify {
 ##   affiliations = col_character(),
 ##   afflcountries = col_character()
 ## )</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>large_jours &lt;-<span class="st"> </span>articles <span class="op">%&gt;%</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="st">  </span><span class="kw">count</span>(journal, <span class="dt">sort =</span> T) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb7-3"><a href="#cb7-3"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">10</span>)</span>
-<span id="cb7-4"><a href="#cb7-4"></a></span>
-<span id="cb7-5"><a href="#cb7-5"></a>nationalize_df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&#39;https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/1f41256f782f3fc95e6d7254dfa2cf941ff41e36/data/NamePrism_results_authors.tsv&#39;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&#39;full_name&#39;</span> =<span class="st"> </span>X1) <span class="op">%&gt;%</span></span>
-<span id="cb7-7"><a href="#cb7-7"></a><span class="st">  </span><span class="kw">distinct</span>(full_name, <span class="dt">.keep_all =</span> T) <span class="op">%&gt;%</span></span>
-<span id="cb7-8"><a href="#cb7-8"></a><span class="st">  </span><span class="kw">left_join</span>(all_full_names, <span class="dt">by =</span> <span class="st">&#39;full_name&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>keynotes <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(<span class="kw">is.na</span>(fore_name_simple))</span></code></pre></div>
+<pre><code>## # A tibble: 0 x 11
+## # … with 11 variables: year &lt;date&gt;, full_name &lt;chr&gt;, fore_name &lt;chr&gt;, last_name &lt;chr&gt;,
+## #   conference &lt;chr&gt;, source &lt;chr&gt;, affiliations &lt;chr&gt;, afflcountries &lt;chr&gt;, publication_date &lt;date&gt;,
+## #   fore_name_simple &lt;chr&gt;, last_name_simple &lt;chr&gt;</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>large_jours &lt;-<span class="st"> </span>articles <span class="op">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="st">  </span><span class="kw">count</span>(journal, <span class="dt">sort =</span> T) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">10</span>)</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a>nationalize_df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&#39;https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/1f41256f782f3fc95e6d7254dfa2cf941ff41e36/data/NamePrism_results_authors.tsv&#39;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&#39;full_name&#39;</span> =<span class="st"> </span>X1) <span class="op">%&gt;%</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="st">  </span><span class="kw">distinct</span>(full_name, <span class="dt">.keep_all =</span> T) <span class="op">%&gt;%</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="st">  </span><span class="kw">left_join</span>(all_full_names, <span class="dt">by =</span> <span class="st">&#39;full_name&#39;</span>)</span></code></pre></div>
 <pre><code>## Warning: Missing column names filled in: &#39;X1&#39; [1]</code></pre>
-<pre><code>## Parsed with column specification:
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────────────────────────────
 ## cols(
 ##   X1 = col_character(),
 ##   African = col_double(),
@@ -4225,26 +4420,26 @@ div.tocify {
 ##   SouthAsian = col_double()
 ## )</code></pre>
 <ul>
-<li><p>Number of articles from 1993-2019: 174397 (~ 100 articles with no authors).</p></li>
-<li><p>Number of last authors: 174234.</p></li>
+<li><p>Number of articles from 1993-2019: 176773 (~ 100 articles with no authors).</p></li>
+<li><p>Number of last authors: 176609.</p></li>
 </ul>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>corr_authors <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="st">  </span><span class="kw">count</span>(year, <span class="dt">name =</span> <span class="st">&#39;Number of articles with last authors&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="st">  </span>DT<span class="op">::</span><span class="kw">datatable</span>(<span class="dt">rownames =</span> F)</span></code></pre></div>
-<div id="htmlwidget-a86c05c499c669709728" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-a86c05c499c669709728">{"x":{"filter":"none","data":[["1993-01-01","1994-01-01","1995-01-01","1996-01-01","1997-01-01","1998-01-01","1999-01-01","2000-01-01","2001-01-01","2002-01-01","2003-01-01","2004-01-01","2005-01-01","2006-01-01","2007-01-01","2008-01-01","2009-01-01","2010-01-01","2011-01-01","2012-01-01","2013-01-01","2014-01-01","2015-01-01","2016-01-01","2017-01-01","2018-01-01","2019-01-01"],[84,67,63,150,135,327,349,716,1209,1849,2708,4026,5373,6058,6335,7224,9029,9790,10761,11497,11889,12840,13404,14068,15182,15620,13481]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>year<\/th>\n      <th>Number of articles with last authors<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>corr_authors <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="st">  </span><span class="kw">count</span>(year, <span class="dt">name =</span> <span class="st">&#39;Number of articles with last authors&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="st">  </span>DT<span class="op">::</span><span class="kw">datatable</span>(<span class="dt">rownames =</span> F)</span></code></pre></div>
+<div id="htmlwidget-39a2f7a16a6d53a2a107" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-39a2f7a16a6d53a2a107">{"x":{"filter":"none","data":[["1993-01-01","1994-01-01","1995-01-01","1996-01-01","1997-01-01","1998-01-01","1999-01-01","2000-01-01","2001-01-01","2002-01-01","2003-01-01","2004-01-01","2005-01-01","2006-01-01","2007-01-01","2008-01-01","2009-01-01","2010-01-01","2011-01-01","2012-01-01","2013-01-01","2014-01-01","2015-01-01","2016-01-01","2017-01-01","2018-01-01","2019-01-01"],[84,67,63,150,135,327,349,716,1209,1849,2708,4026,5373,6058,6335,7224,9029,9790,10761,11497,11889,12840,13404,14067,15182,15707,15770]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>year<\/th>\n      <th>Number of articles with last authors<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p><strong>If we set a threshold at least 200 articles a year, we should only consider articles from 1998 on.</strong></p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>corr_authors &lt;-<span class="st"> </span>corr_authors <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="st">  </span><span class="kw">add_count</span>(year, <span class="dt">name =</span> <span class="st">&#39;n_aut_yr&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="st">  </span><span class="kw">filter</span>(n_aut_yr <span class="op">&gt;</span><span class="st"> </span><span class="dv">200</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb11-4"><a href="#cb11-4"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span><span class="st"> </span>n_aut_yr)</span>
-<span id="cb11-5"><a href="#cb11-5"></a></span>
-<span id="cb11-6"><a href="#cb11-6"></a><span class="kw">nrow</span>(corr_authors)</span></code></pre></div>
-<pre><code>## [1] 173735</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">save</span>(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, <span class="dt">file =</span> <span class="st">&#39;Rdata/raws.Rdata&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>corr_authors &lt;-<span class="st"> </span>corr_authors <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="st">  </span><span class="kw">add_count</span>(year, <span class="dt">name =</span> <span class="st">&#39;n_aut_yr&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="st">  </span><span class="kw">filter</span>(n_aut_yr <span class="op">&gt;</span><span class="st"> </span><span class="dv">200</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span><span class="st"> </span>n_aut_yr)</span>
+<span id="cb15-5"><a href="#cb15-5"></a></span>
+<span id="cb15-6"><a href="#cb15-6"></a><span class="kw">nrow</span>(corr_authors)</span></code></pre></div>
+<pre><code>## [1] 176110</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">save</span>(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, <span class="dt">file =</span> <span class="st">&#39;Rdata/raws.Rdata&#39;</span>)</span></code></pre></div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiU2F2ZSByYXcgZGF0YSBpbnRvIC5SZGF0YSB0byBiZSBsb2FkZWQgaW4gYnkgYW5hbHlzaXMgbm90ZWJvb2tzIgpvdXRwdXQ6CiAgaHRtbF9kb2N1bWVudDoKICAgIHRoZW1lOiBmbGF0bHkKICAgIHRvYzogdHJ1ZQogICAgdG9jX2Zsb2F0OiB0cnVlCiAgICBjb2RlX2Rvd25sb2FkOiB0cnVlCiAgICBoaWdobGlnaHQ6IHRhbmdvCi0tLQpgYGB7ciBzZXR1cCwgaW5jbHVkZT1GQUxTRX0KbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkobHVicmlkYXRlKQpsaWJyYXJ5KHJuYXR1cmFsZWFydGgpCnNvdXJjZSgndXRpbHMvci11dGlscy5SJykKdGhlbWVfc2V0KHRoZW1lX2J3KCkgKyB0aGVtZShsZWdlbmQudGl0bGUgPSBlbGVtZW50X2JsYW5rKCkpKQpgYGAKCgojIyMgR2VuZXJhbCBkYXRhIHJlYWQtaW4KCmBgYHtyfQphbGxfZnVsbF9uYW1lcyA8LSByZWFkcjo6cmVhZF90c3YoJ2RhdGEvbmFtZXMvZnVsbC1uYW1lcy50c3YueHonKSAlPiUgZGlzdGluY3QoKQp3b3JsZCA8LSBybmF0dXJhbGVhcnRoOjpuZV9jb3VudHJpZXMoc2NhbGU9J21lZGl1bScsIHJldHVybmNsYXNzID0gJ3NmJykgCm5hdF90b19yZWcgPC0gd29ybGQgJT4lIAogIGFzX3RpYmJsZSgpICU+JSAKICBzZWxlY3QoaXNvX2EyLCBuYW1lLCByZWdpb25fd2IpICU+JSAKICByZW5hbWUoJ2NvdW50cmllcycgPSBpc29fYTIsCiAgICAgICAgICdjb3VudHJ5X25hbWUnID0gbmFtZSwKICAgICAgICAgJ3JlZ2lvbicgPSByZWdpb25fd2IpCgphcnRpY2xlcyA8LSByZWFkcjo6cmVhZF90c3YoJ2RhdGEvcHVibWVkL2FydGljbGVzLnRzdi54eicpICU+JQogIG11dGF0ZSh5ZWFyID0gc3Vic3RyKHB1YmxpY2F0aW9uX2RhdGUsIDEsIDQpICU+JSB5bWQodHJ1bmNhdGVkID0gMiksCiAgICAgICAgIHB1YmxpY2F0aW9uX2RhdGUgPSB5bWQocHVibGljYXRpb25fZGF0ZSwgdHJ1bmNhdGVkID0gMikpICU+JSAKICBmaWx0ZXIoeWVhcihwdWJsaWNhdGlvbl9kYXRlKSA8IDIwMjApCgpjb3JyX2F1dGhvcnMgPC0gcmVhZHI6OnJlYWRfdHN2KAogICdkYXRhL25hbWVzL2NvcnJlc3BvbmRpbmctYXV0aG9ycy50c3YueHonLAogIGNvbF90eXBlcyA9IHJlYWRyOjpjb2xzKGZvcmVfbmFtZV9zaW1wbGUgPSByZWFkcjo6Y29sX2NoYXJhY3RlcigpKSkgJT4lCiAgaW5uZXJfam9pbihhcnRpY2xlcywgYnkgPSAncG1pZCcpCgprZXlub3RlcyA8LSByZWFkcjo6cmVhZF90c3YoJ2RhdGEvaXNjYi9rZXlub3Rlcy50c3YnKSAlPiUKICBtdXRhdGUocHVibGljYXRpb25fZGF0ZSA9IHltZCh5ZWFyLCB0cnVuY2F0ZWQgPSAyKSwKICAgICAgICAgeWVhciA9IHltZCh5ZWFyLCB0cnVuY2F0ZWQgPSAyKSkgJT4lIAogIGZpbHRlcih5ZWFyKHllYXIpIDwgMjAyMCwgY29uZmVyZW5jZSAhPSAnUFNCJykgJT4lICMgcmVtb3ZlIFBTQiwgZXhjbHVkZSBJU0NCIEZlbGxvd3MgYW5kIElTTUIgc3BlYWtlcnMgaW4gMjAyMCBmb3Igbm93CiAgbGVmdF9qb2luKGFsbF9mdWxsX25hbWVzLCBieSA9IGMoJ2ZvcmVfbmFtZScsICdsYXN0X25hbWUnKSkKCmxhcmdlX2pvdXJzIDwtIGFydGljbGVzICU+JQogIGNvdW50KGpvdXJuYWwsIHNvcnQgPSBUKSAlPiUgCiAgaGVhZCgxMCkKCm5hdGlvbmFsaXplX2RmIDwtIHJlYWRfdHN2KCdodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vZ3JlZW5lbGFiL3dpa2ktbmF0aW9uYWxpdHktZXN0aW1hdGUvMWY0MTI1NmY3ODJmM2ZjOTVlNmQ3MjU0ZGZhMmNmOTQxZmY0MWUzNi9kYXRhL05hbWVQcmlzbV9yZXN1bHRzX2F1dGhvcnMudHN2JykgJT4lCiAgcmVuYW1lKCdmdWxsX25hbWUnID0gWDEpICU+JQogIGRpc3RpbmN0KGZ1bGxfbmFtZSwgLmtlZXBfYWxsID0gVCkgJT4lCiAgbGVmdF9qb2luKGFsbF9mdWxsX25hbWVzLCBieSA9ICdmdWxsX25hbWUnKQpgYGAKCgotIE51bWJlciBvZiBhcnRpY2xlcyBmcm9tIDE5OTMtMjAxOTogYHIgbnJvdyhhcnRpY2xlcylgICh+IDEwMCBhcnRpY2xlcyB3aXRoIG5vIGF1dGhvcnMpLgoKLSBOdW1iZXIgb2YgbGFzdCBhdXRob3JzOiBgciBucm93KGNvcnJfYXV0aG9ycylgLgoKCmBgYHtyfQpjb3JyX2F1dGhvcnMgJT4lIAogIGNvdW50KHllYXIsIG5hbWUgPSAnTnVtYmVyIG9mIGFydGljbGVzIHdpdGggbGFzdCBhdXRob3JzJykgJT4lIAogIERUOjpkYXRhdGFibGUocm93bmFtZXMgPSBGKQpgYGAKCioqSWYgd2Ugc2V0IGEgdGhyZXNob2xkIGF0IGxlYXN0IDIwMCBhcnRpY2xlcyBhIHllYXIsIHdlIHNob3VsZCBvbmx5IGNvbnNpZGVyIGFydGljbGVzIGZyb20gMTk5OCBvbi4qKgoKYGBge3J9CmNvcnJfYXV0aG9ycyA8LSBjb3JyX2F1dGhvcnMgJT4lIAogIGFkZF9jb3VudCh5ZWFyLCBuYW1lID0gJ25fYXV0X3lyJykgJT4lIAogIGZpbHRlcihuX2F1dF95ciA+IDIwMCkgJT4lIAogIHNlbGVjdCgtIG5fYXV0X3lyKQoKbnJvdyhjb3JyX2F1dGhvcnMpCmBgYAoKCmBgYHtyfQpzYXZlKG5hdGlvbmFsaXplX2RmLCBuYXRfdG9fcmVnLCBjb3JyX2F1dGhvcnMsIGtleW5vdGVzLCBsYXJnZV9qb3VycywgZmlsZSA9ICdSZGF0YS9yYXdzLlJkYXRhJykKYGBgCgo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiU2F2ZSByYXcgZGF0YSBpbnRvIC5SZGF0YSB0byBiZSBsb2FkZWQgaW4gYnkgYW5hbHlzaXMgbm90ZWJvb2tzIgpvdXRwdXQ6CiAgaHRtbF9kb2N1bWVudDoKICAgIHRoZW1lOiBmbGF0bHkKICAgIHRvYzogdHJ1ZQogICAgdG9jX2Zsb2F0OiB0cnVlCiAgICBjb2RlX2Rvd25sb2FkOiB0cnVlCiAgICBoaWdobGlnaHQ6IHRhbmdvCmtuaXQ6IChmdW5jdGlvbihpbnB1dEZpbGUsIGVuY29kaW5nKSB7CiAgcm1hcmtkb3duOjpyZW5kZXIoaW5wdXRGaWxlLCBlbmNvZGluZyA9IGVuY29kaW5nLCBvdXRwdXRfZGlyID0gImRvY3MiKSB9KSAgICAKLS0tCmBgYHtyIHNldHVwLCBpbmNsdWRlPUZBTFNFfQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeShsdWJyaWRhdGUpCmxpYnJhcnkocm5hdHVyYWxlYXJ0aCkKc291cmNlKCd1dGlscy9yLXV0aWxzLlInKQp0aGVtZV9zZXQodGhlbWVfYncoKSArIHRoZW1lKGxlZ2VuZC50aXRsZSA9IGVsZW1lbnRfYmxhbmsoKSkpCmBgYAoKCiMjIyBHZW5lcmFsIGRhdGEgcmVhZC1pbgoKYGBge3J9CmFsbF9mdWxsX25hbWVzIDwtIHJlYWRyOjpyZWFkX3RzdignZGF0YS9uYW1lcy9mdWxsLW5hbWVzLnRzdi54eicpICU+JSBkaXN0aW5jdCgpCndvcmxkIDwtIHJuYXR1cmFsZWFydGg6Om5lX2NvdW50cmllcyhzY2FsZT0nbWVkaXVtJywgcmV0dXJuY2xhc3MgPSAnc2YnKSAKbmF0X3RvX3JlZyA8LSB3b3JsZCAlPiUgCiAgYXNfdGliYmxlKCkgJT4lIAogIHNlbGVjdChpc29fYTIsIG5hbWUsIHJlZ2lvbl93YikgJT4lIAogIHJlbmFtZSgnY291bnRyaWVzJyA9IGlzb19hMiwKICAgICAgICAgJ2NvdW50cnlfbmFtZScgPSBuYW1lLAogICAgICAgICAncmVnaW9uJyA9IHJlZ2lvbl93YikgJT4lIAogIG11dGF0ZShjb3VudHJ5X25hbWUgPSBjb3VudHJ5X25hbWUgJT4lIAogICAgICAgICAgIGdzdWIoJ1VuaXRlZCBTdGF0ZXMgb2YgQW1lcmljYScsICdVbml0ZWQgU3RhdGVzJywgLikpCm5hdF90b19yZWdbbmF0X3RvX3JlZyRjb3VudHJ5X25hbWUgPT0gJ05vcndheScsICdjb3VudHJpZXMnXSA8LSAnTk8nCm5hdF90b19yZWdbbmF0X3RvX3JlZyRjb3VudHJ5X25hbWUgPT0gJ1NvbWFsaWxhbmQnLCAnY291bnRyaWVzJ10gPC0gJ1NPJwpuYXRfdG9fcmVnW25hdF90b19yZWckY291bnRyeV9uYW1lID09ICdGcmFuY2UnLCAnY291bnRyaWVzJ10gPC0gJ0ZSJwpuYXRfdG9fcmVnICU+JSBmaWx0ZXIoaXMubmEoY291bnRyaWVzKSkKCmFydGljbGVzIDwtIHJlYWRyOjpyZWFkX3RzdignZGF0YS9wdWJtZWQvYXJ0aWNsZXMudHN2Lnh6JykgJT4lCiAgbXV0YXRlKHllYXIgPSBzdWJzdHIocHVibGljYXRpb25fZGF0ZSwgMSwgNCkgJT4lIHltZCh0cnVuY2F0ZWQgPSAyKSwKICAgICAgICAgcHVibGljYXRpb25fZGF0ZSA9IHltZChwdWJsaWNhdGlvbl9kYXRlLCB0cnVuY2F0ZWQgPSAyKSkgJT4lIAogIGZpbHRlcih5ZWFyKHB1YmxpY2F0aW9uX2RhdGUpIDwgMjAyMCkKCiMgY2l0YXRpb25zIDwtIHhtbDI6OnJlYWRfeG1sKCdkYXRhL3B1Ym1lZC9lc3VtbWFyeS9jb21wYmlvLWVuZ2xpc2gueG1sLnh6JykKCmNvcnJfYXV0aG9ycyA8LSByZWFkcjo6cmVhZF90c3YoCiAgJ2RhdGEvbmFtZXMvY29ycmVzcG9uZGluZy1hdXRob3JzLnRzdi54eicsCiAgY29sX3R5cGVzID0gcmVhZHI6OmNvbHMoZm9yZV9uYW1lX3NpbXBsZSA9IHJlYWRyOjpjb2xfY2hhcmFjdGVyKCkpKSAlPiUKICBpbm5lcl9qb2luKGFydGljbGVzLCBieSA9ICdwbWlkJykgJT4lIAogIG11dGF0ZShhZGp1c3RlZF9jaXRhdGlvbnMgPSBzcXJ0KHBtY19jaXRlZF9ieV9jb3VudCArIDEpKQoKa2V5bm90ZXMgPC0gcmVhZHI6OnJlYWRfdHN2KCdkYXRhL2lzY2Iva2V5bm90ZXMudHN2JykgJT4lCiAgbXV0YXRlKHB1YmxpY2F0aW9uX2RhdGUgPSB5bWQoeWVhciwgdHJ1bmNhdGVkID0gMiksCiAgICAgICAgIHllYXIgPSB5bWQoeWVhciwgdHJ1bmNhdGVkID0gMikpICU+JSAKICBsZWZ0X2pvaW4oc2VsZWN0KGFsbF9mdWxsX25hbWVzLCAtIGZ1bGxfbmFtZSksIGJ5ID0gYygnZm9yZV9uYW1lJywgJ2xhc3RfbmFtZScpKSAlPiUgCiAgZmlsdGVyKHllYXIoeWVhcikgPCAyMDIwLCBjb25mZXJlbmNlICE9ICdQU0InKSAjIHJlbW92ZSBQU0IsIGV4Y2x1ZGUgSVNDQiBGZWxsb3dzIGFuZCBJU01CIHNwZWFrZXJzIGluIDIwMjAgZm9yIG5vdwprZXlub3RlcyAlPiUgZmlsdGVyKGlzLm5hKGZvcmVfbmFtZV9zaW1wbGUpKQoKbGFyZ2Vfam91cnMgPC0gYXJ0aWNsZXMgJT4lCiAgY291bnQoam91cm5hbCwgc29ydCA9IFQpICU+JSAKICBoZWFkKDEwKQoKbmF0aW9uYWxpemVfZGYgPC0gcmVhZF90c3YoJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9ncmVlbmVsYWIvd2lraS1uYXRpb25hbGl0eS1lc3RpbWF0ZS8xZjQxMjU2Zjc4MmYzZmM5NWU2ZDcyNTRkZmEyY2Y5NDFmZjQxZTM2L2RhdGEvTmFtZVByaXNtX3Jlc3VsdHNfYXV0aG9ycy50c3YnKSAlPiUKICByZW5hbWUoJ2Z1bGxfbmFtZScgPSBYMSkgJT4lCiAgZGlzdGluY3QoZnVsbF9uYW1lLCAua2VlcF9hbGwgPSBUKSAlPiUKICBsZWZ0X2pvaW4oYWxsX2Z1bGxfbmFtZXMsIGJ5ID0gJ2Z1bGxfbmFtZScpCmBgYAoKCi0gTnVtYmVyIG9mIGFydGljbGVzIGZyb20gMTk5My0yMDE5OiBgciBucm93KGFydGljbGVzKWAgKH4gMTAwIGFydGljbGVzIHdpdGggbm8gYXV0aG9ycykuCgotIE51bWJlciBvZiBsYXN0IGF1dGhvcnM6IGByIG5yb3coY29ycl9hdXRob3JzKWAuCgoKYGBge3J9CmNvcnJfYXV0aG9ycyAlPiUgCiAgY291bnQoeWVhciwgbmFtZSA9ICdOdW1iZXIgb2YgYXJ0aWNsZXMgd2l0aCBsYXN0IGF1dGhvcnMnKSAlPiUgCiAgRFQ6OmRhdGF0YWJsZShyb3duYW1lcyA9IEYpCmBgYAoKKipJZiB3ZSBzZXQgYSB0aHJlc2hvbGQgYXQgbGVhc3QgMjAwIGFydGljbGVzIGEgeWVhciwgd2Ugc2hvdWxkIG9ubHkgY29uc2lkZXIgYXJ0aWNsZXMgZnJvbSAxOTk4IG9uLioqCgpgYGB7cn0KY29ycl9hdXRob3JzIDwtIGNvcnJfYXV0aG9ycyAlPiUgCiAgYWRkX2NvdW50KHllYXIsIG5hbWUgPSAnbl9hdXRfeXInKSAlPiUgCiAgZmlsdGVyKG5fYXV0X3lyID4gMjAwKSAlPiUgCiAgc2VsZWN0KC0gbl9hdXRfeXIpCgpucm93KGNvcnJfYXV0aG9ycykKYGBgCgoKYGBge3J9CnNhdmUobmF0aW9uYWxpemVfZGYsIG5hdF90b19yZWcsIGNvcnJfYXV0aG9ycywga2V5bm90ZXMsIGxhcmdlX2pvdXJzLCBmaWxlID0gJ1JkYXRhL3Jhd3MuUmRhdGEnKQpgYGAKCg==</div>
 
 
 </div>

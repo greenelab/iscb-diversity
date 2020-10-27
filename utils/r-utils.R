@@ -284,7 +284,11 @@ gender_breakdown <- function(df, category = 'main', ...) {
   my_plot
 }
 
-region_breakdown <- function(df, category = 'main', ...) {
+region_breakdown <- function(
+  df, category = 'main', 
+  region_levels = paste(c('Celtic/English', 'European', 'East Asian', 
+                          'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 
+                          'African', 'Nordic', 'Greek'), 'names'), ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
     recode_region() %>%
@@ -332,7 +336,11 @@ region_breakdown <- function(df, category = 'main', ...) {
   my_plot
 }
 
-affiliation_breakdown <- function(df, category = 'main', ...) {
+affiliation_breakdown <- function(
+  df, category = 'main', 
+  region_levels = paste(c('Celtic/English', 'European', 'East Asian', 
+                          'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 
+                          'African', 'Nordic', 'Greek'), 'names'), ...) {
   # plot stacked bargraphs for each region, mean_prob by year
   my_plot <- df %>%
     mutate(region = fct_expand(region, region_levels) %>% fct_relevel(region_levels)) %>% 
@@ -377,7 +385,7 @@ affiliation_breakdown <- function(df, category = 'main', ...) {
 
 
 
-race_breakdown <- function(df, category = 'main', ...){
+race_breakdown <- function(df, race_levels, category = 'main', ...){
   # plot stacked bargraphs for each race, mean_prob by year
   my_plot <- df %>%
     ggplot(aes(year, mean_prob, fill = fct_relevel(Race, race_levels))) +
@@ -457,7 +465,10 @@ gam_and_ci <- function(df, df2, start_y = start_year, end_y = end_year){
     coord_cartesian(ylim = c(0, 1)) +
     labs(x = NULL, y = 'Estimated composition') +
     theme(panel.grid.minor = element_blank(),
-          legend.margin = margin(-0.5, 0, 0, 0, unit='cm'))
+          legend.key.height = unit(3, 'mm'),
+          legend.key.width = unit(3, 'mm'),
+          legend.text = element_text(size = 8), 
+          legend.margin = margin(-0.2, 0.2, 0.2, 0, unit='cm'))
 }
 
 my_riskratio <- function (x, y = NULL, conf.level = 0.95, rev = c("neither", 

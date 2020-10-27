@@ -7,6 +7,8 @@ output:
     toc_float: true
     code_download: true
     highlight: tango
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs") })    
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -27,23 +29,33 @@ nat_to_reg <- world %>%
   select(iso_a2, name, region_wb) %>% 
   rename('countries' = iso_a2,
          'country_name' = name,
-         'region' = region_wb)
+         'region' = region_wb) %>% 
+  mutate(country_name = country_name %>% 
+           gsub('United States of America', 'United States', .))
+nat_to_reg[nat_to_reg$country_name == 'Norway', 'countries'] <- 'NO'
+nat_to_reg[nat_to_reg$country_name == 'Somaliland', 'countries'] <- 'SO'
+nat_to_reg[nat_to_reg$country_name == 'France', 'countries'] <- 'FR'
+nat_to_reg %>% filter(is.na(countries))
 
 articles <- readr::read_tsv('data/pubmed/articles.tsv.xz') %>%
   mutate(year = substr(publication_date, 1, 4) %>% ymd(truncated = 2),
          publication_date = ymd(publication_date, truncated = 2)) %>% 
   filter(year(publication_date) < 2020)
 
+# citations <- xml2::read_xml('data/pubmed/esummary/compbio-english.xml.xz')
+
 corr_authors <- readr::read_tsv(
   'data/names/corresponding-authors.tsv.xz',
   col_types = readr::cols(fore_name_simple = readr::col_character())) %>%
-  inner_join(articles, by = 'pmid')
+  inner_join(articles, by = 'pmid') %>% 
+  mutate(adjusted_citations = sqrt(pmc_cited_by_count + 1))
 
 keynotes <- readr::read_tsv('data/iscb/keynotes.tsv') %>%
   mutate(publication_date = ymd(year, truncated = 2),
          year = ymd(year, truncated = 2)) %>% 
-  filter(year(year) < 2020, conference != 'PSB') %>% # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
-  left_join(all_full_names, by = c('fore_name', 'last_name'))
+  left_join(select(all_full_names, - full_name), by = c('fore_name', 'last_name')) %>% 
+  filter(year(year) < 2020, conference != 'PSB') # remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now
+keynotes %>% filter(is.na(fore_name_simple))
 
 large_jours <- articles %>%
   count(journal, sort = T) %>% 
