@@ -430,12 +430,12 @@ race_breakdown <- function(df, category = 'main', ...){
 get_keynote_summary <- function(df){
   df %>% 
     filter(type != 'Pubmed authors') %>% 
-    select(- c(probabilities, journal)) %>% 
+    # select(- c(probabilities, journal)) %>%
     distinct()
 }
 
-gam_and_ci <- function(df, start_y = start_year, end_y = end_year){
-  df %>% 
+gam_and_ci <- function(df, df2, start_y = start_year, end_y = end_year){
+  df2 %>% 
     ggplot(aes(group = type)) +
     geom_smooth(
       method = 'gam',
@@ -443,7 +443,7 @@ gam_and_ci <- function(df, start_y = start_year, end_y = end_year){
       aes(x = publication_date, y = probabilities, 
           fill = type, 
           color = type)) +
-    geom_pointrange(data = . %>% get_keynote_summary(),
+    geom_pointrange(data = df %>% get_keynote_summary(),
                     alpha = 0.75, size = 0.3,
                     aes(x = year, y = mean_prob, shape = type,
                         ymin = mean_prob - me_prob,
@@ -452,8 +452,8 @@ gam_and_ci <- function(df, start_y = start_year, end_y = end_year){
     scale_x_date(labels = scales::date_format("'%y"), breaks = '5 years',
                  limits = c(ymd(start_y, truncated = 2L),
                             ymd(end_y, truncated = 2L))) +
-    scale_color_manual(values = '#3fa392') +
-    scale_fill_manual(values = '#3fa392') +
+    scale_color_manual(values = '#317e71') +
+    scale_fill_manual(values = '#317e71') +
     coord_cartesian(ylim = c(0, 1)) +
     labs(x = NULL, y = 'Estimated composition') +
     theme(panel.grid.minor = element_blank(),
