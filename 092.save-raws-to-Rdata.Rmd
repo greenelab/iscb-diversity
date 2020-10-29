@@ -61,7 +61,7 @@ large_jours <- articles %>%
   count(journal, sort = T) %>% 
   head(10)
 
-nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/1f41256f782f3fc95e6d7254dfa2cf941ff41e36/data/NamePrism_results_authors.tsv') %>%
+nationalize_df <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/6ab0feeca430ae9997dbaf8f81707359be50a17d/data/NamePrism_results_authors.tsv') %>%
   rename('full_name' = X1) %>%
   distinct(full_name, .keep_all = T) %>%
   left_join(all_full_names, by = 'full_name')
