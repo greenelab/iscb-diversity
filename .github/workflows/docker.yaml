@@ -2,8 +2,8 @@ name: Build & Publish Docker
 on:
   push:
     paths:
-    - environment/Dockerfile
-    - environment/requirements.txt
+    - environment/python/Dockerfile
+    - environment/python/requirements.txt
     - .github/workflows/docker.yaml
 jobs:
   docker:
