@@ -4,7 +4,7 @@ on:
     paths:
     - environment/r/Dockerfile
     - environment/r/requirements.txt
-    - .github/workflows/docker.yaml
+    - .github/workflows/docker-r.yaml
 jobs:
   docker:
     name: Build & Publish Docker
