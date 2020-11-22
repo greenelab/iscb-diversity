@@ -1,0 +1,41 @@
+name: Build & Publish Docker
+on:
+  push:
+    paths:
+    - environment/r/Dockerfile
+    - environment/r/requirements.txt
+    - .github/workflows/docker.yaml
+jobs:
+  docker:
+    name: Build & Publish Docker
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        registry:
+          - docker.pkg.github.com
+    env:
+      IMAGE_NAME: '${{ matrix.registry }}/${{ github.repository }}/${{ github.event.repository.name }}-r'
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    - name: Set Environment Variables
+      shell: bash
+      run: |
+        echo "IMAGE_VERSION=$(date --utc --iso-8601)_${GITHUB_SHA::7}" >> $GITHUB_ENV
+    - name: Build Docker image
+      working-directory: environment/r
+      run: |
+        docker build \
+          --tag ${{ env.IMAGE_NAME }}:latest \
+          --tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }} \
+          .
+    - name: Publish Image
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push' && !github.event.repository.fork
+      # https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-docker-for-use-with-github-packages
+      run: |
+        docker login \
+          --username ${{ github.event.repository.name }} \
+          --password ${{ secrets.GITHUB_TOKEN }} \
+          ${{ matrix.registry }}
+        docker push ${{ env.IMAGE_NAME }}:latest
+        docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
