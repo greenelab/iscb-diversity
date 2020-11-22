@@ -6,9 +6,10 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(lubridate)
-library(rnaturalearth)
+# library(rnaturalearth)
 library(wru)
 source('utils/r-utils.R')
+load('Rdata/world.Rdata')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
@@ -22,10 +23,9 @@ alpha_threshold <- qnorm(0.975)
 all_full_names <- read_tsv('data/names/full-names.tsv.xz') %>% distinct()
 gender_df <- read_tsv('data/gender/genderize.tsv')
 
-world <- ne_countries(scale='medium',returnclass = 'sf') 
+# world <- ne_countries(scale='medium',returnclass = 'sf') 
 nat_to_reg <- world %>% 
-  as_tibble() %>% 
-  select(iso_a2, name, region_wb) %>% 
+  select(iso_a2, name, region_wb) %>%
   rename('countries' = iso_a2,
          'country_name' = name,
          'region' = region_wb)
