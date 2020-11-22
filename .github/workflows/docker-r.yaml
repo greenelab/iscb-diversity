@@ -1,4 +1,4 @@
-name: Build & Publish Docker
+name: Build & Publish R Docker
 on:
   push:
     paths:
@@ -7,7 +7,7 @@ on:
     - .github/workflows/docker-r.yaml
 jobs:
   docker:
-    name: Build & Publish Docker
+    name: Build & Publish R Docker
     runs-on: ubuntu-latest
     strategy:
       matrix:
