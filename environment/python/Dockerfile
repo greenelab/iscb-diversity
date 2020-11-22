@@ -9,7 +9,7 @@ RUN pip install --upgrade pip && \
   pip install --requirement requirements.txt && \
   jupyter nbextension enable --py widgetsnbextension
 
-# jupyter compains if run as root.
+# jupyter complains if run as root
 RUN useradd --create-home --shell=/bin/bash jupyter
 USER jupyter
 WORKDIR /user/jupyter
