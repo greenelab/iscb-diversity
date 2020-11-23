@@ -38,7 +38,7 @@ docker login --username USERNAME --password TOKEN docker.pkg.github.com
 
 ### Interactive
 
-For interactive development, run the following command:
+For interactive development in Python notebooks, run the following command:
 
 ```shell
 # This command must be run with the repository root as your working directory.
@@ -58,6 +58,23 @@ Then navigate to the following URL in your browser:
 You should see a Jupyter Notebook landing page where you can open, edit, and run any of the notebooks.
 
 When you are done, you shutdown the Jupyter notebook server and remove the Docker container by running ```docker stop iscb-diversity``` in a new terminal.
+
+Similarly, for the R notebooks:
+```shell
+# This command must be run with the repository root as your working directory.
+# Requires docker version >= 17.06.
+docker run \
+  --name iscb-diversity-r \
+  --detach --rm \
+  --publish 8787:8787 \
+  --env DISABLE_AUTH=true \
+  --mount type=bind,source="$(pwd)",target=/home/rstudio/repo \
+  iscb-diversity-r
+```
+
+Navigate to <http://localhost:8787> and you should be logged into RStudio as the rstudio user.
+When you are done, shutdown the RStudio server and remove the Docker container by running ```docker stop iscb-diversity-r```.
+
 
 ## GitHub Pages
 

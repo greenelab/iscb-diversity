@@ -45,7 +45,8 @@ our_country_map <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-na
   rename('region' = Region) %>%
   recode_region()
 
-my_world <- ne_countries(scale='medium', returnclass = 'sf') %>%
+my_world <- world %>%
+  select(- geometry) %>% 
   rename(Country = 'name') %>%
   left_join(our_country_map, by = 'Country')
 

@@ -1,20 +1,20 @@
-name: Build & Publish Docker
+name: Build & Publish R Docker
 on:
   push:
     paths:
-    - environment/python/Dockerfile
-    - environment/python/requirements.txt
-    - .github/workflows/docker.yaml
+    - environment/r/Dockerfile
+    - environment/r/requirements.txt
+    - .github/workflows/docker-r.yaml
 jobs:
   docker:
-    name: Build & Publish Docker
+    name: Build & Publish R Docker
     runs-on: ubuntu-latest
     strategy:
       matrix:
         registry:
           - docker.pkg.github.com
     env:
-      IMAGE_NAME: '${{ matrix.registry }}/${{ github.repository }}/${{ github.event.repository.name }}'
+      IMAGE_NAME: '${{ matrix.registry }}/${{ github.repository }}/${{ github.event.repository.name }}-r'
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -23,7 +23,7 @@ jobs:
       run: |
         echo "IMAGE_VERSION=$(date --utc --iso-8601)_${GITHUB_SHA::7}" >> $GITHUB_ENV
     - name: Build Docker image
-      working-directory: environment/python
+      working-directory: environment/r
       run: |
         docker build \
           --tag ${{ env.IMAGE_NAME }}:latest \

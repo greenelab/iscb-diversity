@@ -13,18 +13,22 @@ knit: (function(inputFile, encoding) {
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(lubridate)
-library(rnaturalearth)
 source('utils/r-utils.R')
+library(rnaturalearth)
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
+```{r}
+world <- rnaturalearth::ne_countries(scale='medium', returnclass = 'sf')
+```
 
 ### General data read-in
 
 ```{r}
 all_full_names <- readr::read_tsv('data/names/full-names.tsv.xz') %>% distinct()
-world <- rnaturalearth::ne_countries(scale='medium', returnclass = 'sf') 
+
 nat_to_reg <- world %>% 
+  select(- geometry) %>% 
   as_tibble() %>% 
   select(iso_a2, name, region_wb) %>% 
   rename('countries' = iso_a2,
@@ -92,6 +96,7 @@ nrow(corr_authors)
 
 
 ```{r}
-save(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, file = 'Rdata/raws.Rdata')
+save(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, world, 
+     file = 'Rdata/raws.Rdata')
 ```
 
