@@ -9,7 +9,7 @@ library(lubridate)
 # library(rnaturalearth)
 library(wru)
 source('utils/r-utils.R')
-load('Rdata/world.Rdata')
+load('Rdata/raws.Rdata')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 

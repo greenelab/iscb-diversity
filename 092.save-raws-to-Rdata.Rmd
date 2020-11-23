@@ -14,15 +14,12 @@ knit: (function(inputFile, encoding) {
 library(tidyverse)
 library(lubridate)
 source('utils/r-utils.R')
+library(rnaturalearth)
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
-
 ```{r}
-# library(rnaturalearth)
-# world <- rnaturalearth::ne_countries(scale='medium', returnclass = 'sf')
-# save(world, file = 'Rdata/world.Rdata')
-load('Rdata/world.Rdata')
+world <- rnaturalearth::ne_countries(scale='medium', returnclass = 'sf')
 ```
 
 ### General data read-in
@@ -99,6 +96,7 @@ nrow(corr_authors)
 
 
 ```{r}
-save(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, file = 'Rdata/raws.Rdata')
+save(nationalize_df, nat_to_reg, corr_authors, keynotes, large_jours, world, 
+     file = 'Rdata/raws.Rdata')
 ```
 
