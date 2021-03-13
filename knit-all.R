@@ -6,3 +6,5 @@ for (notebooki in rnotebooks){
                     output_dir = 'docs',
                     output_yaml = '_output.yaml')  
 }
+
+beepr::beep()

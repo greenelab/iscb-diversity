@@ -119,13 +119,15 @@ ggsave('figs/us_name_origin.svg', fig_us_name_origin, width = 6.5, height = 5.5)
 ## Hypothesis testing
 
 ```{r}
+iscb_lm <- iscb_pubmed_oth %>% 
+  ungroup() %>% 
+  mutate(year = c(scale(year)),
+         type = relevel(as.factor(type), ref = 'Pubmed authors'))
 main_lm <- function(regioni){
-  lm(weighted_probs ~ year + type, 
-     data = iscb_pubmed_oth %>% 
-       ungroup() %>% 
-       filter(region == regioni, !is.na(weighted_probs)) %>% 
-       mutate(year = c(scale(year)),
-              type = relevel(as.factor(type), ref = 'Pubmed authors')))
+  glm(type ~ year + weighted_probs, 
+      data = iscb_lm %>% 
+  filter(region == regioni, !is.na(weighted_probs)),
+      family = 'binomial')
 }
 
 main_list <- lapply(large_regions, main_lm)
@@ -136,7 +138,7 @@ lapply(main_list, summary)
 ```{r echo = F}
 get_p <- function(i, colu){
   broom::tidy(main_list[[i]]) %>% 
-    filter(term == 'typeKeynote speakers/Fellows') %>% 
+    filter(term == 'weighted_probs') %>% 
     pull(colu) %>% 
     sprintf("%0.5g", .)
 }

@@ -105,9 +105,11 @@ ggsave('figs/gender_breakdown.svg', fig_1, width = 5, height = 2.5)
 
 ```{r echo=FALSE}
 iscb_pubmed_sum %>%
-  group_by(year, type, gender) %>%
+  # group_by(year, type, gender) %>%
   # summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>% 
-  filter(year(year) == 2019, grepl('female', gender), grepl('Pubmed', type))
+  filter(year(year) > 2016, grepl('female', gender)) %>% 
+  group_by(type) %>% 
+  summarise(prob_female_avg = mean(mean_prob))
 ```
 
 
@@ -139,16 +141,21 @@ iscb_pubmed_sum %>% filter(gender == 'probability_male') %>%
 ```{r echo = F}
 get_p <- function(inte, colu){
   broom::tidy(inte) %>% 
-    filter(term == 'typePubmed authors') %>% 
+    filter(term == 'weighted_probs') %>% 
     pull(colu) %>% 
     sprintf("%0.5g", .)
 }
 ```
 
 ```{r}
-main_lm <- lm(weighted_probs ~ year + type, 
-     data = iscb_pubmed %>% 
-       filter(gender == 'probability_female', !is.na(weighted_probs)))
+iscb_lm <- iscb_pubmed %>% 
+       filter(gender == 'probability_female', !is.na(weighted_probs)) %>% 
+  mutate(type = as.factor(type),
+         type = relevel(type, ref = 'Pubmed authors'))
+
+main_lm <- glm(type ~ year + weighted_probs, 
+     data = iscb_lm, family = 'binomial')
+
 summary(main_lm)
 ```
 
@@ -156,9 +163,8 @@ The two groups of scientists did not have a significant association with the gen
 Interaction terms do not predict `probabilities` over and above the main effect of group of scientists and year.
 
 ```{r}
-inte_lm <- lm(weighted_probs ~ year * type, 
-   data = iscb_pubmed %>% 
-     filter(gender == 'probability_female', !is.na(weighted_probs)))
+inte_lm <- glm(type ~ year * weighted_probs, 
+   data = iscb_lm, family = 'binomial')
 summary(inte_lm)
 anova(main_lm, inte_lm)
 ```
