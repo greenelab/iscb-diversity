@@ -24,6 +24,5 @@ See the following rendered notebooks:
 - [10.visualize-gender](10.visualize-gender.html)
 - [11.visualize-name-origins](11.visualize-name-origins.html)
 - [12.analyze-affiliation](12.analyze-affiliation.html)
-- [13.us-race-analysis](13.us-race-analysis.html)
 - [14.us-name-origin](14.us-name-origin.html)
 - [15.analyze-2020](15.analyze-2020.html)

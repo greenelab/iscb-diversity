@@ -6,16 +6,12 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(lubridate)
-# library(rnaturalearth)
-library(wru)
 source('utils/r-utils.R')
 load('Rdata/raws.Rdata')
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 ## Gender
-
-### Load data
 
 ```{r message=FALSE, warning=FALSE}
 alpha_threshold <- qnorm(0.975)
@@ -96,45 +92,45 @@ iscb_nat_df %>%
   arrange(desc(mean_prob))
 ```
 
-## Race
-Among US-affiliated honorees:
+<!-- ## Race -->
+<!-- Among US-affiliated honorees: -->
 
-```{r message=FALSE, warning=FALSE}
-iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>%
-  mutate(publication_date = ymd(year, truncated = 2),
-         year = ymd(year, truncated = 2)) %>% 
-  separate_rows(afflcountries, sep = '\\|') %>% 
-  filter(afflcountries == 'United States') %>%
-  left_join(all_full_names, by = c('fore_name', 'last_name')) %>%
-  rename('surname' = last_name_simple) %>%
-  predict_race(surname.only = T, impute.missing = F) %>% 
-  filter(conference != 'PSB', year == '2020-01-01') 
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- iscb_us_race <- read_tsv('data/iscb/keynotes.tsv') %>% -->
+<!--   mutate(publication_date = ymd(year, truncated = 2), -->
+<!--          year = ymd(year, truncated = 2)) %>%  -->
+<!--   separate_rows(afflcountries, sep = '\\|') %>%  -->
+<!--   filter(afflcountries == 'United States') %>% -->
+<!--   left_join(all_full_names, by = c('fore_name', 'last_name')) %>% -->
+<!--   rename('surname' = last_name_simple) %>% -->
+<!--   predict_race(surname.only = T, impute.missing = F) %>%  -->
+<!--   filter(conference != 'PSB', year == '2020-01-01')  -->
 
-my_confs <- unique(iscb_us_race$conference)
-n_confs <- length(my_confs)
-sum(is.na(iscb_us_race$pred.whi))
-```
+<!-- my_confs <- unique(iscb_us_race$conference) -->
+<!-- n_confs <- length(my_confs) -->
+<!-- sum(is.na(iscb_us_race$pred.whi)) -->
+<!-- ``` -->
 
-4 out of 13 do not have a race prediction.
+<!-- 4 out of 13 do not have a race prediction. -->
 
 
-```{r}
-iscb_us_race %>%
-  pivot_longer(contains('pred'),
-               names_to = 'Race',
-               values_to = 'probabilities') %>%
-  recode_race() %>%
-  filter(!is.na(probabilities)) %>% 
-  group_by(Race) %>%
-  add_count() %>%
-  summarise(
-    mean_prob = mean(probabilities, na.rm = T),
-    sd_prob = sd(probabilities, na.rm = T),
-    n = mean(n),
-    me_prob = alpha_threshold * sd_prob / sqrt(n)
-  ) %>%
-  ungroup() 
-```
+<!-- ```{r} -->
+<!-- iscb_us_race %>% -->
+<!--   pivot_longer(contains('pred'), -->
+<!--                names_to = 'Race', -->
+<!--                values_to = 'probabilities') %>% -->
+<!--   recode_race() %>% -->
+<!--   filter(!is.na(probabilities)) %>%  -->
+<!--   group_by(Race) %>% -->
+<!--   add_count() %>% -->
+<!--   summarise( -->
+<!--     mean_prob = mean(probabilities, na.rm = T), -->
+<!--     sd_prob = sd(probabilities, na.rm = T), -->
+<!--     n = mean(n), -->
+<!--     me_prob = alpha_threshold * sd_prob / sqrt(n) -->
+<!--   ) %>% -->
+<!--   ungroup()  -->
+<!-- ``` -->
 
 
 ```{r}
