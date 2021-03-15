@@ -179,9 +179,23 @@ main_lm <- function(regioni){
      family = 'binomial')
 }
 
+inte_lm <- function(regioni){
+  glm(type ~ year * weighted_probs, 
+      data = iscb_lm %>% 
+  filter(region == regioni, !is.na(weighted_probs)),
+      family = 'binomial')
+}
+
 main_list <- lapply(large_regions, main_lm)
+inte_list <- lapply(large_regions, inte_lm)
 names(main_list) <- large_regions
 lapply(main_list, summary)
+lapply(inte_list, summary)
+
+for (i in 1:4){
+  print(anova(main_list[[i]], inte_list[[i]], test = 'Chisq'))
+}
+
 ```
 
 ```{r echo = F}

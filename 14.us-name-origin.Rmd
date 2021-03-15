@@ -130,9 +130,23 @@ main_lm <- function(regioni){
       family = 'binomial')
 }
 
+inte_lm <- function(regioni){
+  glm(type ~ year * weighted_probs, 
+      data = iscb_lm %>% 
+  filter(region == regioni, !is.na(weighted_probs)),
+      family = 'binomial')
+}
+
 main_list <- lapply(large_regions, main_lm)
+inte_list <- lapply(large_regions, inte_lm)
+
 names(main_list) <- large_regions
 lapply(main_list, summary)
+lapply(inte_list, summary)
+
+for (i in 1:4){
+  print(anova(main_list[[i]], inte_list[[i]], test = 'Chisq'))
+}
 ```
 
 ```{r echo = F}
@@ -146,8 +160,7 @@ get_p <- function(i, colu){
 
 ## Conclusion
 
-A name coming from the group of honorees has significantly higher probability of being Celtic/English, $\beta_\textrm{Celtic/English} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), higher probability of being European, $\beta_\textrm{European} =$ `r get_p(3, 'estimate')` (_P_ = `r get_p(3, 'p.value')`), and lower probability of being East Asian, $\beta_\textrm{East Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be in Other categories (_P_ = `r get_p(4, 'p.value')`).
-
+A name coming from the group of honorees has significantly lower probability of being East Asian, $\beta_\textrm{East Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be Celtic/English (_P_ = `r get_p(1, 'p.value')`), European (_P_ = `r get_p(3, 'p.value')`), or in Other categories (_P_ = `r get_p(4, 'p.value')`).
 
 
 ## Supplement

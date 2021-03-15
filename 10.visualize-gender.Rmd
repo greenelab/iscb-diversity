@@ -166,7 +166,7 @@ Interaction terms do not predict `probabilities` over and above the main effect 
 inte_lm <- glm(type ~ year * weighted_probs, 
    data = iscb_lm, family = 'binomial')
 summary(inte_lm)
-anova(main_lm, inte_lm)
+anova(main_lm, inte_lm, test = 'Chisq')
 ```
 
 
