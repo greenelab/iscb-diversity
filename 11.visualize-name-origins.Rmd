@@ -169,49 +169,51 @@ ggsave('figs/region_breakdown.svg', fig_4, width = 6.7, height = 5.5)
 
 ```{r}
 iscb_lm <- iscb_pubmed_oth %>% 
-       ungroup() %>% 
-       mutate(year = c(scale(year(year))),
-              type = as.factor(type) %>% relevel(ref = 'Pubmed authors'))
+  ungroup() %>% 
+  mutate(
+    # year = c(scale(year(year))),
+    year = as.factor(year),
+    type = as.factor(type) %>% relevel(ref = 'Pubmed authors'))
 main_lm <- function(regioni){
-  glm(type ~ weighted_probs + year, 
-     data = iscb_lm %>% 
-       filter(region == regioni, !is.na(probabilities)) ,
-     family = 'binomial')
+  glm(type ~ year + weighted_probs, 
+      data = iscb_lm %>% 
+        filter(region == regioni, !is.na(probabilities)) ,
+      family = 'binomial')
 }
 
 inte_lm <- function(regioni){
   glm(type ~ year * weighted_probs, 
       data = iscb_lm %>% 
-  filter(region == regioni, !is.na(weighted_probs)),
+        filter(region == regioni, !is.na(weighted_probs)),
       family = 'binomial')
 }
 
 main_list <- lapply(large_regions, main_lm)
-inte_list <- lapply(large_regions, inte_lm)
 names(main_list) <- large_regions
 lapply(main_list, summary)
-lapply(inte_list, summary)
 
+inte_list <- lapply(large_regions, inte_lm)
+lapply(inte_list, summary)
 for (i in 1:4){
   print(anova(main_list[[i]], inte_list[[i]], test = 'Chisq'))
 }
-
 ```
+Interaction terms do not predict `type` over and above the main effect of name origin probability and year (_p_ > 0.01).
 
 ```{r echo = F}
 get_p <- function(i, colu){
   broom::tidy(main_list[[i]]) %>% 
     filter(term == 'weighted_probs') %>% 
-    pull(colu) %>% 
-    sprintf("%0.5g", .)
+    pull(colu) 
 }
+
+print_p <- function(x) sprintf("%0.5g", x)
 ```
 
 ## Conclusion
-
-A name coming from the group of honorees has significantly higher probability of being Celtic/English, $\beta_\textrm{Celtic/English} =$ `r get_p(1, 'estimate')` (_P_ = `r get_p(1, 'p.value')`), and lower probability of being East Asian, $\beta_\textrm{East Asian} =$ `r get_p(2, 'estimate')` (_P_ = `r get_p(2, 'p.value')`). The two groups of scientists did not have a significant association with names predicted to be European and in Other categories (_P_ = `r get_p(3, 'p.value')` and _P_ = `r get_p(4, 'p.value')`, respectively).
-
-
+A Celtic/English name has `r exp(get_p(1, 'estimate'))` the odds of being selected as an honoree, significantly higher compared to other names ($\beta_\textrm{Celtic/English} =$ `r print_p(get_p(1, 'estimate'))`, _P_ = `r print_p(get_p(1, 'p.value'))`).
+An East Asian name has `r exp(get_p(2, 'estimate'))` the odds of being selected as an honoree, significantly lower than to other names ($\beta_\textrm{East Asian} =$ `r print_p(get_p(2, 'estimate'))`, _P_ = `r print_p(get_p(2, 'p.value'))`).
+The two groups of scientists did not have a significant association with names predicted to be European (_P_ = `r print_p(get_p(3, 'p.value'))`) or in Other categories (_P_ = `r print_p(get_p(4, 'p.value'))`).
 
 ### Supplementary Figure S5 {#sup_fig_s5}
 It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.

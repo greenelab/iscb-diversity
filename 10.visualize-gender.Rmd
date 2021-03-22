@@ -112,11 +112,31 @@ iscb_pubmed_sum %>%
   summarise(prob_female_avg = mean(mean_prob))
 ```
 
-
 ### Supplementary Figure S1 {#sup_fig_s1}
-Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015. 
 
-```{r eval=FALSE}
+Additional fig. 1 with separated keynote speakers and fellows
+
+```{r}
+iscb_pubmed %>%
+  ungroup() %>% 
+  mutate(type2 = case_when(
+    journal == 'ISCB Fellow' ~ 'ISCB Fellows',
+    type == 'Keynote speakers/Fellows' ~ 'Keynote speakers',
+    TRUE ~ 'Pubmed authors'
+  )) %>% 
+  group_by(type2, year, gender) %>% 
+  summarise(
+    mean_prob = mean(weighted_probs),
+    se_prob = sqrt(var(probabilities) * sum(weight^2)/(sum(weight)^2)),
+    me_prob = alpha_threshold * se_prob,
+    .groups = 'drop'
+  ) %>% 
+  gender_breakdown('main', fct_rev(type2))
+```
+
+<!-- Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015.  -->
+
+```{r eval=FALSE, include=FALSE}
 # By conference:
 # fig_1d <- bind_rows(iscb_gender) %>%
 #   gender_breakdown(category = 'sub', journal) +
@@ -150,8 +170,9 @@ get_p <- function(inte, colu){
 ```{r}
 iscb_lm <- iscb_pubmed %>% 
        filter(gender == 'probability_female', !is.na(weighted_probs)) %>% 
-  mutate(type = as.factor(type),
-         type = relevel(type, ref = 'Pubmed authors'))
+  mutate(type = as.factor(type)) %>% 
+  mutate(type = relevel(type, ref = 'Pubmed authors'),
+         year = as.factor(year))
 
 main_lm <- glm(type ~ year + weighted_probs, 
      data = iscb_lm, family = 'binomial')
@@ -160,15 +181,35 @@ summary(main_lm)
 ```
 
 The two groups of scientists did not have a significant association with the gender predicted from fore names (_P_ = `r get_p(main_lm, 'p.value')`).
-Interaction terms do not predict `probabilities` over and above the main effect of group of scientists and year.
+Interaction terms do not predict `type` over and above the main effect of gender probability and year.
 
 ```{r}
-inte_lm <- glm(type ~ year * weighted_probs, 
-   data = iscb_lm, family = 'binomial')
+scaled_iscb <- iscb_lm
+# scaled_iscb$s_prob <- scale(scaled_iscb$weighted_probs, scale = F)
+# scaled_iscb$s_year <- scale(scaled_iscb$year, scale = F)
+main_lm <- glm(type ~ year + weighted_probs, 
+     data = scaled_iscb %>% mutate(year = as.factor(year)), 
+     family = 'binomial')
+
+summary(main_lm)
+inte_lm <- glm(
+  # type ~ scale(year, scale = F) * scale(weighted_probs, scale = F),
+  # type ~ s_year * s_prob, 
+  type ~ year * weighted_probs,
+   data = scaled_iscb %>% mutate(year = as.factor(year))
+   , 
+   family = 'binomial')
 summary(inte_lm)
 anova(main_lm, inte_lm, test = 'Chisq')
+mean(scaled_iscb$year)
+mean(scaled_iscb$weighted_probs)
 ```
 
+```{r}
+# inte_lm <- glm(type ~ (year * weighted_probs), 
+#    data = iscb_lm, 
+#    family = 'binomial')
+```
 
 ```{r}
 sessionInfo()
