@@ -92,7 +92,7 @@ iscb_pubmed_sum <- iscb_pubmed %>%
 
 ## Figures for paper
 
-### Figure 1: ISCB Fellows and keynote speakers appear more evenly split between men and women than PubMed authors, but the proportion has not reached parity.
+### Figure 2: ISCB Fellows and keynote speakers appear more evenly split between men and women than PubMed authors, but the proportion has not reached parity.
 
 ```{r fig.height=3}
 fig_1 <- iscb_pubmed_sum %>%
@@ -112,26 +112,31 @@ iscb_pubmed_sum %>%
   summarise(prob_female_avg = mean(mean_prob))
 ```
 
-### Supplementary Figure S1 {#sup_fig_s1}
+### Supplementary Figure S2 {#sup_fig_s1}
 
 Additional fig. 1 with separated keynote speakers and fellows
 
 ```{r}
-iscb_pubmed %>%
-  ungroup() %>% 
-  mutate(type2 = case_when(
-    journal == 'ISCB Fellow' ~ 'ISCB Fellows',
-    type == 'Keynote speakers/Fellows' ~ 'Keynote speakers',
-    TRUE ~ 'Pubmed authors'
-  )) %>% 
-  group_by(type2, year, gender) %>% 
+fig_1d <- iscb_pubmed %>%
+  ungroup() %>%
+  mutate(
+    type2 = case_when(
+      type == 'Pubmed authors' ~ 'Pubmed authors',
+      journal == 'ISCB Fellow' ~ 'ISCB Fellows',
+      type == 'Keynote speakers/Fellows' ~ 'Keynote speakers'
+    )
+  ) %>%
+  group_by(type2, year, gender) %>%
   summarise(
     mean_prob = mean(weighted_probs),
-    se_prob = sqrt(var(probabilities) * sum(weight^2)/(sum(weight)^2)),
+    se_prob = sqrt(var(probabilities) * sum(weight ^ 2) / (sum(weight) ^
+                                                             2)),
     me_prob = alpha_threshold * se_prob,
     .groups = 'drop'
-  ) %>% 
-  gender_breakdown('main', fct_rev(type2))
+  ) %>%
+  gender_breakdown('main', fct_rev(type2)) +
+  scale_x_date(labels = scales::date_format("'%y"),
+               expand = c(0, 0)) 
 ```
 
 <!-- Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015.  -->
@@ -143,8 +148,8 @@ iscb_pubmed %>%
 #   theme(legend.position = 'bottom')
 
 # fig_1d
-# ggsave('figs/fig_s1.png', fig_1d, width = 6, height = 2)
-# ggsave('figs/fig_s1.svg', fig_1d, width = 6, height = 2)
+ggsave('figs/fig_s1.png', fig_1d, width = 7, height = 3)
+ggsave('figs/fig_s1.svg', fig_1d, width = 7, height = 3)
 ```
 
 ## Mean and standard deviation of predicted probabilities
