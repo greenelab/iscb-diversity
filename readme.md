@@ -10,10 +10,12 @@ Make sure to have Git LFS installed locally before cloning the repository,
 if you'd like to download the datasets.
 You can also download datasets directly from the GitHub website by clicking "Raw".
 
-In general, we use [XZ](https://tukaani.org/xz/) for compressing files (denoted by an `.xz` extension).
-For users that would like a graphical interface for decompressing XZ-compressed files,
-options include [PeaZip](https://giorgiotani.github.io/PeaZip/) on Windows (open source) and [The Unarchiver](https://theunarchiver.com/) on macOS (proprietary freeware).
-macOS users can install the `xz` command line utility with `brew install xz`.
+The source code saves large files using [XZ](https://tukaani.org/xz/) compression (denoted by an `.xz` extension).
+Since not all users are familiar with XZ-compression,
+we have also created gzip exports of all XZ-compressed files
+(with the [`convert-xz-to-gzip.bash`](utils/convert-xz-to-gzip.bash) script).
+These files are placed alongside their XZ source in the `data` directory.
+The source code pipelines use XZ compression since gzip encodes a timestamp causing non-deterministic output files.
 
 ## Development
 
