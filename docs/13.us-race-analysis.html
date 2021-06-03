@@ -1674,7 +1674,8 @@ pubmed_race_pmids &lt;- corr_authors %&gt;%
   rename(&#39;surname&#39; = last_name_simple) %&gt;% 
   predict_race(surname.only = T, impute.missing = F) </code></pre>
 <pre><code>## [1] &quot;Proceeding with surname-only predictions...&quot;</code></pre>
-<pre><code>## Warning in merge_surnames(voter.file, impute.missing = impute.missing): 5166 surnames were not matched.</code></pre>
+<pre><code>## Warning in merge_surnames(voter.file, impute.missing = impute.missing): 5166
+## surnames were not matched.</code></pre>
 <pre class="r"><code>pubmed_us_race &lt;- pubmed_race_pmids %&gt;% 
   group_by(pmid, journal, publication_date, year, adjusted_citations) %&gt;% 
   summarise_at(vars(contains(&#39;pred.&#39;)), mean, na.rm = T, .groups = &#39;drop&#39;) %&gt;% 
@@ -1684,7 +1685,8 @@ iscb_us_race &lt;- keynotes %&gt;%
   rename(&#39;surname&#39; = last_name_simple) %&gt;%
   predict_race(surname.only = T, impute.missing = F)</code></pre>
 <pre><code>## [1] &quot;Proceeding with surname-only predictions...&quot;</code></pre>
-<pre><code>## Warning in merge_surnames(voter.file, impute.missing = impute.missing): 100 surnames were not matched.</code></pre>
+<pre><code>## Warning in merge_surnames(voter.file, impute.missing = impute.missing): 100
+## surnames were not matched.</code></pre>
 <pre class="r"><code>my_jours &lt;- unique(pubmed_us_race$journal)
 my_confs &lt;- unique(iscb_us_race$conference)
 n_jours &lt;- length(my_jours)
