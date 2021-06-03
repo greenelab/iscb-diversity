@@ -6,7 +6,7 @@ title: "Representation analysis of name origins"
 library(tidyverse)
 library(lubridate)
 library(rnaturalearth)
-source('utils/r-utils.R')
+source("utils/r-utils.R")
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
@@ -15,17 +15,17 @@ See [093.summary-stats](docs/093.summary-stats.html) for more details.
 
 ```{r}
 alpha_threshold <- qnorm(0.975)
-load('Rdata/raws.Rdata')
+load("Rdata/raws.Rdata")
 
 pubmed_nat_df <- corr_authors %>%
-  filter(year(year) >= 2002) %>% 
-  left_join(nationalize_df, by = c('fore_name', 'last_name')) %>%
+  filter(year(year) >= 2002) %>%
+  left_join(nationalize_df, by = c("fore_name", "last_name")) %>%
   group_by(pmid, journal, publication_date, year, adjusted_citations) %>%
   summarise_at(vars(African:SouthAsian), mean, na.rm = T) %>%
   ungroup()
 
 iscb_nat_df <- keynotes %>%
-  left_join(nationalize_df, by = c('fore_name', 'last_name'))
+  left_join(nationalize_df, by = c("fore_name", "last_name"))
 
 start_year <- 1992
 end_year <- 2019
@@ -34,34 +34,38 @@ my_jours <- unique(pubmed_nat_df$journal)
 my_confs <- unique(iscb_nat_df$conference)
 n_jours <- length(my_jours)
 n_confs <- length(my_confs)
-region_levels <- paste(c('Celtic/English', 'European', 'East Asian', 'Hispanic', 'South Asian', 'Arabic', 'Hebrew', 'African', 'Nordic', 'Greek'), 'names')
+region_levels <- paste(c("Celtic/English", "European", "East Asian", "Hispanic", "South Asian", "Arabic", "Hebrew", "African", "Nordic", "Greek"), "names")
 region_levels_let <- toupper(letters[1:8])
-region_cols <- c('#ffffb3', '#fccde5', '#b3de69', '#fdb462', '#80b1d3', '#8dd3c7', '#bebada', '#fb8072', '#bc80bd', '#ccebc5')
+region_cols <- c("#ffffb3", "#fccde5", "#b3de69", "#fdb462", "#80b1d3", "#8dd3c7", "#bebada", "#fb8072", "#bc80bd", "#ccebc5")
 ```
 
 Names grouping:
 ```{r warning=FALSE, fig.height = 3}
-our_country_map <- read_tsv('https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/7c22d0a5f661ce5aeb785215095deda40973ff17/data/country_to_region_NamePrism.tsv') %>%
-  rename('region' = Region) %>%
+our_country_map <- read_tsv("https://raw.githubusercontent.com/greenelab/wiki-nationality-estimate/7c22d0a5f661ce5aeb785215095deda40973ff17/data/country_to_region_NamePrism.tsv") %>%
+  rename("region" = Region) %>%
   recode_region()
 
 my_world <- world %>%
-  select(- geometry) %>% 
-  rename(Country = 'name') %>%
-  left_join(our_country_map, by = 'Country')
+  select(-geometry) %>%
+  rename(Country = "name") %>%
+  left_join(our_country_map, by = "Country")
 
 (gworld <- ggplot(data = my_world) +
-    geom_sf(aes(fill = fct_relevel(region, region_levels))) +
-    coord_sf(crs = "+proj=eqearth +wktext") +
-    scale_fill_manual(values = region_cols,
-                      na.translate = FALSE) +
-    theme(panel.background = element_rect(fill = "azure"),
-          legend.title = element_blank(),
-          legend.position = 'bottom',
-          panel.border = element_rect(fill = NA)))
+  geom_sf(aes(fill = fct_relevel(region, region_levels))) +
+  coord_sf(crs = "+proj=eqearth +wktext") +
+  scale_fill_manual(
+    values = region_cols,
+    na.translate = FALSE
+  ) +
+  theme(
+    panel.background = element_rect(fill = "azure"),
+    legend.title = element_blank(),
+    legend.position = "bottom",
+    panel.border = element_rect(fill = NA)
+  ))
 
-ggsave('figs/2020-01-31_groupings.png', gworld, width = 7.2, height = 4.3)
-ggsave('figs/2020-01-31_groupings.svg', gworld, width = 7.2, height = 4.3)
+ggsave("figs/2020-01-31_groupings.png", gworld, width = 7.2, height = 4.3)
+ggsave("figs/2020-01-31_groupings.svg", gworld, width = 7.2, height = 4.3)
 ```
 
 
@@ -74,38 +78,41 @@ Prepare data frames for later analyses:
 
 ```{r}
 iscb_pubmed_oth <- iscb_nat_df %>%
-  rename('journal' = conference) %>%
+  rename("journal" = conference) %>%
   select(year, journal, African:SouthAsian, publication_date) %>%
-  mutate(type = 'Keynote speakers/Fellows',
-         adjusted_citations = 1,
-         pmid = -9999) %>%
+  mutate(
+    type = "Keynote speakers/Fellows",
+    adjusted_citations = 1,
+    pmid = -9999
+  ) %>%
   bind_rows(
     pubmed_nat_df %>%
       select(pmid, year, journal, African:SouthAsian, publication_date, adjusted_citations) %>%
-      mutate(type = 'Pubmed authors')
+      mutate(type = "Pubmed authors")
   ) %>%
   mutate(OtherCategories = SouthAsian + Hispanic + Jewish + Muslim + Nordic + Greek + African) %>%
   pivot_longer(c(African:SouthAsian, OtherCategories),
-               names_to = 'region',
-               values_to = 'probabilities') %>%
-  filter(!is.na(probabilities)) %>% 
+    names_to = "region",
+    values_to = "probabilities"
+  ) %>%
+  filter(!is.na(probabilities)) %>%
   group_by(type, year, region) %>%
   mutate(
     pmc_citations_year = mean(adjusted_citations),
-    weight = adjusted_citations/pmc_citations_year,
-    weighted_probs = probabilities*weight
-  ) 
+    weight = adjusted_citations / pmc_citations_year,
+    weighted_probs = probabilities * weight
+  )
 
-iscb_pubmed_sum_oth <- iscb_pubmed_oth %>% 
+iscb_pubmed_sum_oth <- iscb_pubmed_oth %>%
   summarise(
     mean_prob = mean(weighted_probs),
-    se_prob = sqrt(var(probabilities) * sum(weight^2)/(sum(weight)^2)),
+    se_prob = sqrt(var(probabilities) * sum(weight^2) / (sum(weight)^2)),
     me_prob = alpha_threshold * se_prob,
-    .groups = 'drop'
+    .groups = "drop"
   )
 
 iscb_pubmed_sum <- iscb_pubmed_sum_oth %>%
-  filter(region != 'OtherCategories')
+  filter(region != "OtherCategories")
 ```
 
 ## Prepare data frames for analysis
@@ -113,20 +120,19 @@ iscb_pubmed_sum <- iscb_pubmed_sum_oth %>%
 ### By conference keynotes/fellows
 ```{r fig.height=6}
 i <- 0
-iscb_nat <- vector('list', length = n_confs)
+iscb_nat <- vector("list", length = n_confs)
 
-for (conf in my_confs){
+for (conf in my_confs) {
   i <- i + 1
   iscb_nat[[i]] <- iscb_pubmed_oth %>%
-    filter(region != 'OtherCategories', type != 'Pubmed authors' & journal == conf) %>%
+    filter(region != "OtherCategories", type != "Pubmed authors" & journal == conf) %>%
     group_by(type, year, region, journal) %>%
-    summarise(mean_prob = mean(weighted_probs), .groups = 'drop') %>%
-    {.}
+    summarise(mean_prob = mean(weighted_probs), .groups = "drop")
 }
 ```
 
 ```{r}
-save(my_world, iscb_pubmed_oth, iscb_nat, file = 'Rdata/iscb-pubmed_nat.Rdata')
+save(my_world, iscb_pubmed_oth, iscb_nat, file = "Rdata/iscb-pubmed_nat.Rdata")
 ```
 
 ## Figures for paper
@@ -137,74 +143,80 @@ Compared to the name collection of Pubmed authors, honorees with Celtic/English 
 
 ```{r fig.height=7, fig.width=9, warning=FALSE}
 fig_4a <- iscb_pubmed_sum %>%
-  filter(year < '2020-01-01') %>%
-  region_breakdown('main', region_levels, fct_rev(type)) +
+  filter(year < "2020-01-01") %>%
+  region_breakdown("main", region_levels, fct_rev(type)) +
   guides(fill = guide_legend(nrow = 2)) +
-  theme(legend.position = 'bottom')
+  theme(legend.position = "bottom")
 
-large_regions <- c('CelticEnglish', 'EastAsian', 'European', 'OtherCategories')
+large_regions <- c("CelticEnglish", "EastAsian", "European", "OtherCategories")
 ## Mean and standard deviation of predicted probabilities:
 fig_4b <- iscb_pubmed_sum_oth %>%
   filter(region %in% large_regions) %>%
   recode_region() %>%
   gam_and_ci(
-    df2 = iscb_pubmed_oth %>% 
+    df2 = iscb_pubmed_oth %>%
       filter(region %in% large_regions) %>%
       recode_region(),
-    start_y = start_year, end_y = end_year) + 
-  theme(legend.position = c(0.88, 0.83),
-        panel.grid.minor = element_blank(),
-        legend.margin = margin(-0.5, 0, 0, 0, unit='cm'),
-        legend.text = element_text(size = 7)) +
+    start_y = start_year, end_y = end_year
+  ) +
+  theme(
+    legend.position = c(0.88, 0.83),
+    panel.grid.minor = element_blank(),
+    legend.margin = margin(-0.5, 0, 0, 0, unit = "cm"),
+    legend.text = element_text(size = 7)
+  ) +
   facet_wrap(vars(fct_relevel(region, large_regions)), nrow = 1)
 
-fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = 'AUTO', ncol = 1, rel_heights = c(1.3,1))
+fig_4 <- cowplot::plot_grid(fig_4a, fig_4b, labels = "AUTO", ncol = 1, rel_heights = c(1.3, 1))
 fig_4
-ggsave('figs/region_breakdown.png', fig_4, width = 6.7, height = 5.5)
-ggsave('figs/region_breakdown.svg', fig_4, width = 6.7, height = 5.5)
+ggsave("figs/region_breakdown.png", fig_4, width = 6.7, height = 5.5)
+ggsave("figs/region_breakdown.svg", fig_4, width = 6.7, height = 5.5)
 ```
 
 
 ## Hypothesis testing
 
 ```{r}
-iscb_lm <- iscb_pubmed_oth %>% 
-  ungroup() %>% 
+iscb_lm <- iscb_pubmed_oth %>%
+  ungroup() %>%
   mutate(
     # year = c(scale(year(year))),
-    year = as.factor(year),
-    type = as.factor(type) %>% relevel(ref = 'Pubmed authors'))
-main_lm <- function(regioni){
-  glm(type ~ year + weighted_probs, 
-      data = iscb_lm %>% 
-        filter(region == regioni, !is.na(probabilities)) ,
-      family = 'binomial')
+    # year = as.factor(year),
+    type = as.factor(type) %>% relevel(ref = "Pubmed authors")
+  )
+main_lm <- function(regioni) {
+  glm(type ~ year + weighted_probs,
+    data = iscb_lm %>%
+      filter(region == regioni, !is.na(probabilities), year(year) >= 2002),
+    family = "binomial"
+  )
 }
 
-inte_lm <- function(regioni){
-  glm(type ~ year * weighted_probs, 
-      data = iscb_lm %>% 
-        filter(region == regioni, !is.na(weighted_probs)),
-      family = 'binomial')
+inte_lm <- function(regioni) {
+  glm(type ~ year * weighted_probs,
+    data = iscb_lm %>%
+      filter(region == regioni, !is.na(weighted_probs), year(year) >= 2002),
+    family = "binomial"
+  )
 }
 
 main_list <- lapply(large_regions, main_lm)
 names(main_list) <- large_regions
-lapply(main_list, summary)
+lapply(main_list, broom::tidy)
 
 inte_list <- lapply(large_regions, inte_lm)
-lapply(inte_list, summary)
-for (i in 1:4){
-  print(anova(main_list[[i]], inte_list[[i]], test = 'Chisq'))
+lapply(inte_list, broom::tidy)
+for (i in 1:4) {
+  print(anova(main_list[[i]], inte_list[[i]], test = "Chisq"))
 }
 ```
 Interaction terms do not predict `type` over and above the main effect of name origin probability and year (_p_ > 0.01).
 
 ```{r echo = F}
-get_p <- function(i, colu){
-  broom::tidy(main_list[[i]]) %>% 
-    filter(term == 'weighted_probs') %>% 
-    pull(colu) 
+get_p <- function(i, colu) {
+  broom::tidy(main_list[[i]]) %>%
+    filter(term == "weighted_probs") %>%
+    pull(colu)
 }
 
 print_p <- function(x) sprintf("%0.5g", x)
@@ -215,25 +227,162 @@ A Celtic/English name has `r exp(get_p(1, 'estimate'))` the odds of being select
 An East Asian name has `r exp(get_p(2, 'estimate'))` the odds of being selected as an honoree, significantly lower than to other names ($\beta_\textrm{East Asian} =$ `r print_p(get_p(2, 'estimate'))`, _P_ = `r print_p(get_p(2, 'p.value'))`).
 The two groups of scientists did not have a significant association with names predicted to be European (_P_ = `r print_p(get_p(3, 'p.value'))`) or in Other categories (_P_ = `r print_p(get_p(4, 'p.value'))`).
 
-### Supplementary Figure S5 {#sup_fig_s5}
+
+## Alternative approach
+_Sincere thanks to the reviewers, Byron Smith and Katie Pollard, for their detailed suggestion with code._
+
+The question of what unit one should use to perform this type of analyses is a difficult one.
+We present here an alternative analysis that treats _names_ as units instead of _honors_ and _authorships_.
+We caution that this approach does not distinguish scientists who were honored 4 times vs. one time
+and hence may yield a conservative estimate of disparity.
+Further, different authors may have the same names, 
+and to sum `adjusted_citations` across them may not be optimal.
+
+Nonetheless, the finding here is consistent with what we have seen above
+where East Asian names are underrepresented in the honoree group.
+
+```{r}
+
+keynotes_post_2002 <- keynotes %>%
+  filter(year(year) >= 2002) %>%
+  separate_rows(afflcountries, sep = ",") %>%
+  filter(afflcountries == "United States") %>%
+  group_by(fore_name_simple, last_name_simple) %>%
+  summarise_at("year", n_distinct, na.rm = T)
+
+# nationalize_df was not unique, so the left join to corr_authors resulted
+# in (mostly) duplicate rows.
+# FIXME: I was getting occasional crashes on this line, and it's slow.
+# TRANG: fixed on June 3, 2021 using distinct().
+# Also, the duplication was intentional.
+# Please see our extensive discussion on the merge/join on full names vs
+# fore_name and last_name here:
+# <https://github.com/greenelab/iscb-diversity/issues/6>
+
+distinct_nationalize_df <- nationalize_df %>%
+  distinct(fore_name_simple, last_name_simple, .keep_all = TRUE)
+
+# Calculate sum of adjusted citations for all publications for a first-name/
+# last-name pair in db since 2002
+# where the author countries include US.
+authors <- corr_authors %>%
+  filter(year(year) >= 2002) %>%
+  separate_rows(countries, sep = ",") %>%
+  filter(countries == "US") %>%
+  group_by(fore_name_simple, last_name_simple) %>%
+  summarise_at(vars(adjusted_citations), sum, na.rm = T) %>%
+  left_join(
+    keynotes_post_2002[c("fore_name_simple", "last_name_simple", "year")],
+    by = c("fore_name_simple", "last_name_simple")
+  ) %>%
+  left_join(distinct_nationalize_df, by = c("fore_name_simple", "last_name_simple")) %>%
+  mutate(OtherCategories = SouthAsian + Hispanic + Jewish + Muslim + Nordic + Greek + African)
+
+for (large_region in large_regions) {
+  glm(
+    as.formula(paste("honoree ~ adjusted_citations +", large_region)),
+    data = authors %>% mutate(honoree = !is.na(year)),
+    family = "binomial",
+    control = list(epsilon = 1e-12, maxit = 55, trace = FALSE)
+  ) %>%
+    broom::tidy() %>%
+    print()
+}
+```
+
+<!-- We argue that honors and authorships are the appropriate units. -->
+<!-- Although this approach may not satisfy the independent and identically distributed assumption -->
+
+<!-- honor vs not honored. -->
+<!-- But then this is considering scientists who have 4 rows of honorees as one  -->
+<!-- Is this fair? -->
+<!-- 195 rows/honors of keynotes post 2002 to 145 names/scientists. -->
+
+## Time lag
+
+In this section, we show that a 10-year lag model results in a similar result for East Asian scientists' names,
+even though the effect size is less striking.
+For example, if we assume that honors accrue 10 years after their most prolific year with respect to authorships, 
+the proportion of honor associated with East Asian name origins in 2019 is still substantially less than the proportion of senior authorships associated with East Asian names in 2009.
+
+```{r}
+year_lag <- period(10, "years")
+iscb_pubmed_oth_lag <- iscb_nat_df %>%
+  rename("journal" = conference) %>%
+  select(year, journal, African:SouthAsian, publication_date) %>%
+  mutate(
+    type = "Keynote speakers/Fellows",
+    adjusted_citations = 1,
+    pmid = -9999
+  ) %>%
+  bind_rows(
+    pubmed_nat_df %>%
+      select(pmid, year, journal, African:SouthAsian, publication_date, adjusted_citations) %>%
+      mutate(type = "Pubmed authors", year = year + year_lag)
+  ) %>%
+  mutate(OtherCategories = SouthAsian + Hispanic + Jewish + Muslim + Nordic + Greek + African) %>%
+  pivot_longer(c(African:SouthAsian, OtherCategories),
+    names_to = "region",
+    values_to = "probabilities"
+  ) %>%
+  filter(!is.na(probabilities), year(year) >= 2002) %>%
+  group_by(type, year, region) %>%
+  mutate(
+    pmc_citations_year = mean(adjusted_citations),
+    weight = adjusted_citations / pmc_citations_year,
+    weighted_probs = probabilities * weight
+  )
+
+iscb_lm_lag <- iscb_pubmed_oth_lag %>%
+  ungroup() %>%
+  mutate(type = as.factor(type) %>% relevel(ref = "Pubmed authors"))
+
+main_lm <- function(regioni) {
+  glm(type ~ year + weighted_probs,
+    data = iscb_lm_lag %>%
+      filter(region == regioni, !is.na(weighted_probs)),
+    family = "binomial"
+  )
+}
+
+main_list <- lapply(large_regions, main_lm)
+names(main_list) <- large_regions
+lapply(main_list, tidy::broom)
+```
+
+```{r include=FALSE, eval = FALSE}
+checkdf <- iscb_lm %>%
+  filter(
+    year(year) == 2010,
+    adjusted_citations > 3.1, 
+    adjusted_citations < 3.32, 
+    region == "EastAsian", 
+    probabilities > 0.5
+  )
+```
+
+
+## Supplementary Figure S5 {#sup_fig_s5}
 It's difficult to come to a conclusion for other regions with so few data points and the imperfect accuracy of our prediction.
 There seems to be little difference between the proportion of keynote speakers of African, Arabic, South Asian and Hispanic origin than those in the field.
 However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
 
 ```{r fig.height=6, warning=FALSE}
-df2 <- iscb_pubmed_oth %>% 
-  filter(region != 'OtherCategories') %>% 
+df2 <- iscb_pubmed_oth %>%
+  filter(region != "OtherCategories") %>%
   recode_region()
 
 fig_s5 <- iscb_pubmed_sum %>%
   recode_region() %>%
-  gam_and_ci(df2 = df2,
-             start_y = start_year, end_y = end_year) +
+  gam_and_ci(
+    df2 = df2,
+    start_y = start_year, end_y = end_year
+  ) +
   theme(legend.position = c(0.8, 0.1)) +
   facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
 fig_s5
-ggsave('figs/fig_s5.png', fig_s5, width = 6, height = 6)
-ggsave('figs/fig_s5.svg', fig_s5, width = 6, height = 6)
+ggsave("figs/fig_s5.png", fig_s5, width = 6, height = 6)
+ggsave("figs/fig_s5.svg", fig_s5, width = 6, height = 6)
 ```
 
 

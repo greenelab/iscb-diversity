@@ -9,7 +9,7 @@ library(tidyverse)
 library(lubridate)
 library(rnaturalearth)
 library(wru)
-source('utils/r-utils.R')
+source("utils/r-utils.R")
 theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
@@ -19,17 +19,17 @@ Only keep articles from 2002 because few authors had gender predictions before 2
 See [093.summary-stats](docs/093.summary-stats.html) for more details.
 
 ```{r}
-load('Rdata/raws.Rdata')
+load("Rdata/raws.Rdata")
 
 alpha_threshold <- qnorm(0.975)
-gender_df <- read_tsv('data/gender/genderize.tsv')
+gender_df <- read_tsv("data/gender/genderize.tsv")
 
 pubmed_gender_df <- corr_authors %>%
-  filter(year(year) >= 2002) %>% 
-  left_join(gender_df, by = 'fore_name_simple')
+  filter(year(year) >= 2002) %>%
+  left_join(gender_df, by = "fore_name_simple")
 
-iscb_gender_df <- keynotes %>% 
-  left_join(gender_df, by = 'fore_name_simple')
+iscb_gender_df <- keynotes %>%
+  left_join(gender_df, by = "fore_name_simple")
 
 start_year <- 1993
 end_year <- 2019
@@ -48,38 +48,41 @@ n_confs <- length(my_confs)
 
 ```{r}
 iscb_pubmed <- iscb_gender_df %>%
-  rename('journal' = conference) %>%
+  rename("journal" = conference) %>%
   select(year, journal, probability_male, publication_date) %>%
-  mutate(type = 'Keynote speakers/Fellows',
-         adjusted_citations = 1) %>%
+  mutate(
+    type = "Keynote speakers/Fellows",
+    adjusted_citations = 1
+  ) %>%
   bind_rows(
     pubmed_gender_df %>%
       select(year, journal, probability_male, publication_date, adjusted_citations) %>%
-      mutate(type = 'Pubmed authors')
+      mutate(type = "Pubmed authors")
   ) %>%
-  mutate(probability_female = 1 - probability_male) %>% 
-  pivot_longer(contains('probability'),
-               names_to = 'gender',
-               values_to = 'probabilities') %>%
-  filter(!is.na(probabilities)) %>% 
+  mutate(probability_female = 1 - probability_male) %>%
+  pivot_longer(contains("probability"),
+    names_to = "gender",
+    values_to = "probabilities"
+  ) %>%
+  filter(!is.na(probabilities)) %>%
   group_by(type, year, gender) %>%
   mutate(
     pmc_citations_year = mean(adjusted_citations),
-    weight = adjusted_citations/pmc_citations_year,
-    weighted_probs = probabilities*weight
+    weight = adjusted_citations / pmc_citations_year,
+    weighted_probs = probabilities * weight
     # weight = 1
-    )
+  )
 
-iscb_pubmed_sum <- iscb_pubmed %>% 
+iscb_pubmed_sum <- iscb_pubmed %>%
   summarise(
     # n = n(),
     mean_prob = mean(weighted_probs),
     # mean_prob = mean(probabilities, na.rm = T),
     # sd_prob = sd(probabilities, na.rm = T),
-    se_prob = sqrt(var(probabilities) * sum(weight^2)/(sum(weight)^2)),
+    se_prob = sqrt(var(probabilities) * sum(weight^2) / (sum(weight)^2)),
     # n = mean(n),
     me_prob = alpha_threshold * se_prob,
-    .groups = 'drop'
+    .groups = "drop"
   )
 # https://stats.stackexchange.com/questions/25895/computing-standard-error-in-weighted-mean-estimation
 ```
@@ -97,18 +100,18 @@ iscb_pubmed_sum <- iscb_pubmed %>%
 ```{r fig.height=3}
 fig_1 <- iscb_pubmed_sum %>%
   # group_by(year, type, gender) %>%
-  gender_breakdown('main', fct_rev(type))
+  gender_breakdown("main", fct_rev(type))
 fig_1
-ggsave('figs/gender_breakdown.png', fig_1, width = 5, height = 2.5)
-ggsave('figs/gender_breakdown.svg', fig_1, width = 5, height = 2.5)
+ggsave("figs/gender_breakdown.png", fig_1, width = 5, height = 2.5)
+ggsave("figs/gender_breakdown.svg", fig_1, width = 5, height = 2.5)
 ```
 
 ```{r echo=FALSE}
 iscb_pubmed_sum %>%
   # group_by(year, type, gender) %>%
-  # summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>% 
-  filter(year(year) > 2016, grepl('female', gender)) %>% 
-  group_by(type) %>% 
+  # summarise(mean_prob = mean(probabilities, na.rm = T), .groups = 'drop') %>%
+  filter(year(year) > 2016, grepl("female", gender)) %>%
+  group_by(type) %>%
   summarise(prob_female_avg = mean(mean_prob))
 ```
 
@@ -121,22 +124,23 @@ fig_1d <- iscb_pubmed %>%
   ungroup() %>%
   mutate(
     type2 = case_when(
-      type == 'Pubmed authors' ~ 'Pubmed authors',
-      journal == 'ISCB Fellow' ~ 'ISCB Fellows',
-      type == 'Keynote speakers/Fellows' ~ 'Keynote speakers'
+      type == "Pubmed authors" ~ "Pubmed authors",
+      journal == "ISCB Fellow" ~ "ISCB Fellows",
+      type == "Keynote speakers/Fellows" ~ "Keynote speakers"
     )
   ) %>%
   group_by(type2, year, gender) %>%
   summarise(
     mean_prob = mean(weighted_probs),
-    se_prob = sqrt(var(probabilities) * sum(weight ^ 2) / (sum(weight) ^
-                                                             2)),
+    se_prob = sqrt(var(probabilities) * sum(weight^2) / (sum(weight)^2)),
     me_prob = alpha_threshold * se_prob,
-    .groups = 'drop'
+    .groups = "drop"
   ) %>%
-  gender_breakdown('main', fct_rev(type2)) +
-  scale_x_date(labels = scales::date_format("'%y"),
-               expand = c(0, 0)) 
+  gender_breakdown("main", fct_rev(type2)) +
+  scale_x_date(
+    labels = scales::date_format("'%y"),
+    expand = c(0, 0)
+  )
 ```
 
 <!-- Increasing trend of honorees who were women in each honor category, especially in the group of ISCB Fellows, which markedly increased after 2015.  -->
@@ -148,71 +152,70 @@ fig_1d <- iscb_pubmed %>%
 #   theme(legend.position = 'bottom')
 
 # fig_1d
-ggsave('figs/fig_s1.png', fig_1d, width = 7, height = 3)
-ggsave('figs/fig_s1.svg', fig_1d, width = 7, height = 3)
+ggsave("figs/fig_s1.png", fig_1d, width = 7, height = 3)
+ggsave("figs/fig_s1.svg", fig_1d, width = 7, height = 3)
 ```
 
 ## Mean and standard deviation of predicted probabilities
 
 ```{r}
-iscb_pubmed_sum %>% filter(gender == 'probability_male') %>% 
-  gam_and_ci(df2 = iscb_pubmed %>% filter(gender == 'probability_male'),
-             start_y = start_year, end_y = end_year) +
+iscb_pubmed_sum %>%
+  filter(gender == "probability_male") %>%
+  gam_and_ci(
+    df2 = iscb_pubmed %>% filter(gender == "probability_male"),
+    start_y = start_year, end_y = end_year
+  ) +
   theme(legend.position = c(0.88, 0.2))
 ```
 
 ## Hypothesis testing
 
 ```{r echo = F}
-get_p <- function(inte, colu){
-  broom::tidy(inte) %>% 
-    filter(term == 'weighted_probs') %>% 
-    pull(colu) %>% 
+get_p <- function(inte, colu) {
+  broom::tidy(inte) %>%
+    filter(term == "weighted_probs") %>%
+    pull(colu) %>%
     sprintf("%0.5g", .)
 }
 ```
 
 ```{r}
-iscb_lm <- iscb_pubmed %>% 
-       filter(gender == 'probability_female', !is.na(weighted_probs)) %>% 
-  mutate(type = as.factor(type)) %>% 
-  mutate(type = relevel(type, ref = 'Pubmed authors'),
-         year = as.factor(year))
+iscb_lm <- iscb_pubmed %>%
+  filter(gender == "probability_female", !is.na(weighted_probs)) %>%
+  mutate(type = as.factor(type) %>% relevel(ref = "Pubmed authors"))
+```
 
-main_lm <- glm(type ~ year + weighted_probs, 
-     data = iscb_lm, family = 'binomial')
+```{r}
+scaled_iscb <- iscb_lm %>%
+  filter(year(year) >= 2002)
+# scaled_iscb$s_prob <- scale(scaled_iscb$weighted_probs, scale = F)
+# scaled_iscb$s_year <- scale(scaled_iscb$year, scale = F)
 
-summary(main_lm)
+main_lm <- glm(type ~ year + weighted_probs,
+  data = scaled_iscb, # %>% mutate(year = as.factor(year))
+  family = "binomial"
+)
+
+broom::tidy(main_lm)
+inte_lm <- glm(
+  # type ~ scale(year, scale = F) * scale(weighted_probs, scale = F),
+  # type ~ s_year * s_prob,
+  type ~ year * weighted_probs,
+  data = scaled_iscb, # %>% mutate(year = as.factor(year))
+  family = "binomial"
+)
+broom::tidy(inte_lm)
+anova(main_lm, inte_lm, test = "Chisq")
+# mean(scaled_iscb$year)
+# mean(scaled_iscb$weighted_probs)
 ```
 
 The two groups of scientists did not have a significant association with the gender predicted from fore names (_P_ = `r get_p(main_lm, 'p.value')`).
 Interaction terms do not predict `type` over and above the main effect of gender probability and year.
 
-```{r}
-scaled_iscb <- iscb_lm
-# scaled_iscb$s_prob <- scale(scaled_iscb$weighted_probs, scale = F)
-# scaled_iscb$s_year <- scale(scaled_iscb$year, scale = F)
-main_lm <- glm(type ~ year + weighted_probs, 
-     data = scaled_iscb %>% mutate(year = as.factor(year)), 
-     family = 'binomial')
-
-summary(main_lm)
-inte_lm <- glm(
-  # type ~ scale(year, scale = F) * scale(weighted_probs, scale = F),
-  # type ~ s_year * s_prob, 
-  type ~ year * weighted_probs,
-   data = scaled_iscb %>% mutate(year = as.factor(year))
-   , 
-   family = 'binomial')
-summary(inte_lm)
-anova(main_lm, inte_lm, test = 'Chisq')
-mean(scaled_iscb$year)
-mean(scaled_iscb$weighted_probs)
-```
-
-```{r}
-# inte_lm <- glm(type ~ (year * weighted_probs), 
-#    data = iscb_lm, 
+```{r include=FALSE, eval=FALSE}
+# inte_lm <- glm(type ~ (year * weighted_probs),
+#    data = iscb_lm,
 #    family = 'binomial')
 ```
 
