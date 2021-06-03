@@ -347,7 +347,7 @@ main_lm <- function(regioni) {
 
 main_list <- lapply(large_regions, main_lm)
 names(main_list) <- large_regions
-lapply(main_list, tidy::broom)
+lapply(main_list, broom::tidy)
 ```
 
 ```{r include=FALSE, eval = FALSE}
@@ -368,21 +368,21 @@ There seems to be little difference between the proportion of keynote speakers o
 However, just because a nationality isn't underrepresented against the field doesn't mean scientists from that nationality are appropriately represented.
 
 ```{r fig.height=6, warning=FALSE}
-df2 <- iscb_pubmed_oth %>%
-  filter(region != "OtherCategories") %>%
-  recode_region()
-
-fig_s5 <- iscb_pubmed_sum %>%
-  recode_region() %>%
-  gam_and_ci(
-    df2 = df2,
-    start_y = start_year, end_y = end_year
-  ) +
-  theme(legend.position = c(0.8, 0.1)) +
-  facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
-fig_s5
-ggsave("figs/fig_s5.png", fig_s5, width = 6, height = 6)
-ggsave("figs/fig_s5.svg", fig_s5, width = 6, height = 6)
+# df2 <- iscb_pubmed_oth %>%
+#   filter(region != "OtherCategories") %>%
+#   recode_region()
+# 
+# fig_s5 <- iscb_pubmed_sum %>%
+#   recode_region() %>%
+#   gam_and_ci(
+#     df2 = df2,
+#     start_y = start_year, end_y = end_year
+#   ) +
+#   theme(legend.position = c(0.8, 0.1)) +
+#   facet_wrap(vars(fct_relevel(region, region_levels)), ncol = 3)
+# fig_s5
+# ggsave("figs/fig_s5.png", fig_s5, width = 6, height = 6)
+# ggsave("figs/fig_s5.svg", fig_s5, width = 6, height = 6)
 ```
 
 

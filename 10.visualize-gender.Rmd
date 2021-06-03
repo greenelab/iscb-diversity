@@ -182,7 +182,8 @@ get_p <- function(inte, colu) {
 ```{r}
 iscb_lm <- iscb_pubmed %>%
   filter(gender == "probability_female", !is.na(weighted_probs)) %>%
-  mutate(type = as.factor(type) %>% relevel(ref = "Pubmed authors"))
+  mutate(type = as.factor(type)) %>% 
+  mutate(type = type %>% relevel(ref = "Pubmed authors"))
 ```
 
 ```{r}
