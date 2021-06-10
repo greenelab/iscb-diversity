@@ -75,7 +75,7 @@ iscb_pubmed_oth <- iscb_nat_df %>%
 iscb_pubmed_sum_oth <- iscb_pubmed_oth %>%
   summarise(
     mean_prob = mean(probabilities),
-    se_prob = sd(probabilities),
+    se_prob = sd(probabilities)/sqrt(n()),
     me_prob = alpha_threshold * se_prob,
     .groups = "drop"
   )
@@ -114,7 +114,7 @@ fig_us_name_originb <- iscb_pubmed_sum_oth %>%
 
 fig_us_name_origin <- cowplot::plot_grid(fig_us_name_origina, fig_us_name_originb, labels = "AUTO", ncol = 1, rel_heights = c(1.3, 1))
 fig_us_name_origin
-ggsave("figs/us_name_origin.png", fig_us_name_origin, width = 6.5, height = 5.5)
+ggsave("figs/us_name_origin.png", fig_us_name_origin, width = 6.5, height = 5.5, dpi = 600)
 ggsave("figs/us_name_origin.svg", fig_us_name_origin, width = 6.5, height = 5.5)
 ```
 

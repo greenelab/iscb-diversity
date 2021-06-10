@@ -94,7 +94,7 @@ fig_1 <- iscb_pubmed_sum %>%
   # group_by(year, type, gender) %>%
   gender_breakdown("main", fct_rev(type))
 fig_1
-ggsave("figs/gender_breakdown.png", fig_1, width = 5, height = 2.5)
+ggsave("figs/gender_breakdown.png", fig_1, width = 5, height = 2.5, dpi = 600)
 ggsave("figs/gender_breakdown.svg", fig_1, width = 5, height = 2.5)
 ```
 
@@ -124,7 +124,7 @@ fig_1d <- iscb_pubmed %>%
   group_by(type2, year, gender) %>%
   summarise(
     mean_prob = mean(probabilities),
-    se_prob = sd(probabilities),
+    se_prob = sd(probabilities)/sqrt(n()),
     me_prob = alpha_threshold * se_prob,
     .groups = "drop"
   ) %>%
