@@ -1674,8 +1674,8 @@ pubmed_race_pmids &lt;- corr_authors %&gt;%
   rename(&#39;surname&#39; = last_name_simple) %&gt;% 
   predict_race(surname.only = T, impute.missing = F) </code></pre>
 <pre><code>## [1] &quot;Proceeding with surname-only predictions...&quot;</code></pre>
-<pre><code>## Warning in merge_surnames(voter.file, impute.missing = impute.missing): 5166
-## surnames were not matched.</code></pre>
+<pre><code>## Warning in merge_surnames(voter.file, impute.missing =
+## impute.missing): 5166 surnames were not matched.</code></pre>
 <pre class="r"><code>pubmed_us_race &lt;- pubmed_race_pmids %&gt;% 
   group_by(pmid, journal, publication_date, year, adjusted_citations) %&gt;% 
   summarise_at(vars(contains(&#39;pred.&#39;)), mean, na.rm = T, .groups = &#39;drop&#39;) %&gt;% 
@@ -1685,8 +1685,8 @@ iscb_us_race &lt;- keynotes %&gt;%
   rename(&#39;surname&#39; = last_name_simple) %&gt;%
   predict_race(surname.only = T, impute.missing = F)</code></pre>
 <pre><code>## [1] &quot;Proceeding with surname-only predictions...&quot;</code></pre>
-<pre><code>## Warning in merge_surnames(voter.file, impute.missing = impute.missing): 100
-## surnames were not matched.</code></pre>
+<pre><code>## Warning in merge_surnames(voter.file, impute.missing =
+## impute.missing): 100 surnames were not matched.</code></pre>
 <pre class="r"><code>my_jours &lt;- unique(pubmed_us_race$journal)
 my_confs &lt;- unique(iscb_us_race$conference)
 n_jours &lt;- length(my_jours)
@@ -1795,10 +1795,14 @@ lapply(inte_list, summary)</code></pre>
 ## -0.8113 -0.5414 -0.0942  0.2651 16.6148 
 ## 
 ## Coefficients:
-##                               Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)                   0.612841   0.004475 136.937   &lt;2e-16 ***
-## year                         -0.041522   0.004554  -9.118   &lt;2e-16 ***
-## typeKeynote speakers/Fellows  0.083082   0.038991   2.131   0.0331 *  
+##                               Estimate Std. Error t value
+## (Intercept)                   0.612841   0.004475 136.937
+## year                         -0.041522   0.004554  -9.118
+## typeKeynote speakers/Fellows  0.083082   0.038991   2.131
+##                              Pr(&gt;|t|)    
+## (Intercept)                    &lt;2e-16 ***
+## year                           &lt;2e-16 ***
+## typeKeynote speakers/Fellows   0.0331 *  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -1820,10 +1824,14 @@ lapply(inte_list, summary)</code></pre>
 ## -0.2870 -0.2596 -0.2303  0.1112  6.2454 
 ## 
 ## Coefficients:
-##                               Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)                   0.247463   0.003178  77.861  &lt; 2e-16 ***
-## year                          0.043328   0.003234  13.397  &lt; 2e-16 ***
-## typeKeynote speakers/Fellows -0.099391   0.027691  -3.589 0.000332 ***
+##                               Estimate Std. Error t value
+## (Intercept)                   0.247463   0.003178  77.861
+## year                          0.043328   0.003234  13.397
+## typeKeynote speakers/Fellows -0.099391   0.027691  -3.589
+##                              Pr(&gt;|t|)    
+## (Intercept)                   &lt; 2e-16 ***
+## year                          &lt; 2e-16 ***
+## typeKeynote speakers/Fellows 0.000332 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -1845,10 +1853,14 @@ lapply(inte_list, summary)</code></pre>
 ## -0.1573 -0.1143 -0.0837  0.0159  9.6671 
 ## 
 ## Coefficients:
-##                               Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)                   0.139696   0.001617  86.395   &lt;2e-16 ***
-## year                         -0.001807   0.001645  -1.098    0.272    
-## typeKeynote speakers/Fellows  0.016309   0.014088   1.158    0.247    
+##                               Estimate Std. Error t value
+## (Intercept)                   0.139696   0.001617  86.395
+## year                         -0.001807   0.001645  -1.098
+## typeKeynote speakers/Fellows  0.016309   0.014088   1.158
+##                              Pr(&gt;|t|)    
+## (Intercept)                    &lt;2e-16 ***
+## year                            0.272    
+## typeKeynote speakers/Fellows    0.247    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 

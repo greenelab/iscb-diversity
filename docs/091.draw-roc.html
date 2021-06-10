@@ -1742,12 +1742,12 @@ div.tocify {
 <div id="auroc" class="section level2">
 <h2>Name origin prediction method performance</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(tidyverse)</span></code></pre></div>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ──────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
 ## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
 ## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
 ## ✓ readr   1.4.0     ✓ forcats 0.5.0</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ─────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># still need to install caret for the calibration function because tidymodels&#39;s </span></span>
@@ -1769,7 +1769,7 @@ div.tocify {
 <span id="cb10-6"><a href="#cb10-6"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Sensitivity =</span> tpr, <span class="dt">Specificity =</span> <span class="dv">1</span><span class="op">-</span>fpr, <span class="dt">dSens =</span> <span class="kw">c</span>(<span class="kw">abs</span>(<span class="kw">diff</span>(<span class="dv">1</span><span class="op">-</span>tpr)), <span class="dv">0</span>)) <span class="op">%&gt;%</span></span>
 <span id="cb10-7"><a href="#cb10-7"></a><span class="st">  </span><span class="kw">ungroup</span>()</span></code></pre></div>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────
 ## cols(
 ##   fpr = col_double(),
 ##   tpr = col_double(),
@@ -1811,7 +1811,7 @@ div.tocify {
 <span id="cb17-2"><a href="#cb17-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">y_true =</span> <span class="kw">as.factor</span>(truth)) <span class="op">%&gt;%</span></span>
 <span id="cb17-3"><a href="#cb17-3"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>truth)</span></code></pre></div>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────
 ## cols(
 ##   African = col_double(),
 ##   CelticEnglish = col_double(),
@@ -1844,30 +1844,30 @@ div.tocify {
 ## ℹ See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
 ## This message is displayed once per session.</code></pre>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>cal_dfs<span class="op">$</span>EastAsian</span></code></pre></div>
-<pre><code>##    calibModelVar            bin   Percent      Lower     Upper Count  midpoint
-## 1           prob     [0,0.0909]  0.973038  0.9061138  1.043559   777  4.545455
-## 2           prob (0.0909,0.182] 12.715105 10.7555376 14.887108   133 13.636364
-## 3           prob  (0.182,0.273] 20.620843 16.9791523 24.652952    93 22.727273
-## 4           prob  (0.273,0.364] 29.924242 24.4643714 35.841394    79 31.818182
-## 5           prob  (0.364,0.455] 35.897436 29.7515540 42.405681    84 40.909091
-## 6           prob  (0.455,0.545] 38.536585 31.8402892 45.569554    79 50.000000
-## 7           prob  (0.545,0.636] 45.637584 37.4635833 53.988516    68 59.090909
-## 8           prob  (0.636,0.727] 56.953642 48.6544756 64.974492    86 68.181818
-## 9           prob  (0.727,0.818] 61.421320 54.2394760 68.253900   121 77.272727
-## 10          prob  (0.818,0.909] 71.764706 66.6571343 76.488532   244 86.363636
-## 11          prob      (0.909,1] 97.209555 96.8524649 97.536348  8953 95.454545
-##       region
-## 1  EastAsian
-## 2  EastAsian
-## 3  EastAsian
-## 4  EastAsian
-## 5  EastAsian
-## 6  EastAsian
-## 7  EastAsian
-## 8  EastAsian
-## 9  EastAsian
-## 10 EastAsian
-## 11 EastAsian</code></pre>
+<pre><code>##    calibModelVar            bin   Percent      Lower     Upper
+## 1           prob     [0,0.0909]  0.973038  0.9061138  1.043559
+## 2           prob (0.0909,0.182] 12.715105 10.7555376 14.887108
+## 3           prob  (0.182,0.273] 20.620843 16.9791523 24.652952
+## 4           prob  (0.273,0.364] 29.924242 24.4643714 35.841394
+## 5           prob  (0.364,0.455] 35.897436 29.7515540 42.405681
+## 6           prob  (0.455,0.545] 38.536585 31.8402892 45.569554
+## 7           prob  (0.545,0.636] 45.637584 37.4635833 53.988516
+## 8           prob  (0.636,0.727] 56.953642 48.6544756 64.974492
+## 9           prob  (0.727,0.818] 61.421320 54.2394760 68.253900
+## 10          prob  (0.818,0.909] 71.764706 66.6571343 76.488532
+## 11          prob      (0.909,1] 97.209555 96.8524649 97.536348
+##    Count  midpoint    region
+## 1    777  4.545455 EastAsian
+## 2    133 13.636364 EastAsian
+## 3     93 22.727273 EastAsian
+## 4     79 31.818182 EastAsian
+## 5     84 40.909091 EastAsian
+## 6     79 50.000000 EastAsian
+## 7     68 59.090909 EastAsian
+## 8     86 68.181818 EastAsian
+## 9    121 77.272727 EastAsian
+## 10   244 86.363636 EastAsian
+## 11  8953 95.454545 EastAsian</code></pre>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>fig_3b &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(cal_dfs) <span class="op">%&gt;%</span></span>
 <span id="cb23-2"><a href="#cb23-2"></a><span class="st">  </span><span class="kw">recode_region</span>() <span class="op">%&gt;%</span></span>
 <span id="cb23-3"><a href="#cb23-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> midpoint<span class="op">/</span><span class="dv">100</span>, <span class="dt">y =</span> Percent<span class="op">/</span><span class="dv">100</span>, <span class="dt">color =</span> <span class="kw">fct_relevel</span>(region, <span class="kw">as.character</span>(auc_df<span class="op">$</span>region)))) <span class="op">+</span></span>
