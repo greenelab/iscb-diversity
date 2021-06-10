@@ -4300,7 +4300,7 @@ div.tocify {
 <h3>General data read-in</h3>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>all_full_names &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&#39;data/names/full-names.tsv.xz&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>()</span></code></pre></div>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────
 ## cols(
 ##   fore_name = col_character(),
 ##   last_name = col_character(),
@@ -4334,7 +4334,7 @@ div.tocify {
 <span id="cb6-3"><a href="#cb6-3"></a>         <span class="dt">publication_date =</span> <span class="kw">ymd</span>(publication_date, <span class="dt">truncated =</span> <span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb6-4"><a href="#cb6-4"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">year</span>(publication_date) <span class="op">&lt;</span><span class="st"> </span><span class="dv">2020</span>)</span></code></pre></div>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────
 ## cols(
 ##   pmid = col_double(),
 ##   pmcid = col_character(),
@@ -4358,7 +4358,7 @@ div.tocify {
 <span id="cb8-12"><a href="#cb8-12"></a><span class="st">  </span><span class="kw">left_join</span>(<span class="kw">select</span>(all_full_names, <span class="op">-</span><span class="st"> </span>full_name), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&#39;fore_name&#39;</span>, <span class="st">&#39;last_name&#39;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb8-13"><a href="#cb8-13"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">year</span>(year) <span class="op">&lt;</span><span class="st"> </span><span class="dv">2020</span>, conference <span class="op">!=</span><span class="st"> &#39;PSB&#39;</span>) <span class="co"># remove PSB, exclude ISCB Fellows and ISMB speakers in 2020 for now</span></span></code></pre></div>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────
 ## cols(
 ##   year = col_double(),
 ##   full_name = col_character(),
@@ -4371,9 +4371,10 @@ div.tocify {
 ## )</code></pre>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>keynotes <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(<span class="kw">is.na</span>(fore_name_simple))</span></code></pre></div>
 <pre><code>## # A tibble: 0 x 11
-## # … with 11 variables: year &lt;date&gt;, full_name &lt;chr&gt;, fore_name &lt;chr&gt;,
-## #   last_name &lt;chr&gt;, conference &lt;chr&gt;, source &lt;chr&gt;, affiliations &lt;chr&gt;,
-## #   afflcountries &lt;chr&gt;, publication_date &lt;date&gt;, fore_name_simple &lt;chr&gt;,
+## # … with 11 variables: year &lt;date&gt;, full_name &lt;chr&gt;,
+## #   fore_name &lt;chr&gt;, last_name &lt;chr&gt;, conference &lt;chr&gt;,
+## #   source &lt;chr&gt;, affiliations &lt;chr&gt;, afflcountries &lt;chr&gt;,
+## #   publication_date &lt;date&gt;, fore_name_simple &lt;chr&gt;,
 ## #   last_name_simple &lt;chr&gt;</code></pre>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>large_jours &lt;-<span class="st"> </span>articles <span class="op">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a><span class="st">  </span><span class="kw">count</span>(journal, <span class="dt">sort =</span> T) <span class="op">%&gt;%</span><span class="st"> </span></span>
@@ -4385,7 +4386,7 @@ div.tocify {
 <span id="cb12-8"><a href="#cb12-8"></a><span class="st">  </span><span class="kw">left_join</span>(all_full_names, <span class="dt">by =</span> <span class="st">&#39;full_name&#39;</span>)</span></code></pre></div>
 <pre><code>## Warning: Missing column names filled in: &#39;X1&#39; [1]</code></pre>
 <pre><code>## 
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────
 ## cols(
 ##   X1 = col_character(),
 ##   African = col_double(),
@@ -4406,8 +4407,8 @@ div.tocify {
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>corr_authors <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb15-2"><a href="#cb15-2"></a><span class="st">  </span><span class="kw">count</span>(year, <span class="dt">name =</span> <span class="st">&#39;Number of articles with last authors&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb15-3"><a href="#cb15-3"></a><span class="st">  </span>DT<span class="op">::</span><span class="kw">datatable</span>(<span class="dt">rownames =</span> F)</span></code></pre></div>
-<div id="htmlwidget-18b4584e629299abd0c8" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-18b4584e629299abd0c8">{"x":{"filter":"none","data":[["1993-01-01","1994-01-01","1995-01-01","1996-01-01","1997-01-01","1998-01-01","1999-01-01","2000-01-01","2001-01-01","2002-01-01","2003-01-01","2004-01-01","2005-01-01","2006-01-01","2007-01-01","2008-01-01","2009-01-01","2010-01-01","2011-01-01","2012-01-01","2013-01-01","2014-01-01","2015-01-01","2016-01-01","2017-01-01","2018-01-01","2019-01-01"],[84,67,63,150,135,327,349,716,1209,1849,2708,4026,5373,6058,6335,7224,9029,9790,10761,11497,11889,12840,13404,14067,15182,15707,15770]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>year<\/th>\n      <th>Number of articles with last authors<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-15dd309e8c3cde373b86" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-15dd309e8c3cde373b86">{"x":{"filter":"none","data":[["1993-01-01","1994-01-01","1995-01-01","1996-01-01","1997-01-01","1998-01-01","1999-01-01","2000-01-01","2001-01-01","2002-01-01","2003-01-01","2004-01-01","2005-01-01","2006-01-01","2007-01-01","2008-01-01","2009-01-01","2010-01-01","2011-01-01","2012-01-01","2013-01-01","2014-01-01","2015-01-01","2016-01-01","2017-01-01","2018-01-01","2019-01-01"],[84,67,63,150,135,327,349,716,1209,1849,2708,4026,5373,6058,6335,7224,9029,9790,10761,11497,11889,12840,13404,14067,15182,15707,15770]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>year<\/th>\n      <th>Number of articles with last authors<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p><strong>If we set a threshold at least 200 articles a year, we should only consider articles from 1998 on.</strong></p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>corr_authors &lt;-<span class="st"> </span>corr_authors <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb16-2"><a href="#cb16-2"></a><span class="st">  </span><span class="kw">add_count</span>(year, <span class="dt">name =</span> <span class="st">&#39;n_aut_yr&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>

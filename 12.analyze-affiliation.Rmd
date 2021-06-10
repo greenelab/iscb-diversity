@@ -293,7 +293,7 @@ enrichment_plot_right <- plot_obs_exp_right %>%
 enrichment_plot <- cowplot::plot_grid(enrichment_plot_left, enrichment_plot_right,
                                 rel_widths = c(1, 1.3))
 enrichment_plot
-ggsave('figs/enrichment-plot.png', enrichment_plot, width = 5.5, height = 3.5)
+ggsave('figs/enrichment-plot.png', enrichment_plot, width = 5.5, height = 3.5, dpi = 600)
 
 ```
 

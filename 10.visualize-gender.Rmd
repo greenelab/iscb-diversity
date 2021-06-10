@@ -65,21 +65,13 @@ iscb_pubmed <- iscb_gender_df %>%
     values_to = "probabilities"
   ) %>%
   filter(!is.na(probabilities)) %>%
-  group_by(type, year, gender) %>%
-  mutate(
-    pmc_citations_year = mean(adjusted_citations),
-    weight = adjusted_citations / pmc_citations_year,
-    weighted_probs = probabilities * weight
-    # weight = 1
-  )
+  group_by(type, year, gender) 
 
 iscb_pubmed_sum <- iscb_pubmed %>%
   summarise(
     # n = n(),
-    mean_prob = mean(weighted_probs),
-    # mean_prob = mean(probabilities, na.rm = T),
-    # sd_prob = sd(probabilities, na.rm = T),
-    se_prob = sqrt(var(probabilities) * sum(weight^2) / (sum(weight)^2)),
+    mean_prob = mean(probabilities, na.rm = T),
+    se_prob = sd(probabilities, na.rm = T),
     # n = mean(n),
     me_prob = alpha_threshold * se_prob,
     .groups = "drop"
@@ -102,7 +94,7 @@ fig_1 <- iscb_pubmed_sum %>%
   # group_by(year, type, gender) %>%
   gender_breakdown("main", fct_rev(type))
 fig_1
-ggsave("figs/gender_breakdown.png", fig_1, width = 5, height = 2.5)
+ggsave("figs/gender_breakdown.png", fig_1, width = 5, height = 2.5, dpi = 600)
 ggsave("figs/gender_breakdown.svg", fig_1, width = 5, height = 2.5)
 ```
 
@@ -131,8 +123,8 @@ fig_1d <- iscb_pubmed %>%
   ) %>%
   group_by(type2, year, gender) %>%
   summarise(
-    mean_prob = mean(weighted_probs),
-    se_prob = sqrt(var(probabilities) * sum(weight^2) / (sum(weight)^2)),
+    mean_prob = mean(probabilities),
+    se_prob = sd(probabilities)/sqrt(n()),
     me_prob = alpha_threshold * se_prob,
     .groups = "drop"
   ) %>%
@@ -173,7 +165,7 @@ iscb_pubmed_sum %>%
 ```{r echo = F}
 get_p <- function(inte, colu) {
   broom::tidy(inte) %>%
-    filter(term == "weighted_probs") %>%
+    filter(term == "probabilities") %>%
     pull(colu) %>%
     sprintf("%0.5g", .)
 }
@@ -181,7 +173,7 @@ get_p <- function(inte, colu) {
 
 ```{r}
 iscb_lm <- iscb_pubmed %>%
-  filter(gender == "probability_female", !is.na(weighted_probs)) %>%
+  filter(gender == "probability_female", !is.na(probabilities)) %>%
   mutate(type = as.factor(type)) %>% 
   mutate(type = type %>% relevel(ref = "Pubmed authors"))
 ```
@@ -189,33 +181,33 @@ iscb_lm <- iscb_pubmed %>%
 ```{r}
 scaled_iscb <- iscb_lm %>%
   filter(year(year) >= 2002)
-# scaled_iscb$s_prob <- scale(scaled_iscb$weighted_probs, scale = F)
+# scaled_iscb$s_prob <- scale(scaled_iscb$probabilities, scale = F)
 # scaled_iscb$s_year <- scale(scaled_iscb$year, scale = F)
 
-main_lm <- glm(type ~ year + weighted_probs,
+main_lm <- glm(type ~ year + probabilities,
   data = scaled_iscb, # %>% mutate(year = as.factor(year))
   family = "binomial"
 )
 
 broom::tidy(main_lm)
 inte_lm <- glm(
-  # type ~ scale(year, scale = F) * scale(weighted_probs, scale = F),
+  # type ~ scale(year, scale = F) * scale(probabilities, scale = F),
   # type ~ s_year * s_prob,
-  type ~ year * weighted_probs,
+  type ~ year * probabilities,
   data = scaled_iscb, # %>% mutate(year = as.factor(year))
   family = "binomial"
 )
 broom::tidy(inte_lm)
 anova(main_lm, inte_lm, test = "Chisq")
 # mean(scaled_iscb$year)
-# mean(scaled_iscb$weighted_probs)
+# mean(scaled_iscb$probabilities)
 ```
 
 The two groups of scientists did not have a significant association with the gender predicted from fore names (_P_ = `r get_p(main_lm, 'p.value')`).
 Interaction terms do not predict `type` over and above the main effect of gender probability and year.
 
 ```{r include=FALSE, eval=FALSE}
-# inte_lm <- glm(type ~ (year * weighted_probs),
+# inte_lm <- glm(type ~ (year * probabilities),
 #    data = iscb_lm,
 #    family = 'binomial')
 ```
