@@ -16,7 +16,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ## Load data
 
 Only keep articles from 2002 because few authors had gender predictions before 2002.
-See [093.summary-stats](docs/093.summary-stats.html) for more details.
+See [093.summary-stats](093.summary-stats.html) for more details.
 
 ```{r}
 load("Rdata/raws.Rdata")
