@@ -10,7 +10,7 @@ theme_set(theme_bw() + theme(legend.title = element_blank()))
 ```
 
 Only keep articles from 2002 because few authors had nationality predictions before 2002 (mostly due to missing metadata).
-See [093.summary-stats](docs/093.summary-stats.html) for more details.
+See [093.summary-stats](093.summary-stats.html) for more details.
 
 ```{r}
 load("Rdata/raws.Rdata")
