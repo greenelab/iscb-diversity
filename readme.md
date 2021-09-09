@@ -71,7 +71,7 @@ docker run \
   --publish 8787:8787 \
   --env DISABLE_AUTH=true \
   --mount type=bind,source="$(pwd)",target=/home/rstudio/repo \
-  iscb-diversity-r
+  docker.pkg.github.com/greenelab/iscb-diversity/iscb-diversity-r
 ```
 
 Navigate to <http://localhost:8787> and you should be logged into RStudio as the rstudio user.
